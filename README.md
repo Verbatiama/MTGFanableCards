@@ -13,4 +13,7 @@ Goals
 7. Colour Indicator
 8. Flash symbol
 9. Subtype symbols (Not including creatures or tokens)
-10. Keyword Symbols
+10. Special symbols (Colour indicator, Flip)
+11. Keyword symbols (ones that exist in arena)
+12. Active in grave
+13. Keyword symbols (other)
