@@ -1,0 +1,645 @@
+# MTG Fannable Cards — Requirements
+
+This document consolidates the project goals from `README.md` and `Components of a card.md`, the reference mockups (Niv-Mizzet, the Firemind; Damnation; Sword of Fire and Ice; Jace, the Mind Sculptor; Feral Invocation; and the ten-card composite), and decisions made by the project owner. It is arranged in the order an implementer needs it: what the app is, how data flows through it, how a card is laid out, the rules for each card kind, the reference data the renderer depends on, and finally the questions that still need answers.
+
+Each requirement is tagged:
+
+- **[Confirmed]**: stated by the owner or unambiguous in the mockups.
+- **[Inferred]**: observed in the mockups but not explicitly confirmed; verify before relying on it.
+- **[Open]**: not yet decided; see section 11 for the consolidated question list.
+
+---
+
+## 1. Purpose and concept
+
+1.1 **[Confirmed]** The application generates Magic: The Gathering cards in a new "fannable" layout.
+
+1.2 **[Inferred]** "Fannable" means the card is readable when held fanned in hand. A black **stat bar** runs the full height of the card's left edge, and it carries the information a player needs while only that strip is visible: card type, mana cost, colour indicator, timing/zone symbols, supertype, subtype, permanence, and stats or loyalty.
+
+1.3 **[Open]** Whether a mirrored (right-edge bar) variant is needed for players who fan the other way.
+
+1.4 **[Open]** Who owns the layout design. The composite mockup carries an "OSPREYDAWN" watermark; confirm permission to implement it and whether attribution is required.
+
+---
+
+## 2. Scope and priorities
+
+2.1 The README lists these goals. It does not say whether the numbering is a priority order, a milestone plan, or just a list **[Open]**:
+
+1. Generate a normal card with a black bar on the left
+2. Mana symbols on the left
+3. Card types top left
+4. Power/toughness
+5. Symbols in text
+6. Loyalty abilities
+7. Colour indicator
+8. Flash symbol
+9. Subtype symbols (not including creatures or tokens)
+10. Special symbols (colour indicator, flip)
+11. Keyword symbols (ones that exist in Arena)
+12. Active in grave
+13. Keyword symbols (other)
+
+2.2 **[Confirmed]** Goals 8, 11, 12 and 13 are superseded by a single concept: **zone and timing symbols** (section 5.4). Keyword symbols in general are *not* required. Only effects that change where a card can be cast or activated from, or when it can be cast, get a symbol.
+
+2.3 **[Confirmed]** Goal 7 and the colour indicator in goal 10 are the same feature (section 5.2).
+
+2.4 **[Open]** Acceptance criteria for each goal, i.e. what "done" looks like.
+
+2.5 **[Open]** Which card layouts are in scope for v1. All mockups are single-faced cards with simple costs. Section 8 lists the layouts that have no mockup and need either a design or an explicit "out of scope for v1".
+
+---
+
+## 3. Application architecture
+
+### 3.1 Runtime
+
+3.1.1 **[Confirmed]** The application runs on Node.js and is written in JavaScript.
+
+3.1.2 **[Open]** Interface: command-line tool only, or also a local server/UI.
+
+3.1.3 **[Open]** Rendering approach, e.g. a canvas library such as node-canvas or skia-canvas, or a headless browser rendering HTML/SVG. This is an implementation choice, but it affects font and SVG symbol handling.
+
+### 3.2 Input
+
+3.2.1 **[Confirmed]** The user supplies card names. Each name is looked up in a JSON file of Magic cards.
+
+3.2.2 **[Open]** Input format: CLI arguments, a text file, or a pasted decklist with quantities (e.g. `4 Lightning Bolt`).
+
+3.2.3 **[Open]** Quantities: whether `4 Lightning Bolt` produces four images or one.
+
+3.2.4 **[Open]** Name matching: exact, case-insensitive, or fuzzy.
+
+3.2.5 **[Open]** Double-faced card names: accept the full name (`Delver of Secrets // Insectile Aberration`), either face name, or both.
+
+3.2.6 **[Open]** Unmatched names: skip with a warning, fail the whole batch, or produce an error report alongside the zip.
+
+3.2.7 **[Open]** Non-English card names and non-English output (see 10.4).
+
+### 3.3 Card data source
+
+3.3.1 **[Open]** Which JSON source: MTGJSON (e.g. AllPrintings) or Scryfall bulk data (Oracle Cards / Default Cards). The choice matters because field names differ. The renderer depends on fields for:
+
+- mana cost
+- colours and colour indicator
+- type line and supertypes/types/subtypes
+- Oracle text
+- power, toughness, loyalty and defense
+- layout and faces
+- keywords
+- rarity, set code and collector number
+- artist
+- release date
+
+3.3.2 **[Open]** Whether the JSON is bundled with the app or downloaded, and how and when it is updated.
+
+3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
+
+- a way for the user to specify a printing, e.g. `Lightning Bolt (M10) 146`
+- a defined default when none is given (e.g. latest printing, or first printing)
+
+3.3.4 **[Confirmed]** The type line shows the card's real type line from the JSON. Subtypes invented in the mockups ("Sorcery - Wrath", "Artifact - Sword", "Enchantment - Beast", "Planeswalker - Jace Beleren") are to be ignored.
+
+3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
+
+### 3.4 Card art
+
+3.4.1 **[Open]** The card JSON contains no images. Art must come from somewhere, most likely Scryfall image URLs (e.g. `art_crop`). Define:
+
+- whether the app downloads at runtime or requires art to be supplied
+- caching of downloaded art
+- rate limiting (Scryfall asks for 50–100 ms between requests)
+- behaviour when art is unavailable or the app is offline (placeholder, skip, or fail)
+
+3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
+
+### 3.5 Output
+
+3.5.1 **[Confirmed]** One image per card, all images bundled into a zip file.
+
+3.5.2 **[Open]** Image format (PNG or JPG), pixel dimensions and DPI. The mockups are roughly 430 × 600 px, which is far below print resolution.
+
+3.5.3 **[Open]** Whether print bleed is required, and whether printable sheets (e.g. 3 × 3 on A4/Letter) are ever wanted in addition to single images.
+
+3.5.4 **[Open]** File naming inside the zip, and how collisions are handled (duplicates, several printings of one card).
+
+3.5.5 **[Open]** Double-faced cards: two images (front and back) or one.
+
+3.5.6 **[Open]** Zip file name and output location.
+
+---
+
+## 4. Card anatomy overview
+
+The card has two regions: the **stat bar** on the left and the **card box** on the right.
+
+```
+┌────┬──────────────────────────────┐
+│TYPE│ Name bar                     │
+│ CI │──────────────────────────────│
+│MANA│                              │
+│MANA│           Art                │
+│    │                              │
+│    │──────────────────────────────│
+│ZONE│ Type line          [set sym] │
+│SUPR│──────────────────────────────│
+│SUB │                              │
+│ P  │        Text box              │
+│ E  │      (watermark)             │
+│ R  │                              │
+│ M  │                              │
+│STAT│──────────────────────────────│
+│    │ Footer: № / rarity / set /   │
+│    │ lang / artist / © / holo     │
+└────┴──────────────────────────────┘
+```
+
+4.1 **[Confirmed]** The stat bar is black on every card, regardless of card colour.
+
+4.2 **[Inferred]** The stat bar has three sections:
+
+- **Top**, anchored to the top: card type icon, colour indicator, mana cost.
+- **Middle**, anchored at the type line: zone/timing symbols, supertype, subtype.
+- **Bottom**, anchored to the bottom: stats, loyalty, or the permanence label.
+
+4.3 **[Open]** Exact dimensions: bar width, icon sizes, spacing and margins, in pixels or mm at the chosen output resolution.
+
+4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
+
+---
+
+## 5. Stat bar
+
+### 5.1 Card type icon (top)
+
+5.1.1 **[Confirmed]** The card type icon is the first item at the top of the bar. Mockup icons:
+
+| Card type | Icon (as seen in mockups) |
+|---|---|
+| Creature | Claw marks |
+| Sorcery | Swirl |
+| Instant | Bolt |
+| Artifact | Chalice |
+| Enchantment | Sunburst |
+| Planeswalker | Planeswalker symbol |
+| Land | Land icon |
+
+5.1.2 **[Inferred]** Multi-type cards show one icon per type, side by side (Wurmcoil Engine shows artifact + creature).
+
+5.1.3 **[Open]** Icon order for multi-type cards, and the layout when there are three types (e.g. Artifact Land Creature).
+
+5.1.4 **[Open]** Icons for types not in the Components doc: Battle, Kindred (Tribal), and, if in scope, Dungeon, Plane, Phenomenon, Scheme, Conspiracy, Vanguard.
+
+### 5.2 Colour indicator (top)
+
+5.2.1 **[Confirmed]** For cards that have a colour indicator, it is placed directly under the card type icon.
+
+5.2.2 **[Inferred]** Cards that need it are mainly back faces of double-faced cards, plus cards such as Ancestral Vision and Dryad Arbor. It should be driven by the JSON colour indicator field.
+
+5.2.3 **[Open]** Appearance: plain colour pips, or mana symbols without counts. How two-colour and multi-colour indicators are drawn.
+
+5.2.4 **[Open]** Reflow: whether the mana block moves down to make room.
+
+5.2.5 **[Open]** Accessibility: the indicator should not rely on colour alone (see 10.3).
+
+### 5.3 Mana cost (top)
+
+5.3.1 **[Confirmed]** Mana cost is grouped by symbol: each distinct symbol appears once, on the left, with the required amount next to it. E.g. {2}{U}{U}{R}{R} is drawn as blue 2, red 2, generic 2.
+
+5.3.2 **[Confirmed]** Every mana symbol type follows this same pattern.
+
+5.3.3 **[Confirmed]** X is shown as a symbol **without** a number.
+
+5.3.4 **[Inferred]** Coloured symbols come first and generic comes last (reverse of the printed order). The mockups show only one colour order (Niv-Mizzet: blue then red).
+
+5.3.5 **[Confirmed]** Lands with no mana cost show no mana section.
+
+5.3.6 Symbol types to support. The Components doc lists colours (W, U, B, R, G), generic, colourless, Phyrexian, snow and hybrid. Items marked **[Open]** need a decision:
+
+| Symbol | Display | Status |
+|---|---|---|
+| W, U, B, R, G | Symbol + count | Confirmed |
+| Generic | Grey symbol + count | Confirmed |
+| Colourless {C} | Must be visibly distinct from generic; both are grey | **Open** |
+| X | Symbol, no count | Confirmed |
+| XX / XXX (e.g. {X}{X}{R}) | Without a count, {X} and {X}{X} look identical | **Open** |
+| Y, Z | Presumably as X | **Open** |
+| Hybrid ({W/U}) | Is {W/U}{W/U} one hybrid symbol + 2? | **Open** |
+| Mono-hybrid ({2/W}) | Display undefined | **Open** |
+| Phyrexian ({W/P}) | Symbol + count | **Open** (confirm) |
+| Phyrexian hybrid ({G/U/P}) | Display undefined | **Open** |
+| Colourless hybrid ({C/W}) | Display undefined | **Open** |
+| Snow {S} | Symbol + count | **Open** (confirm) |
+
+5.3.7 **[Open]** Full symbol order, e.g. WUBRG, then hybrid/Phyrexian/snow, then X, then generic.
+
+5.3.8 **[Open]** A {0} cost must look different from no mana cost (lands, Ancestral Vision). Define how {0} is drawn.
+
+5.3.9 **[Open]** Maximum rows before the mana block collides with the middle section. Five-colour costs, and large costs such as Emrakul's {15} or Draco's {16} (which is one row but a two-digit count), need testing.
+
+### 5.4 Zone and timing symbols (middle)
+
+5.4.1 **[Confirmed]** Instead of keyword symbols, symbols are needed for effects that change **where** a card can be cast or activated from, or **when** it can be cast. Confirmed examples:
+
+| Effect | Symbol |
+|---|---|
+| Flash | Lightning bolt (labelled "INSTANT" in the Feral Invocation mockup) |
+| Cycling | Hand |
+| Flashback | Graveyard |
+
+5.4.2 **[Open]** The complete mapping from mechanic to symbol. A starting list for the owner to confirm:
+
+- **Hand:** cycling, channel, ninjutsu, madness, transmute, forecast, bloodrush, reinforce
+- **Graveyard:** flashback, unearth, escape, disturb, embalm, eternalize, retrace, jump-start, scavenge, aftermath (second half)
+- **Exile:** foretell, suspend, plot, adventure (cast from exile after the adventure)
+- **Command zone:** if relevant
+- **Top of library:** miracle
+- **Timing:** flash, and possibly split second
+
+5.4.3 **[Open]** Detection method:
+
+- the JSON `keywords` array
+- parsing Oracle text
+- a hand-maintained mapping table
+- a combination of these
+
+Non-keyword text such as Gravecrawler's "you may cast this card from your graveyard" will not appear in a keywords field.
+
+5.4.4 **[Open]** Whether triggered abilities that work from a zone count. Bloodghast returns from the graveyard via a trigger; it is not "cast" or "activated" there.
+
+5.4.5 **[Open]** Label text. The flash bolt is labelled "INSTANT", which could be confused with the Instant card type. Consider "FLASH".
+
+5.4.6 **[Open]** Whether an Instant also gets the bolt symbol, which would duplicate its type icon.
+
+5.4.7 **[Open]** Maximum number of zone/timing symbols, and their order when a card has several.
+
+5.4.8 **[Open]** The **"NORMAL"** icon. Damnation and Jace show an icon labelled NORMAL in the slot where Feral Invocation shows the flash bolt. It likely means normal (sorcery-speed) timing, but it is inconsistent: Sword of Fire and Ice and Niv-Mizzet are also sorcery-speed and don't show it. Confirm its meaning and whether it appears on every card without flash.
+
+### 5.5 Supertype and subtype (middle)
+
+5.5.1 **[Confirmed]** Legendary is shown as a crown icon with the label "LEGENDARY" (Niv-Mizzet).
+
+5.5.2 **[Inferred]** Basic is shown with a labelled icon (Forest, composite image).
+
+5.5.3 **[Open]** Jace is legendary but shows no LEGENDARY icon. Are planeswalkers exempt (they are always legendary), or was it an omission?
+
+5.5.4 **[Open]** Icons for other supertypes: Snow, World, and Token if tokens are in scope.
+
+5.5.5 **[Confirmed]** Subtype icons appear in the middle section with a text label below: EQUIPMENT (Sword of Fire and Ice), AURA (Feral Invocation).
+
+5.5.6 **[Confirmed]** Creature subtypes and token subtypes do not get icons (README goal 9).
+
+5.5.7 Subtypes listed in the Components doc:
+
+| Parent type | Subtypes listed |
+|---|---|
+| Artifact | Equipment, Vehicle, Food |
+| Enchantment | Aura, Saga, Curse, Rune |
+| Land | Desert, Gate, Lair, Locus, Urza's |
+| Instant/Sorcery | Adventure, Arcane, Lesson, Trap |
+
+5.5.8 **[Open]** Whether this list is exhaustive or a starting set. Real subtypes not in it include:
+
+- **Artifact:** Clue, Treasure, Blood, Map, Powerstone, Incubator, Gold, Contraption, Fortification, Attraction
+- **Enchantment:** Class, Room, Case, Role, Shrine, Cartouche, Background, Shard
+- **Land:** Cave, Sphere, Town, Mine, Power-Plant, Tower, Planet, and the basic land types (Plains, Island, Swamp, Mountain, Forest, Wastes)
+- **Instant/Sorcery:** Omen
+
+Also define how new subtypes get added (e.g. a config table mapping subtype to icon).
+
+5.5.9 **[Open]** Which icon appears when a card has several subtypes with icons, e.g. Equipment + Vehicle, or Food + Equipment.
+
+5.5.10 **[Open]** Rule for which icons carry a text label and which are icon-only. So far, every middle-section icon in the mockups has a label.
+
+### 5.6 Middle-section layout
+
+5.6.1 **[Inferred]** Stack order, top to bottom (Feral Invocation): zone/timing symbol → subtype → permanence label. Niv-Mizzet shows the supertype in the same region.
+
+5.6.2 **[Inferred]** The stack is anchored at the type line and grows upward into the space beside the art.
+
+5.6.3 **[Open]** The full order when supertype, subtype and several zone symbols all apply, and the collision rule when the stack meets the mana block. For example, a legendary five-colour creature with flash and flashback.
+
+### 5.7 Bottom section
+
+5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon.
+
+5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line).
+
+5.7.3 **[Inferred]** The permanence label only appears when the bottom isn't occupied by stats or loyalty. Creatures and planeswalkers don't show it. Confirm this rule.
+
+5.7.4 **[Open]** Lands: the Forest and Wasteland mockups don't clearly show a permanence label, although lands are permanents. Confirm.
+
+5.7.5 **[Confirmed]** Planeswalkers: see section 7.2.
+
+5.7.6 **[Open]** Special power/toughness values: `*`, `1+*`, `X`, negative values, and two-digit values.
+
+5.7.7 **[Open]** Other stat-like values:
+
+- Vehicles have power/toughness but are not creatures. The Components doc says stats are "Creature only", which conflicts.
+- Battles have defense.
+- Spacecraft have station values.
+- Levelers, Sagas and Classes have segmented structures similar to loyalty.
+
+---
+
+## 6. Card box
+
+### 6.1 Name bar
+
+6.1.1 **[Confirmed]** The name bar is at the top of the card box, next to the card type icon. It shows the card name only; the mana cost is in the stat bar.
+
+### 6.2 Art box
+
+6.2.1 **[Confirmed]** The art box sits below the name bar and extends to the type line. See 3.4 for art sourcing and cropping.
+
+### 6.3 Type line
+
+6.3.1 **[Confirmed]** Shows the real type line from the JSON (3.3.4).
+
+6.3.2 **[Confirmed]** The set symbol is at the right end of the type line.
+
+6.3.3 **[Open]** Set symbol source (e.g. the Keyrune font or Scryfall SVGs), and whether it is coloured by rarity.
+
+### 6.4 Text box
+
+6.4.1 **[Confirmed]** Contains rules text, with flavour text below in italics (Feral Invocation, Lightning Strike).
+
+6.4.2 **[Inferred]** Reminder text is shown in italics in parentheses (Fiendslayer Paladin).
+
+6.4.3 **[Inferred]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Open]** Where watermark data and images come from.
+
+6.4.4 **[Inferred]** Basic lands show a large mana symbol in the text box instead of text (Forest).
+
+6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Open]** Whether this applies to all P/T references in text, including "-1/-1", "X/X" tokens, and counters.
+
+6.4.6 **[Inferred]** Mana symbols in rules text use the same symbol + count pill as the bar (Sword of Fire and Ice: "{2}: Equip"). **[Open]** Confirm this applies everywhere, including mana abilities such as "Add {C}{C}".
+
+6.4.7 Symbols to support in rules text. The Components doc lists tap, untap, energy (listed twice) and mana symbols. Additional symbols to decide on **[Open]**:
+
+- {Q} (untap, as distinct from the untap arrow)
+- {S} (snow)
+- {X}
+- {C} (colourless)
+- the chaos symbol
+- tickets ({TK})
+- loyalty cost symbols inside text
+- the planeswalker symbol
+
+6.4.8 **[Open]** Text fitting: font shrinking rules, minimum font size, and behaviour when Oracle text is too long.
+
+### 6.5 Footer
+
+6.5.1 **[Confirmed]** The footer contains:
+
+- collector number and rarity (e.g. "85/165 R")
+- set code and language (e.g. "PLC - EN")
+- artist credit with the paintbrush icon
+- copyright line
+- the holo stamp in the centre
+
+6.5.2 **[Open]** Copyright year: every mockup shows "© 2014". Should it be the printing's release year or a fixed string?
+
+6.5.3 **[Open]** Whether the holo stamp always appears, or only on certain rarities.
+
+### 6.6 Frame colour
+
+6.6.1 **[Confirmed]** The name bar, type line and text box are coloured by card colour:
+
+| Card | Frame |
+|---|---|
+| Black (Damnation) | Black/grey |
+| Blue (Jace) | Blue |
+| Green (Feral Invocation) | Green |
+| Multicolour (Niv-Mizzet) | Gold |
+| Colourless artifact (Sword of Fire and Ice) | Silver/grey |
+| Land (Forest, Wasteland) | Tan |
+
+6.6.2 **[Open]** Frames not yet shown:
+
+- two-colour hybrid (split frame or gold)
+- coloured artifacts
+- coloured lands
+- devoid
+- colourless non-artifact cards
+- lands that produce a colour
+- tokens
+
+---
+
+## 7. Rules by card kind
+
+### 7.1 Creature
+
+- Stat bar: creature type icon, mana, middle-section icons as applicable, stats at the bottom (5.7.1). No permanence label (5.7.3).
+- Reference: Niv-Mizzet, the Firemind; Fiendslayer Paladin; Wurmcoil Engine.
+
+### 7.2 Planeswalker
+
+7.2.1 **[Confirmed]** Loyalty ability costs (+N, 0, −N) appear in the stat bar, each vertically aligned with its ability in the text box.
+
+7.2.2 **[Confirmed]** The text box is divided into alternating shaded bands, one per ability.
+
+7.2.3 **[Confirmed]** Starting loyalty is shown in a loyalty badge at the bottom-left of the card, overlapping the bottom of the bar.
+
+7.2.4 **[Confirmed]** Static abilities get a band with no cost in the bar (Components doc: "blank space").
+
+7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. Jace shows the NORMAL icon but no LEGENDARY icon (see 5.4.8 and 5.5.3).
+
+7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
+
+7.2.7 **[Open]** Display of −X and +X costs.
+
+### 7.3 Instant and sorcery
+
+- Stat bar: type icon, mana, "NON-PERMANENT" at the bottom.
+- References: Damnation, Lightning Strike.
+- See 5.4.6 on whether instants also get the flash bolt.
+
+### 7.4 Artifact (including Equipment)
+
+- Stat bar: artifact icon, mana, subtype icon (e.g. EQUIPMENT), "PERMANENT" at the bottom.
+- Reference: Sword of Fire and Ice.
+
+### 7.5 Enchantment (including Aura)
+
+- Stat bar: enchantment icon, mana, zone/timing icons (flash), subtype icon (AURA), "PERMANENT" at the bottom.
+- Reference: Feral Invocation.
+
+### 7.6 Land
+
+- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable.
+- Basic lands show a large mana symbol in the text box.
+- References: Forest, Wasteland.
+- See 5.7.4 on the permanence label.
+
+### 7.7 Multi-type cards
+
+- One type icon per type at the top.
+- Stats if the card is a creature.
+- Reference: Wurmcoil Engine (Artifact Creature).
+
+---
+
+## 8. Special layouts (no mockup yet)
+
+The Components doc lists these "Flip" markers, which mix different concepts:
+
+- Day
+- Night
+- Spark
+- Ignite (meaning unclear)
+- Moon
+- Emrakul
+- Enchantment
+- Modal (front)
+- Modal (back)
+
+8.1 **[Open]** What each marker means and when it applies. Sun/Moon, Spark and Emrakul are transform markers, Day/Night is a mechanic (daybound), and Modal is MDFC.
+
+8.2 **[Open]** Each of the following layouts needs a mockup or an explicit "out of scope for v1":
+
+- transform double-faced cards (front and back)
+- modal double-faced cards
+- split cards
+- aftermath
+- adventure
+- Kamigawa-style flip cards
+- meld
+- saga
+- class
+- leveler
+- room
+- case
+- battle, including transforming battles
+- vehicle
+- prototype
+- mutate
+- omen
+- tokens and emblems
+
+8.3 **[Open]** How double-faced cards map to output images (see 3.5.5), and how the back face is identified in the stat bar.
+
+---
+
+## 9. Reference data the renderer needs
+
+The implementation should keep these as configuration tables rather than hard-coding them, so they can be extended:
+
+| Table | Maps | Status |
+|---|---|---|
+| Card type → icon | 5.1 | Partly defined by mockups |
+| Supertype → icon + label | 5.5.1–5.5.4 | Legendary and Basic defined; others open |
+| Subtype → icon + label | 5.5.7–5.5.9 | Partial list |
+| Mana symbol → icon, count rule, order | 5.3 | Colours, generic and X defined; others open |
+| Mechanic → zone/timing symbol + label | 5.4 | Flash, cycling and flashback defined; rest open |
+| Text symbol → icon | 6.4.7 | Partial |
+| Colour(s) → frame style | 6.6 | Mono, gold, colourless and land defined; others open |
+| Layout → marker / rendering rules | 8 | Open |
+
+9.1 **[Open]** Symbol and icon sourcing and licensing: the Mana and Keyrune fonts, Scryfall SVGs, or custom artwork. Check each licence's compatibility with the repository's GPL-3.0 licence.
+
+---
+
+## 10. Non-functional requirements
+
+10.1 **Fonts [Open].** The mockups use Beleren- and MPlantin-style fonts, which are not freely licensed. Choose substitutes or confirm licensing. Every font should have a fallback.
+
+10.2 **Legal [Open].**
+
+- The output is effectively a set of proxies using Wizards of the Coast card art, text and symbols. State the project's position relative to the Wizards Fan Content Policy.
+- Resolve design attribution (1.4) and symbol licensing (9.1).
+
+10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators.
+
+10.4 **Localisation [Open].** Whether non-English cards and non-English labels ("PERMANENT", "LEGENDARY", etc.) are in scope. The footer already shows a language code ("EN").
+
+10.5 **Performance [Open].** Expected batch size, e.g. a 100-card Commander deck, and acceptable generation time, given art downloads and rate limits.
+
+---
+
+## 11. Consolidated open questions
+
+Grouped by area, so the project owner can answer them in batches. Numbers in brackets refer to the sections above.
+
+### Product and scope
+
+1. Is a mirrored right-edge bar needed? [1.3]
+2. Who owns the layout design, and is permission or attribution needed? [1.4]
+3. Are the README goals in priority order? What are the acceptance criteria? [2.1, 2.4]
+4. Which layouts are in scope for v1? [2.5, 8.2]
+
+### Architecture, input and output
+
+5. CLI only, or also a server/UI? [3.1.2]
+6. What is the input format, and how are quantities handled? [3.2.2, 3.2.3]
+7. What name-matching rules apply, including DFC names? [3.2.4, 3.2.5]
+8. What happens to unmatched names? [3.2.6]
+9. Which JSON source (MTGJSON or Scryfall), and is it bundled or downloaded? [3.3.1, 3.3.2]
+10. How is a printing chosen, and what is the default? [3.3.3]
+11. Where does art come from? What are the caching, rate-limit and offline rules? [3.4.1]
+12. What are the image format, dimensions, DPI and bleed? [3.5.2, 3.5.3]
+13. How are files named inside the zip? [3.5.4, 3.5.6]
+14. Do double-faced cards produce one image or two? [3.5.5]
+
+### Layout
+
+15. What are the exact dimensions and spacing? [4.3]
+16. What are the overflow and collision rules for the stat bar? [4.4, 5.3.9, 5.6.3]
+
+### Stat bar
+
+17. Which icons are needed for Battle, Kindred and the other types, and in what order for multi-type cards? [5.1.3, 5.1.4]
+18. What does the colour indicator look like, and does the mana block reflow? [5.2.3, 5.2.4]
+19. How are colourless, XX, hybrid, mono-hybrid, Phyrexian, snow and {0} drawn? [5.3.6, 5.3.8]
+20. What is the full mana symbol order? [5.3.7]
+21. What is the complete mechanic → zone/timing symbol mapping? [5.4.2]
+22. How are mechanics detected (keywords field, text parsing, or mapping table)? [5.4.3]
+23. Do triggered abilities that work from a zone count? [5.4.4]
+24. Should the flash label be "INSTANT" or "FLASH"? Do instants also get the bolt? [5.4.5, 5.4.6]
+25. What is the maximum number and order of zone symbols? [5.4.7]
+26. What does the "NORMAL" icon mean, and when does it appear? [5.4.8]
+27. Why is there no LEGENDARY icon on Jace? [5.5.3]
+28. Which icons are needed for the other supertypes? [5.5.4]
+29. Is the subtype list exhaustive? Which icon wins when a card has several subtypes? [5.5.8, 5.5.9]
+30. Which icons carry text labels? [5.5.10]
+31. Is the permanence label shown only when the bottom is free? Do lands get it? [5.7.3, 5.7.4]
+32. How are special P/T values, vehicles, battles and spacecraft handled? [5.7.6, 5.7.7]
+
+### Card box
+
+33. Where do set symbols and watermarks come from? [6.3.3, 6.4.3]
+34. Does the sword/shield notation apply to all P/T text? [6.4.5]
+35. Is the symbol + count pill used for all mana in rules text? [6.4.6]
+36. Which additional text symbols are needed? [6.4.7]
+37. What are the text-fitting rules? [6.4.8]
+38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3]
+39. What do the frames for hybrid, coloured artifacts, devoid and other unshown cases look like? [6.6.2]
+40. How are long, many or ±X planeswalker abilities handled? [7.2.6, 7.2.7]
+
+### Special layouts
+
+41. What do the flip markers mean (including "Ignite")? [8.1]
+42. How is the back face identified? [8.3]
+
+### Non-functional
+
+43. Which fonts, and under what licensing? [10.1]
+44. What is the Fan Content Policy position? [10.2]
+45. What are the accessibility requirements? [10.3]
+46. Is localisation in scope? [10.4]
+47. What are the expected batch sizes and performance targets? [10.5]
+
+---
+
+## 12. Corrections to the source documents
+
+- **README goals 8, 11, 12, 13** (flash symbol, keyword symbols, active in grave) should be replaced by "Zone and timing symbols" (2.2).
+- **Components doc, Special → "Instant"** should read "Flash" (it is the timing symbol, not the card type).
+- **Components doc, Special → "Keywords"** should be replaced by "Zone and timing symbols".
+- **Components doc, Special → "Active in grave"** is covered by the graveyard zone symbol.
+- **Components doc, Other → "Non-permeant"** is a typo for "Non-permanent". It is the vertical permanence label (5.7.2), and "Permanent" should be listed alongside it.
+- **Components doc, Stats → "Creature only"** conflicts with Vehicles, which have P/T without being creatures.
+- **Components doc, Card box → Text box → Symbols** lists "Energy" twice.
+- **Components doc, Card types** is missing Battle and Kindred, and a Supertypes section (Legendary, Basic, Snow, World).
+- **Components doc, Card box** is missing the set symbol, flavour text, watermark and the footer fields.
+- **Anatomy mockup** labels the whole mana block "Generic Mana"; it should read "Mana Cost".
