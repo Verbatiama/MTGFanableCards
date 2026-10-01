@@ -18,7 +18,7 @@ These decisions block most of the build work, so they should be settled first.
 | D1   | ✓ DECIDED: V1 includes all card types (single-face rendering), double-faced as two images, special layouts post-v1           | PO     | —          | 2.5         |
 | D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                         | PO + A | —          | 3.3.1–3.3.2 |
 | D3   | ✓ DECIDED: Decklist format with quantities, both // and single face names, warning for unmatched (no batch failure)          | PO     | —          | 3.2.2–3.2.6 |
-| D4   | Define the output spec: image format, dimensions, DPI, bleed, file naming, zip name, one or two images per double-faced card | PO     | —          | 3.5         |
+| D4   | ✓ DECIDED: PNG 750×1050px (300 DPI), black border, card-name.png naming, zip "cards", optional PDF A4 with 9 tiled cards     | PO     | —          | 3.5         |
 | D5   | Choose the rendering technology (canvas library or headless browser)                                                         | B      | T-B1       | 3.1.3       |
 | D6   | Choose fonts and confirm licensing                                                                                           | PO + B | —          | 10.1        |
 | D7   | Choose the symbol and icon sources and check licence compatibility with GPL-3.0                                              | PO     | —          | 9.1         |

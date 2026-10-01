@@ -108,15 +108,16 @@ Each requirement is tagged:
 
 ### 3.5 Output
 
-3.5.1 **[Confirmed]** One image per card, all images bundled into a zip file.
+3.5.1 **[Confirmed]** Output format: **PNG, 750×1050 pixels (300 DPI for printing)**. Cards include a black border around the edges. All images bundled into a zip file named `cards`.
 
-3.5.2 **[Open]** Image format (PNG or JPG), pixel dimensions and DPI. The mockups are roughly 430 × 600 px, which is far below print resolution.
+3.5.2 **[Confirmed]** File naming: `card-name.png` (e.g., `Lightning-Bolt.png`, `Counterspell.png`). Duplicate card names are handled by appending a counter if needed (e.g., `Counterspell-2.png`).
 
-3.5.3 **[Open]** Whether print bleed is required, and whether printable sheets (e.g. 3 × 3 on A4/Letter) are ever wanted in addition to single images.
+3.5.3 **[Confirmed]** Output options:
 
-3.5.4 **[Open]** File naming inside the zip, and how collisions are handled (duplicates, several printings of one card).
+- **Default:** Zip file with individual PNG images
+- **Optional:** PDF (A4 size) with 9 cards tiled per sheet for printing convenience
 
-3.5.5 **[Open]** Double-faced cards: two images (front and back) or one.
+3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
 
 3.5.6 **[Open]** Zip file name and output location.
 
