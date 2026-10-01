@@ -95,6 +95,8 @@ Each requirement is tagged:
 
   3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
 
+  3.3.6 **[Confirmed]** Card-model schema for v1: each card is represented as a single object containing identity fields (`name`, `types`, `supertypes`, `subtypes`, `layout`), mana info (`manaCost` with grouped symbol counts), power/toughness or loyalty fields, colour indicator information, oracle text kept in the same formatting as Scryfall, and footer metadata (`collectorNumber`, `rarity`, `setCode`, `artist`, `copyright`). This structure is sufficient for rendering, and additional fields can be added later only if a concrete need appears.
+
 ### 3.4 Card art
 
 3.4.1 **[Confirmed]** Card art sourcing:
@@ -105,7 +107,7 @@ Each requirement is tagged:
 - **Rate limiting:** Requests are spaced 100ms apart to respect Scryfall API limits
 - **Fallback behavior:** If art is unavailable (failed request, network error, or no image URL in data), render a **solid black placeholder** in the art box. The card still generates successfully.
 
-3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
+  3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
 
 ### 3.5 Output
 

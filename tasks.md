@@ -13,22 +13,22 @@ Decisions (D) are owned by the project owner (PO) unless marked otherwise. Refer
 
 These decisions block most of the build work, so they should be settled first.
 
-| ID   | Task                                                                                                                         | Owner  | Depends on | Req         |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ----------- |
-| D1   | ✓ DECIDED: V1 includes all card types (single-face rendering), double-faced as two images, special layouts post-v1           | PO     | —          | 2.5         |
-| D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                         | PO + A | —          | 3.3.1–3.3.2 |
-| D3   | ✓ DECIDED: Decklist format with quantities, both // and single face names, warning for unmatched (no batch failure)          | PO     | —          | 3.2.2–3.2.6 |
-| D4   | ✓ DECIDED: PNG 750×1050px (300 DPI), black border, card-name.png naming, zip "cards", optional PDF A4 with 9 tiled cards     | PO     | —          | 3.5         |
-| D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code)                                                  | B      | —          | 3.1.3       |
-| D6   | ✓ DECIDED: Use Beleren fonts from Assets/Fonts/ (free to use)                                                                | PO + B | —          | 10.1        |
-| D7   | ✓ DECIDED: Custom SVG mana symbols from res/symbols/, Scryfall SVGs for set/type icons, custom watermarks                    | PO     | —          | 9.1         |
-| D8   | ✓ DECIDED: Dimensions from example mockups, configurable in code, no mirrored bar for v1                                     | PO     | D4         | 1.3, 4.3    |
-| D9   | ✓ DECIDED: Backend API + frontend UI (API for programmatic access, UI for decklist input)                                    | PO     | —          | 3.1.2       |
-| D10  | ✓ DECIDED: Scryfall runtime download, local cache, 100ms rate limit, black placeholder for missing art                       | PO     | D2         | 3.4         |
-| S1   | Agree the card-model schema: types, grouped mana, stats, loyalty, colour indicator, zone symbols, text tokens, footer fields | A + B  | —          | 3.3.1       |
-| T-A1 | Scaffold the project: Node repo, linting, test framework, CI, folder structure                                               | A      | —          | 3.1.1       |
-| T-B1 | Rendering spike: draw a bar, a symbol, text with an inline icon, and export a PNG with two candidate technologies            | B      | —          | 3.1.3       |
-| T-A2 | Build a fixture set: the 10 mockup cards plus edge cases, as hand-written card-model JSON                                    | A      | S1         | all         |
+| ID   | Task                                                                                                                                                                   | Owner  | Depends on | Req         |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ----------- |
+| D1   | ✓ DECIDED: V1 includes all card types (single-face rendering), double-faced as two images, special layouts post-v1                                                     | PO     | —          | 2.5         |
+| D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                                                                   | PO + A | —          | 3.3.1–3.3.2 |
+| D3   | ✓ DECIDED: Decklist format with quantities, both // and single face names, warning for unmatched (no batch failure)                                                    | PO     | —          | 3.2.2–3.2.6 |
+| D4   | ✓ DECIDED: PNG 750×1050px (300 DPI), black border, card-name.png naming, zip "cards", optional PDF A4 with 9 tiled cards                                               | PO     | —          | 3.5         |
+| D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code)                                                                                            | B      | —          | 3.1.3       |
+| D6   | ✓ DECIDED: Use Beleren fonts from Assets/Fonts/ (free to use)                                                                                                          | PO + B | —          | 10.1        |
+| D7   | ✓ DECIDED: Custom SVG mana symbols from res/symbols/, Scryfall SVGs for set/type icons, custom watermarks                                                              | PO     | —          | 9.1         |
+| D8   | ✓ DECIDED: Dimensions from example mockups, configurable in code, no mirrored bar for v1                                                                               | PO     | D4         | 1.3, 4.3    |
+| D9   | ✓ DECIDED: Backend API + frontend UI (API for programmatic access, UI for decklist input)                                                                              | PO     | —          | 3.1.2       |
+| D10  | ✓ DECIDED: Scryfall runtime download, local cache, 100ms rate limit, black placeholder for missing art                                                                 | PO     | D2         | 3.4         |
+| S1   | ✓ AGREED: Card-model schema sufficient for v1; keep oracle text in Scryfall formatting, with `manaCost` grouped and extra fields only added if a concrete need appears | A + B  | —          | 3.3.1       |
+| T-A1 | Scaffold the project: Node repo, linting, test framework, CI, folder structure                                                                                         | A      | —          | 3.1.1       |
+| T-B1 | Rendering spike: draw a bar, a symbol, text with an inline icon, and export a PNG with two candidate technologies                                                      | B      | —          | 3.1.3       |
+| T-A2 | Build a fixture set: the 10 mockup cards plus edge cases, as hand-written card-model JSON                                                                              | A      | S1         | all         |
 
 ## Phase 1: Rule decisions (weeks 1–3, alongside build work)
 
