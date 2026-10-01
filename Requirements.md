@@ -536,7 +536,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 10. Non-functional requirements
 
-10.1 **Fonts [Open].** The mockups use Beleren- and MPlantin-style fonts, which are not freely licensed. Choose substitutes or confirm licensing. Every font should have a fallback.
+10.1 **Fonts [Confirmed].** Use the Beleren fonts (free to use, located in `Assets/Fonts/`). These provide the authentic Magic card aesthetic.
 
 10.2 **Legal [Open].**
 
