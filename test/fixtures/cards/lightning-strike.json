@@ -1,0 +1,35 @@
+{
+  "name": "Lightning Strike",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Instant",
+  "supertypes": [],
+  "types": ["Instant"],
+  "subtypes": [],
+  "colors": ["R"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "R",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Lightning Strike deals 3 damage to any target.",
+  "flavorText": "To wield lightning is to tame chaos.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/0/8/084b7337-c06f-4cbf-8fc0-0b20c221f1dc.jpg?1783934547",
+  "artist": "Adam Paquette",
+  "collectorNumber": "152",
+  "rarity": "uncommon",
+  "setCode": "M19",
+  "lang": "en",
+  "copyright": "™ & © 2018 Wizards of the Coast"
+}

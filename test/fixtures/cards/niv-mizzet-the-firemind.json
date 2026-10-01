@@ -1,0 +1,39 @@
+{
+  "name": "Niv-Mizzet, the Firemind",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Creature — Dragon Wizard",
+  "supertypes": ["Legendary"],
+  "types": ["Creature"],
+  "subtypes": ["Dragon", "Wizard"],
+  "colors": ["U", "R"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "U",
+      "count": 2
+    },
+    {
+      "symbol": "R",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "power": "4",
+  "toughness": "4",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Flying\nWhenever you draw a card, Niv-Mizzet deals 1 damage to any target.\n{T}: Draw a card.",
+  "flavorText": "\"(Z->)90° - (E-N²W)90°t = 1\"",
+  "watermark": "izzet",
+  "artUrl": "https://cards.scryfall.io/art_crop/front/5/9/5994d98a-090b-4203-b44f-b6517b6a83ea.jpg?1783943476",
+  "artist": "Todd Lockwood",
+  "collectorNumber": "123",
+  "rarity": "rare",
+  "setCode": "GPT",
+  "lang": "en",
+  "copyright": "™ & © 2006 Wizards of the Coast"
+}

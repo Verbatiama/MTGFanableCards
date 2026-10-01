@@ -1,0 +1,31 @@
+{
+  "name": "Ugin, the Spirit Dragon",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Planeswalker — Ugin",
+  "supertypes": ["Legendary"],
+  "types": ["Planeswalker"],
+  "subtypes": ["Ugin"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "generic",
+      "count": 8
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": "7",
+  "defense": null,
+  "oracleText": "+2: Ugin deals 3 damage to any target.\n−X: Exile each permanent with mana value X or less that's one or more colors.\n−10: You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/5/8/58c1e824-c8a9-4312-8e4c-a29a26d189a4.jpg?1783938716",
+  "artist": "Raymond Swanland",
+  "collectorNumber": "1",
+  "rarity": "mythic",
+  "setCode": "FRF",
+  "lang": "en",
+  "copyright": "™ & © 2015 Wizards of the Coast"
+}

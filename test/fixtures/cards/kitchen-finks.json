@@ -1,0 +1,35 @@
+{
+  "name": "Kitchen Finks",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Creature — Ouphe",
+  "supertypes": [],
+  "types": ["Creature"],
+  "subtypes": ["Ouphe"],
+  "colors": ["W", "G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G/W",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": "3",
+  "toughness": "2",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "When this creature enters, you gain 2 life.\nPersist (When this creature dies, if it had no -1/-1 counters on it, return it to the battlefield under its owner's control with a -1/-1 counter on it.)",
+  "flavorText": "Accept one favor from an ouphe, and you're doomed to accept another.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/7/d/7d203208-8a21-4c68-afa2-4efd8726f026.jpg?1783942717",
+  "artist": "Kev Walker",
+  "collectorNumber": "229",
+  "rarity": "uncommon",
+  "setCode": "SHM",
+  "lang": "en",
+  "copyright": "™ & © 2008 Wizards of the Coast"
+}

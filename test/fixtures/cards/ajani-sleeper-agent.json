@@ -1,0 +1,43 @@
+{
+  "name": "Ajani, Sleeper Agent",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Planeswalker — Ajani",
+  "supertypes": ["Legendary"],
+  "types": ["Planeswalker"],
+  "subtypes": ["Ajani"],
+  "colors": ["W", "G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "W",
+      "count": 1
+    },
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "G/W/P",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": "4",
+  "defense": null,
+  "oracleText": "Compleated ({G/W/P} can be paid with {G}, {W}, or 2 life. If life was paid, this planeswalker enters with two fewer loyalty counters.)\n+1: Reveal the top card of your library. If it's a creature or planeswalker card, put it into your hand. Otherwise, you may put it on the bottom of your library.\n−3: Distribute three +1/+1 counters among up to three target creatures. They gain vigilance until end of turn.\n−6: You get an emblem with \"Whenever you cast a creature or planeswalker spell, target opponent gets two poison counters.\"",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/7/6/7641f4d9-4614-41c8-87f5-4845bd78e9b3.jpg?1783921289",
+  "artist": "Matt Stewart",
+  "collectorNumber": "192",
+  "rarity": "mythic",
+  "setCode": "DMU",
+  "lang": "en",
+  "copyright": "™ & © 2022 Wizards of the Coast"
+}

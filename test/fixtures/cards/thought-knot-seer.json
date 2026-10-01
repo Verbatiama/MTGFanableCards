@@ -1,0 +1,35 @@
+{
+  "name": "Thought-Knot Seer",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Creature — Eldrazi",
+  "supertypes": [],
+  "types": ["Creature"],
+  "subtypes": ["Eldrazi"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "C",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 3
+    }
+  ],
+  "power": "4",
+  "toughness": "4",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "({C} represents colorless mana.)\nWhen this creature enters, target opponent reveals their hand. You choose a nonland card from it and exile that card.\nWhen this creature leaves the battlefield, target opponent draws a card.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/b/f/bffc360e-db41-48f3-9365-680d55046e04.jpg?1783937929",
+  "artist": "Svetlin Velinov",
+  "collectorNumber": "9",
+  "rarity": "rare",
+  "setCode": "OGW",
+  "lang": "en",
+  "copyright": "™ & © 2016 Wizards of the Coast"
+}

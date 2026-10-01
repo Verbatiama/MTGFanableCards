@@ -1,0 +1,31 @@
+{
+  "name": "Sword of Fire and Ice",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Artifact — Equipment",
+  "supertypes": [],
+  "types": ["Artifact"],
+  "subtypes": ["Equipment"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "generic",
+      "count": 3
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Equipped creature gets +2/+2 and has protection from red and from blue.\nWhenever equipped creature deals combat damage to a player, this Equipment deals 2 damage to any target and you draw a card.\nEquip {2}",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/8/e/8eb613ee-8b8b-4a34-886c-6592b27672b3.jpg?1783944417",
+  "artist": "Mark Zug",
+  "collectorNumber": "148",
+  "rarity": "rare",
+  "setCode": "DST",
+  "lang": "en",
+  "copyright": "™ & © 2004 Wizards of the Coast"
+}

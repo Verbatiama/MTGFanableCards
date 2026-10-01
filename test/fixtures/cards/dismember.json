@@ -1,0 +1,35 @@
+{
+  "name": "Dismember",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Instant",
+  "supertypes": [],
+  "types": ["Instant"],
+  "subtypes": [],
+  "colors": ["B"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B/P",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "({B/P} can be paid with either {B} or 2 life.)\nTarget creature gets -5/-5 until end of turn.",
+  "flavorText": "\"You serve Phyrexia. Your pieces would better serve Phyrexia elsewhere.\"\n—Azax-Azog, the Demon Thane",
+  "watermark": "phyrexian",
+  "artUrl": "https://cards.scryfall.io/art_crop/front/0/6/064dfdeb-485f-473e-9fa0-8fdb7638cdc6.jpg?1783941314",
+  "artist": "Terese Nielsen",
+  "collectorNumber": "57",
+  "rarity": "uncommon",
+  "setCode": "NPH",
+  "lang": "en",
+  "copyright": "™ & © 2011 Wizards of the Coast"
+}

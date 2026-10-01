@@ -1,0 +1,35 @@
+{
+  "name": "Jace, the Mind Sculptor",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Planeswalker — Jace",
+  "supertypes": ["Legendary"],
+  "types": ["Planeswalker"],
+  "subtypes": ["Jace"],
+  "colors": ["U"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "U",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": "3",
+  "defense": null,
+  "oracleText": "+2: Look at the top card of target player's library. You may put that card on the bottom of that player's library.\n0: Draw three cards, then put two cards from your hand on top of your library in any order.\n−1: Return target creature to its owner's hand.\n−12: Exile all cards from target player's library, then that player shuffles their hand into their library.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/0/e/0e606072-a3aa-4300-ba90-ec92a721fa76.jpg?1783942061",
+  "artist": "Jason Chan",
+  "collectorNumber": "31",
+  "rarity": "mythic",
+  "setCode": "WWK",
+  "lang": "en",
+  "copyright": "™ & © 2010 Wizards of the Coast"
+}

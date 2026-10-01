@@ -1,0 +1,35 @@
+{
+  "name": "Street Wraith",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Creature — Wraith",
+  "supertypes": [],
+  "types": ["Creature"],
+  "subtypes": ["Wraith"],
+  "colors": ["B"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 3
+    }
+  ],
+  "power": "3",
+  "toughness": "4",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Swampwalk (This creature can't be blocked as long as defending player controls a Swamp.)\nCycling—Pay 2 life. (Pay 2 life, Discard this card: Draw a card.)",
+  "flavorText": "The lamps on Wyndmoor Street snuff themselves at midnight and refuse to relight, afraid to illuminate what lies in the darkness.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/6/7/672e2815-bbcc-4338-a8ba-9aa97142ea69.jpg?1783943108",
+  "artist": "Cyril Van Der Haegen",
+  "collectorNumber": "90",
+  "rarity": "uncommon",
+  "setCode": "FUT",
+  "lang": "en",
+  "copyright": "™ & © 2007 Wizards of the Coast"
+}

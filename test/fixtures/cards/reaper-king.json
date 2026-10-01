@@ -1,0 +1,47 @@
+{
+  "name": "Reaper King",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Artifact Creature — Scarecrow",
+  "supertypes": ["Legendary"],
+  "types": ["Artifact", "Creature"],
+  "subtypes": ["Scarecrow"],
+  "colors": ["W", "U", "B", "R", "G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "2/W",
+      "count": 1
+    },
+    {
+      "symbol": "2/U",
+      "count": 1
+    },
+    {
+      "symbol": "2/B",
+      "count": 1
+    },
+    {
+      "symbol": "2/R",
+      "count": 1
+    },
+    {
+      "symbol": "2/G",
+      "count": 1
+    }
+  ],
+  "power": "6",
+  "toughness": "6",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "({2/W} can be paid with any two mana or with {W}. This card's mana value is 10.)\nOther Scarecrow creatures you control get +1/+1.\nWhenever another Scarecrow you control enters, destroy target permanent.",
+  "flavorText": "It's harvest time.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/5/0/502740bf-0bff-4358-8996-1a27e5f0343f.jpg?1783942710",
+  "artist": "Jim Murray",
+  "collectorNumber": "260",
+  "rarity": "rare",
+  "setCode": "SHM",
+  "lang": "en",
+  "copyright": "™ & © 2008 Wizards of the Coast"
+}

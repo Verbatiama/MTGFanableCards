@@ -1,0 +1,35 @@
+{
+  "name": "Tarmogoyf",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Creature — Lhurgoyf",
+  "supertypes": [],
+  "types": ["Creature"],
+  "subtypes": ["Lhurgoyf"],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": "*",
+  "toughness": "1+*",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Tarmogoyf's power is equal to the number of card types among cards in all graveyards and its toughness is equal to that number plus 1.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/b/6/b6876d9e-0908-43ac-8542-09c7aa02b5ba.jpg?1783943094",
+  "artist": "Justin Murray",
+  "collectorNumber": "153",
+  "rarity": "rare",
+  "setCode": "FUT",
+  "lang": "en",
+  "copyright": "™ & © 2007 Wizards of the Coast"
+}

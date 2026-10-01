@@ -1,0 +1,39 @@
+{
+  "name": "Teferi, Time Raveler",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Legendary Planeswalker — Teferi",
+  "supertypes": ["Legendary"],
+  "types": ["Planeswalker"],
+  "subtypes": ["Teferi"],
+  "colors": ["W", "U"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "W",
+      "count": 1
+    },
+    {
+      "symbol": "U",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 1
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": "4",
+  "defense": null,
+  "oracleText": "Each opponent can cast spells only any time they could cast a sorcery.\n+1: Until your next turn, you may cast sorcery spells as though they had flash.\n−3: Return up to one target artifact, creature, or enchantment to its owner's hand. Draw a card.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/5/c/5cb76266-ae50-4bbc-8f96-d98f309b02d3.jpg?1783933384",
+  "artist": "Chris Rallis",
+  "collectorNumber": "221",
+  "rarity": "rare",
+  "setCode": "WAR",
+  "lang": "en",
+  "copyright": "™ & © 2019 Wizards of the Coast"
+}

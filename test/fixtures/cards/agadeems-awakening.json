@@ -1,0 +1,35 @@
+{
+  "name": "Agadeem's Awakening",
+  "layout": "modal_dfc",
+  "faceIndex": 0,
+  "typeLine": "Sorcery",
+  "supertypes": [],
+  "types": ["Sorcery"],
+  "subtypes": [],
+  "colors": ["B"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B",
+      "count": 3
+    },
+    {
+      "symbol": "X",
+      "count": 1
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Return from your graveyard to the battlefield any number of target creature cards that each have a different mana value X or less.",
+  "flavorText": "\"Now is the death-hour, just before dawn. Wake, sleepers, and haunt the living!\"\n—Vivias, Witch Vessel",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/6/7/67f4c93b-080c-4196-b095-6a120a221988.jpg?1783929388",
+  "artist": "Dmitry Burmak",
+  "collectorNumber": "90",
+  "rarity": "mythic",
+  "setCode": "ZNR",
+  "lang": "en",
+  "copyright": "™ & © 2020 Wizards of the Coast"
+}

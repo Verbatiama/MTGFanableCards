@@ -1,0 +1,35 @@
+{
+  "name": "Complete Disregard",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Instant",
+  "supertypes": [],
+  "types": ["Instant"],
+  "subtypes": [],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Devoid (This card has no color.)\nExile target creature with power 3 or less.",
+  "flavorText": "\"We returned to the field and found poor Len, every detail of his final moment perfectly cast in that awful dust.\"\n—Javad Nasrin, outrider captain",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/7/d/7d94e878-6c49-4420-9d34-f9ee64e811ba.jpg?1783938206",
+  "artist": "Peter Mohrbacher",
+  "collectorNumber": "90",
+  "rarity": "common",
+  "setCode": "BFZ",
+  "lang": "en",
+  "copyright": "™ & © 2015 Wizards of the Coast"
+}

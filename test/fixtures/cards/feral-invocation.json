@@ -1,0 +1,35 @@
+{
+  "name": "Feral Invocation",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Enchantment — Aura",
+  "supertypes": [],
+  "types": ["Enchantment"],
+  "subtypes": ["Aura"],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Flash (You may cast this spell any time you could cast an instant.)\nEnchant creature\nEnchanted creature gets +2/+2.",
+  "flavorText": "Nylea's sacred lynx guards those who honor the Nessian Wood and hunts those who don't.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/1/9/190ad379-1a0f-4598-b5b1-453955846597.jpg?1783930365",
+  "artist": "Mathias Kollros",
+  "collectorNumber": "396",
+  "rarity": "common",
+  "setCode": "JMP",
+  "lang": "en",
+  "copyright": "™ & © 2020 Wizards of the Coast"
+}

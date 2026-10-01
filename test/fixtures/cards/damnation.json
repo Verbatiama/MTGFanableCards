@@ -1,0 +1,35 @@
+{
+  "name": "Damnation",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Sorcery",
+  "supertypes": [],
+  "types": ["Sorcery"],
+  "subtypes": [],
+  "colors": ["B"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B",
+      "count": 2
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Destroy all creatures. They can't be regenerated.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/2/6/26c68473-70ca-40ba-b5c6-71ec30f88a2c.jpg?1783943151",
+  "artist": "Kev Walker",
+  "collectorNumber": "85",
+  "rarity": "rare",
+  "setCode": "PLC",
+  "lang": "en",
+  "copyright": "™ & © 2007 Wizards of the Coast"
+}

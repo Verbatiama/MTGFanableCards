@@ -1,0 +1,31 @@
+{
+  "name": "Wurmcoil Engine",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Artifact Creature — Phyrexian Wurm",
+  "supertypes": [],
+  "types": ["Artifact", "Creature"],
+  "subtypes": ["Phyrexian", "Wurm"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "generic",
+      "count": 6
+    }
+  ],
+  "power": "6",
+  "toughness": "6",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Deathtouch, lifelink\nWhen this creature dies, create a 3/3 colorless Phyrexian Wurm artifact creature token with deathtouch and a 3/3 colorless Phyrexian Wurm artifact creature token with lifelink.",
+  "flavorText": null,
+  "watermark": "phyrexian",
+  "artUrl": "https://cards.scryfall.io/art_crop/front/3/3/33672990-4860-4aa6-ac1b-f9da66f5da59.jpg?1783941691",
+  "artist": "Raymond Swanland",
+  "collectorNumber": "223",
+  "rarity": "mythic",
+  "setCode": "SOM",
+  "lang": "en",
+  "copyright": "™ & © 2010 Wizards of the Coast"
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Invasion of Zendikar",
+  "layout": "transform",
+  "faceIndex": 0,
+  "typeLine": "Battle — Siege",
+  "supertypes": [],
+  "types": ["Battle"],
+  "subtypes": ["Siege"],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 3
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": "3",
+  "oracleText": "(As a Siege enters, choose an opponent to protect it. You and others can attack it. When it's defeated, exile it, then cast it transformed.)\nWhen this Siege enters, search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/8/f/8fed056f-a8f5-41ec-a7d2-a80a238872d1.jpg?1783916973",
+  "artist": "Diego Gisbert",
+  "collectorNumber": "194",
+  "rarity": "uncommon",
+  "setCode": "MOM",
+  "lang": "en",
+  "copyright": "™ & © 2023 Wizards of the Coast"
+}

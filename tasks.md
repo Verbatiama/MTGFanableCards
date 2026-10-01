@@ -28,7 +28,7 @@ These decisions block most of the build work, so they should be settled first.
 | S1   | ✓ AGREED: Card-model schema sufficient for v1; keep oracle text in Scryfall formatting, with `manaCost` grouped and extra fields only added if a concrete need appears | A + B  | —          | 3.3.1       |
 | T-A1 | ✓ DONE: Scaffold the project: Node repo, linting (ESLint + Prettier), test framework (node:test), CI (GitHub Actions), folder structure                          | A      | —          | 3.1.1       |
 | T-B1 | ✓ DONE: Rendering spike (spikes/rendering/): node-canvas vs @napi-rs/canvas. node-canvas fonts fail on native Windows, work on Linux/WSL; D5 kept, project moves to WSL | B      | —          | 3.1.3       |
-| T-A2 | Build a fixture set: the 10 mockup cards plus edge cases, as hand-written card-model JSON                                                                              | A      | S1         | all         |
+| T-A2 | ✓ DONE: Fixture set (test/fixtures/cards/): 10 mockup cards + 27 edge-case faces as card-model JSON, schema and validator in src/model/card-model.js | A      | S1         | all         |
 
 ## Phase 1: Rule decisions (weeks 1–3, alongside build work)
 

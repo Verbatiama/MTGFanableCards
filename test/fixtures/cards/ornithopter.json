@@ -1,0 +1,31 @@
+{
+  "name": "Ornithopter",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Artifact Creature — Thopter",
+  "supertypes": [],
+  "types": ["Artifact", "Creature"],
+  "subtypes": ["Thopter"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "generic",
+      "count": 0
+    }
+  ],
+  "power": "0",
+  "toughness": "2",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Flying",
+  "flavorText": "Once a year, the skies over Paliano fill with the flying machines of those who hope to be taken on as pupils by the artificer Muzzio.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/e/e/ee98e86c-ac16-4159-8982-ed14d282811a.jpg?1783939157",
+  "artist": "Franz Vohwinkel",
+  "collectorNumber": "223",
+  "rarity": "common",
+  "setCode": "M15",
+  "lang": "en",
+  "copyright": "™ & © 2014 Wizards of the Coast"
+}

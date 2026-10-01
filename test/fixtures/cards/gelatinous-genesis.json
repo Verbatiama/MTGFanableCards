@@ -1,0 +1,35 @@
+{
+  "name": "Gelatinous Genesis",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Sorcery",
+  "supertypes": [],
+  "types": ["Sorcery"],
+  "subtypes": [],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "X",
+      "count": 2
+    }
+  ],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Create X X/X green Ooze creature tokens.",
+  "flavorText": "Even as the world was left cracked and gory by the marauding Eldrazi, new life began to drip from its wounds.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/4/e/4e5c2be0-76ab-4873-a1fc-9ff65a9347c7.jpg?1783930148",
+  "artist": "Daniel Ljunggren",
+  "collectorNumber": "169",
+  "rarity": "uncommon",
+  "setCode": "2XM",
+  "lang": "en",
+  "copyright": "™ & © 2020 Wizards of the Coast"
+}

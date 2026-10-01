@@ -1,0 +1,31 @@
+{
+  "name": "Icehide Golem",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Snow Artifact Creature — Golem",
+  "supertypes": ["Snow"],
+  "types": ["Artifact", "Creature"],
+  "subtypes": ["Golem"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "S",
+      "count": 1
+    }
+  ],
+  "power": "2",
+  "toughness": "2",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "({S} can be paid with one mana from a snow source.)",
+  "flavorText": "In colder climates, ice is more obedient than stone.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/b/2/b2671c36-96fa-49e3-90dc-52820b2c8a62.jpg?1783933074",
+  "artist": "Paul Scott Canavan",
+  "collectorNumber": "224",
+  "rarity": "uncommon",
+  "setCode": "MH1",
+  "lang": "en",
+  "copyright": "™ & © 2019 Wizards of the Coast"
+}
