@@ -282,7 +282,7 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 5.4.7 **[Confirmed]** There is no maximum number of zone/timing symbols; every symbol that applies is shown (D12). Order, top to bottom: Flash, Split second, Hand, Top of library, Graveyard. Running out of space is handled by the stat-bar collision rules (D19).
 
-5.4.8 **[Open]** The **"NORMAL"** icon. Damnation and Jace show an icon labelled NORMAL in the slot where Feral Invocation shows the flash bolt. It likely means normal (sorcery-speed) timing, but it is inconsistent: Sword of Fire and Ice and Niv-Mizzet are also sorcery-speed and don't show it. Confirm its meaning and whether it appears on every card without flash.
+5.4.8 **[Confirmed]** There is **no "NORMAL" symbol** (D13). The icon labelled NORMAL on the Damnation and Jace mockups is not created or used; a card without flash or split second simply has no timing symbol.
 
 ### 5.5 Supertype and subtype (middle)
 
@@ -452,7 +452,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 7.2.4 **[Confirmed]** Static abilities get a band with no cost in the bar (Components doc: "blank space").
 
-7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. Jace shows the NORMAL icon but no LEGENDARY icon (see 5.4.8 and 5.5.3).
+7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8), and no LEGENDARY icon (see 5.5.3).
 
 7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
 

@@ -38,7 +38,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ----------------- |
 | D11  | ✓ DECIDED: Symbol + count for every symbol (X, hybrid, Phyrexian, snow included); new generic symbol in the bar only, diamond for {C}; {0} = generic 0; printed order, then S, C, X, generic last; text symbols as printed | PO     | —          | 5.3, 6.4.6        |
 | D12  | ✓ DECIDED: Flash (also on instants, labelled FLASH), Split second, Hand, Top of library, Graveyard; no Exile (suspend/foretell/plot/madness = Hand); keywords + type + phrase detection; any ability active in the zone counts; no maximum, fixed order | PO     | —          | 5.4.1–5.4.7       |
-| D13  | Meaning of the "NORMAL" icon and when it appears                                                                                                                                          | PO     | —          | 5.4.8             |
+| D13  | ✓ DECIDED: No "NORMAL" symbol; it is not created or used. Cards without flash or split second have no timing symbol | PO     | —          | 5.4.8             |
 | D14  | Card type icons for Battle, Kindred and others; icon order for multi-type cards                                                                                                           | PO     | D1         | 5.1.3–5.1.4       |
 | D15  | Supertypes: whether planeswalkers show LEGENDARY; icons for Snow, World and Token                                                                                                         | PO     | —          | 5.5.3–5.5.4       |
 | D16  | Subtypes: final list, precedence when a card has several, which icons get text labels                                                                                                     | PO     | —          | 5.5.8–5.5.10      |
@@ -79,7 +79,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | T-B5  | Text box: inline symbols, italics, sword/shield P/T notation, watermark, text fitting               | T-B2, T-A7 (or fixtures), D20 | 6.4          |
 | T-B6  | Footer                                                                                              | T-B2, D20                     | 6.5          |
 | T-B7  | Stat bar top: type icons (including multi-type), colour indicator, mana block                       | T-B3, D11, D14, D17           | 5.1–5.3      |
-| T-B8  | Stat bar middle: stack of zone/timing, NORMAL, supertype and subtype icons                          | T-B7, D12, D13, D15, D16      | 5.4–5.6      |
+| T-B8  | Stat bar middle: stack of zone/timing, supertype and subtype icons                                  | T-B7, D12, D13, D15, D16      | 5.4–5.6      |
 | T-B9  | Stat bar bottom: creature stats, vertical permanence label                                          | T-B2, D18                     | 5.7          |
 | T-B10 | Stat-bar overflow and collision handling                                                            | T-B7–T-B9, D19                | 4.4          |
 | T-B11 | Planeswalker layout: shaded bands, loyalty costs aligned with abilities, loyalty badge              | T-B5, T-B9, D22               | 7.2          |
