@@ -97,14 +97,15 @@ Each requirement is tagged:
 
 ### 3.4 Card art
 
-3.4.1 **[Open]** The card JSON contains no images. Art must come from somewhere, most likely Scryfall image URLs (e.g. `art_crop`). Define:
+3.4.1 **[Confirmed]** Card art sourcing:
 
-- whether the app downloads at runtime or requires art to be supplied
-- caching of downloaded art
-- rate limiting (Scryfall asks for 50–100 ms between requests)
-- behaviour when art is unavailable or the app is offline (placeholder, skip, or fail)
+- **Source:** Scryfall image URLs (via the Unique Artwork files for artwork variants)
+- **Timing:** Downloaded at runtime during card generation
+- **Caching:** Downloaded images are cached locally to avoid re-downloading
+- **Rate limiting:** Requests are spaced 100ms apart to respect Scryfall API limits
+- **Fallback behavior:** If art is unavailable (failed request, network error, or no image URL in data), render a **solid black placeholder** in the art box. The card still generates successfully.
 
-  3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
+3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
 
 ### 3.5 Output
 
@@ -167,7 +168,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
   - All dimensions are configurable and can be fine-tuned during development.
   - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
-  4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
+    4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
 
 ---
 
