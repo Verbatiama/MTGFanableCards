@@ -62,7 +62,7 @@ Each requirement is tagged:
 
 3.1.2 **[Confirmed]** Interface: **Backend API for programmatic access + frontend UI for decklist input**. Users can input a decklist with quantities via the UI, and developers can call the API directly.
 
-3.1.3 **[Open]** Rendering approach, e.g. a canvas library such as node-canvas or skia-canvas, or a headless browser rendering HTML/SVG. This is an implementation choice, but it affects font and SVG symbol handling.
+3.1.3 **[Confirmed]** Rendering approach: **node-canvas with Canvas 2D API**. Same drawing code works in both backend (Node.js via node-canvas) and frontend (native browser CanvasRenderingContext2D). Direct pixel control for precise card layout.
 
 ### 3.2 Input
 
@@ -117,9 +117,9 @@ Each requirement is tagged:
 - **Default:** Zip file with individual PNG images
 - **Optional:** PDF (A4 size) with 9 cards tiled per sheet for printing convenience
 
-3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
+  3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
 
-3.5.6 **[Open]** Zip file name and output location.
+  3.5.6 **[Open]** Zip file name and output location.
 
 ---
 

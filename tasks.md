@@ -19,7 +19,7 @@ These decisions block most of the build work, so they should be settled first.
 | D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                         | PO + A | —          | 3.3.1–3.3.2 |
 | D3   | ✓ DECIDED: Decklist format with quantities, both // and single face names, warning for unmatched (no batch failure)          | PO     | —          | 3.2.2–3.2.6 |
 | D4   | ✓ DECIDED: PNG 750×1050px (300 DPI), black border, card-name.png naming, zip "cards", optional PDF A4 with 9 tiled cards     | PO     | —          | 3.5         |
-| D5   | Choose the rendering technology (canvas library or headless browser)                                                         | B      | T-B1       | 3.1.3       |
+| D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code)                                                  | B      | —          | 3.1.3       |
 | D6   | Choose fonts and confirm licensing                                                                                           | PO + B | —          | 10.1        |
 | D7   | Choose the symbol and icon sources and check licence compatibility with GPL-3.0                                              | PO     | —          | 9.1         |
 | D8   | Set exact layout dimensions, icon sizes and spacing, and decide whether a mirrored bar is needed                             | PO     | D4         | 1.3, 4.3    |
