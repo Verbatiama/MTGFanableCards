@@ -20,7 +20,7 @@ Goals
 
 ## Development
 
-Requires Node.js 22 or later (see `.nvmrc`).
+Requires Linux and Node.js 22 or later (see `.nvmrc`). On Windows, use WSL and clone the repository into the Linux filesystem (e.g. `~/MTGFanableCards`), not under `/mnt/c` or `/mnt/d`: node-canvas cannot load the Beleren fonts on native Windows, and `node_modules` must be installed from Linux.
 
 ```
 npm install
@@ -43,6 +43,7 @@ src/
   server/   Backend API
 public/     Frontend UI for decklist input
 test/       Tests (*.test.js), with card-model fixtures in test/fixtures/cards/
+spikes/     Throwaway experiments and their write-ups (e.g. spikes/rendering/, T-B1)
 res/        Bundled assets: fonts/ (Beleren, D6) and symbols/ (mana symbols, D7)
 cache/      Downloaded Scryfall data and art (not committed)
 out/        Generated cards (not committed)

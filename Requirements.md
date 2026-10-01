@@ -62,7 +62,7 @@ Each requirement is tagged:
 
 3.1.2 **[Confirmed]** Interface: **Backend API for programmatic access + frontend UI for decklist input**. Users can input a decklist with quantities via the UI, and developers can call the API directly.
 
-3.1.3 **[Confirmed]** Rendering approach: **node-canvas with Canvas 2D API**. Same drawing code works in both backend (Node.js via node-canvas) and frontend (native browser CanvasRenderingContext2D). Direct pixel control for precise card layout.
+3.1.3 **[Confirmed]** Rendering approach: **node-canvas with Canvas 2D API**. Same drawing code works in both backend (Node.js via node-canvas) and frontend (native browser CanvasRenderingContext2D). Direct pixel control for precise card layout. Server-side rendering runs on Linux (WSL for development on Windows): node-canvas cannot load the bundled Beleren fonts on native Windows (see `spikes/rendering/README.md`, T-B1).
 
 ### 3.2 Input
 

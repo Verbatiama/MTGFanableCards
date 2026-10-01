@@ -19,7 +19,7 @@ These decisions block most of the build work, so they should be settled first.
 | D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                                                                   | PO + A | —          | 3.3.1–3.3.2 |
 | D3   | ✓ DECIDED: Decklist format with quantities, both // and single face names, warning for unmatched (no batch failure)                                                    | PO     | —          | 3.2.2–3.2.6 |
 | D4   | ✓ DECIDED: PNG 750×1050px (300 DPI), black border, card-name.png naming, zip "cards", optional PDF A4 with 9 tiled cards                                               | PO     | —          | 3.5         |
-| D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code)                                                                                            | B      | —          | 3.1.3       |
+| D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code). Confirmed after T-B1; develop and render on Linux/WSL (fonts fail on native Windows) | B      | —          | 3.1.3       |
 | D6   | ✓ DECIDED: Use Beleren fonts from res/fonts/ (free to use)                                                                                                              | PO + B | —          | 10.1        |
 | D7   | ✓ DECIDED: Custom SVG mana symbols from res/symbols/, Scryfall SVGs for set/type icons, custom watermarks                                                              | PO     | —          | 9.1         |
 | D8   | ✓ DECIDED: Dimensions from example mockups, configurable in code, no mirrored bar for v1                                                                               | PO     | D4         | 1.3, 4.3    |
@@ -27,7 +27,7 @@ These decisions block most of the build work, so they should be settled first.
 | D10  | ✓ DECIDED: Scryfall runtime download, local cache, 100ms rate limit, black placeholder for missing art                                                                 | PO     | D2         | 3.4         |
 | S1   | ✓ AGREED: Card-model schema sufficient for v1; keep oracle text in Scryfall formatting, with `manaCost` grouped and extra fields only added if a concrete need appears | A + B  | —          | 3.3.1       |
 | T-A1 | ✓ DONE: Scaffold the project: Node repo, linting (ESLint + Prettier), test framework (node:test), CI (GitHub Actions), folder structure                          | A      | —          | 3.1.1       |
-| T-B1 | Rendering spike: draw a bar, a symbol, text with an inline icon, and export a PNG with two candidate technologies                                                      | B      | —          | 3.1.3       |
+| T-B1 | ✓ DONE: Rendering spike (spikes/rendering/): node-canvas vs @napi-rs/canvas. node-canvas fonts fail on native Windows, work on Linux/WSL; D5 kept, project moves to WSL | B      | —          | 3.1.3       |
 | T-A2 | Build a fixture set: the 10 mockup cards plus edge cases, as hand-written card-model JSON                                                                              | A      | S1         | all         |
 
 ## Phase 1: Rule decisions (weeks 1–3, alongside build work)
