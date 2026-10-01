@@ -530,7 +530,12 @@ The implementation should keep these as configuration tables rather than hard-co
 | Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |
 | Layout → marker / rendering rules     | 8           | Open                                                 |
 
-9.1 **[Open]** Symbol and icon sourcing and licensing: the Mana and Keyrune fonts, Scryfall SVGs, or custom artwork. Check each licence's compatibility with the repository's GPL-3.0 licence.
+9.1 **[Confirmed]** Symbol and icon sources:
+
+- **Mana symbols (custom):** Use the generic mana symbol style from `res/symbols/symbols.svg` (includes 0-20, WUBRG, X, hybrids, etc.). Replaces standard rounded mana cost symbols with a stylized design.
+- **Set symbols, creature/spell types, zone/timing icons:** Source from Scryfall SVG library (GPL-3.0 compatible) or create custom SVGs.
+- **Watermarks (guild symbols, etc.):** Create custom SVGs or source from Scryfall as needed.
+- All symbol assets are stored in `res/symbols/`.
 
 ---
 
