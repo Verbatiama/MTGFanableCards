@@ -553,7 +553,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 10. Non-functional requirements
 
-10.1 **Fonts [Confirmed].** Use the Beleren fonts (free to use, located in `Assets/Fonts/`). These provide the authentic Magic card aesthetic.
+10.1 **Fonts [Confirmed].** Use the Beleren fonts (free to use, located in `res/fonts/`). These provide the authentic Magic card aesthetic.
 
 10.2 **Legal [Open].**
 

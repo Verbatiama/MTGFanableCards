@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+cache/
+out/
+res/
+Examples/
+package-lock.json
+# Project documents owned by the PO
+Requirements.md
+tasks.md
+README.md
+Notes.txt
