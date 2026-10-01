@@ -552,7 +552,8 @@ The implementation should keep these as configuration tables rather than hard-co
 - **Mana symbols (custom):** Use the generic mana symbol style from `res/symbols/symbols.svg` (includes 0-20, WUBRG, X, hybrids, etc.). Replaces standard rounded mana cost symbols with a stylized design.
 - **Set symbols, creature/spell types, zone/timing icons:** Source from Scryfall SVG library (GPL-3.0 compatible) or create custom SVGs.
 - **Watermarks (guild symbols, etc.):** Create custom SVGs or source from Scryfall as needed.
-- All symbol assets are stored in `res/symbols/`.
+- **Traced icons:** card type, zone and toughness icons are traced from [magarena](https://github.com/magarena/magarena) PNGs (GPL-3.0, compatible with this project) by `scripts/trace-symbol.js`.
+- All symbol assets are stored in `res/symbols/`. `res/symbols/README.md` lists every required symbol, its source, and which are still missing.
 
 ---
 

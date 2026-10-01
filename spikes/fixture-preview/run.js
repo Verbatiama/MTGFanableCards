@@ -76,6 +76,22 @@ const sheetCodes = new Set(listSymbolCodes(sheet));
 const symbolCache = new Map();
 const genericSymbol = await loadImage(path.join(SYMBOL_DIR, 'generic.svg'));
 
+// Traced icons from res/symbols/ (see its README). Missing ones fall back to
+// labelled boxes, so the preview shows what still needs an icon.
+const ICONS = new Map();
+for (const name of [
+  ...Object.keys(TYPE_ICONS).map((t) => `types/${t.toLowerCase()}`),
+  ...Object.keys(ZONE_LABELS).map((z) => `zones/${z}`),
+  'stats/power',
+  'stats/toughness',
+]) {
+  try {
+    ICONS.set(name, await loadImage(path.join(SYMBOL_DIR, `${name}.svg`)));
+  } catch {
+    // Not traced yet.
+  }
+}
+
 /** Scryfall symbol ('U', 'W/U', 'B/P', 'T', 'S', '12') → loaded sheet image, or null. */
 async function symbol(code) {
   const key = sheetCode(code);
@@ -188,7 +204,11 @@ async function drawStatBar(ctx, model) {
   // Middle: anchored at the type line, growing upward. Top to bottom: zone and
   // timing symbols (D12), supertypes, subtypes (5.6.1). Boxes stand in for icons;
   // zone/timing boxes are gold so they stand out from type boxes.
-  const middle = model.zoneSymbols.map((z) => ({ label: ZONE_LABELS[z], zone: true }));
+  const middle = model.zoneSymbols.map((z) => ({
+    label: ZONE_LABELS[z],
+    zone: true,
+    icon: ICONS.get(`zones/${z}`),
+  }));
   middle.push(...model.supertypes.map((label) => ({ label })));
   if (!model.types.some((t) => NO_SUBTYPE_ICON.includes(t))) {
     middle.push(...model.subtypes.map((label) => ({ label })));
@@ -196,14 +216,18 @@ async function drawStatBar(ctx, model) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   let my = TYPE.y + TYPE.h - 4;
-  for (const { label, zone } of middle.reverse()) {
+  for (const { label, zone, icon } of middle.reverse()) {
     const text = label.toUpperCase();
     ctx.fillStyle = '#fff';
     ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));
     ctx.fillText(text, cx, my);
-    ctx.strokeStyle = zone ? '#d9a441' : '#777';
-    ctx.lineWidth = zone ? 2 : 1;
-    ctx.strokeRect(cx - 18, my - 54, 36, 34);
+    if (icon) {
+      ctx.drawImage(icon, cx - 20, my - 58, 40, 40);
+    } else {
+      ctx.strokeStyle = zone ? '#d9a441' : '#777';
+      ctx.lineWidth = zone ? 2 : 1;
+      ctx.strokeRect(cx - 18, my - 54, 36, 34);
+    }
     my -= 62;
   }
   if (my < y) {
@@ -216,9 +240,9 @@ async function drawStatBar(ctx, model) {
   ctx.fillStyle = '#fff';
   const bottom = CARD.height - 14;
   if (model.power !== null) {
-    drawStat(ctx, 'PWR', model.power, bottom - 120);
+    drawStat(ctx, 'PWR', model.power, bottom - 120, ICONS.get('stats/power'));
     ctx.fillRect(18, bottom - 64, BAR.width - 36, 2);
-    drawStat(ctx, 'TGH', model.toughness, bottom - 56);
+    drawStat(ctx, 'TGH', model.toughness, bottom - 56, ICONS.get('stats/toughness'));
   } else if (model.loyalty !== null) {
     drawStat(ctx, 'LOYALTY', model.loyalty, bottom - 60);
   } else if (model.defense !== null) {
@@ -252,6 +276,12 @@ function drawTypeIcons(ctx, types, y) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const type of shown) {
+    const icon = ICONS.get(`types/${type.toLowerCase()}`);
+    if (icon) {
+      ctx.drawImage(icon, x, top, size, size);
+      x += size + gap;
+      continue;
+    }
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -266,14 +296,19 @@ function drawTypeIcons(ctx, types, y) {
   ctx.restore();
 }
 
-function drawStat(ctx, label, value, y) {
+/** Value with its icon below (5.7.1), or a text label when there is no icon. */
+function drawStat(ctx, label, value, y, icon) {
   const cx = BAR.width / 2;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.font = FONT(value.length > 2 ? 26 : 36);
   ctx.fillText(value, cx, y);
-  ctx.font = LABEL(12);
-  ctx.fillText(label, cx, y + 40);
+  if (icon) {
+    ctx.drawImage(icon, cx - 10, y + 36, 20, 20);
+  } else {
+    ctx.font = LABEL(12);
+    ctx.fillText(label, cx, y + 40);
+  }
 }
 
 async function drawCardBox(ctx, model, art) {
