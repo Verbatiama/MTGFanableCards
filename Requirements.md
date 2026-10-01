@@ -40,13 +40,17 @@ Each requirement is tagged:
 12. Active in grave
 13. Keyword symbols (other)
 
-2.2 **[Confirmed]** Goals 8, 11, 12 and 13 are superseded by a single concept: **zone and timing symbols** (section 5.4). Keyword symbols in general are *not* required. Only effects that change where a card can be cast or activated from, or when it can be cast, get a symbol.
+2.2 **[Confirmed]** Goals 8, 11, 12 and 13 are superseded by a single concept: **zone and timing symbols** (section 5.4). Keyword symbols in general are _not_ required. Only effects that change where a card can be cast or activated from, or when it can be cast, get a symbol.
 
 2.3 **[Confirmed]** Goal 7 and the colour indicator in goal 10 are the same feature (section 5.2).
 
-2.4 **[Open]** Acceptance criteria for each goal, i.e. what "done" looks like.
+2.4 **[Confirmed]** Acceptance criteria will be determined as each phase is completed, not pre-defined.
 
-2.5 **[Open]** Which card layouts are in scope for v1. All mockups are single-faced cards with simple costs. Section 8 lists the layouts that have no mockup and need either a design or an explicit "out of scope for v1".
+2.5 **[Confirmed]** V1 scope:
+
+- **Included:** All card types (creatures, instants, sorceries, artifacts, enchantments, planeswalkers, lands, battles, etc.) rendered as single faces
+- **Multi-face handling:** Double-faced cards (transform, modal/MDFC) render as two separate images
+- **Excluded from v1:** Special layouts (split, adventure, saga, flip, meld, leveler, class, case, etc.) move to Phase 4 (post-v1)
 
 ---
 
@@ -91,16 +95,16 @@ Each requirement is tagged:
 - artist
 - release date
 
-3.3.2 **[Open]** Whether the JSON is bundled with the app or downloaded, and how and when it is updated.
+  3.3.2 **[Open]** Whether the JSON is bundled with the app or downloaded, and how and when it is updated.
 
-3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
+  3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
 
 - a way for the user to specify a printing, e.g. `Lightning Bolt (M10) 146`
 - a defined default when none is given (e.g. latest printing, or first printing)
 
-3.3.4 **[Confirmed]** The type line shows the card's real type line from the JSON. Subtypes invented in the mockups ("Sorcery - Wrath", "Artifact - Sword", "Enchantment - Beast", "Planeswalker - Jace Beleren") are to be ignored.
+  3.3.4 **[Confirmed]** The type line shows the card's real type line from the JSON. Subtypes invented in the mockups ("Sorcery - Wrath", "Artifact - Sword", "Enchantment - Beast", "Planeswalker - Jace Beleren") are to be ignored.
 
-3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
+  3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
 
 ### 3.4 Card art
 
@@ -111,7 +115,7 @@ Each requirement is tagged:
 - rate limiting (Scryfall asks for 50–100 ms between requests)
 - behaviour when art is unavailable or the app is offline (placeholder, skip, or fail)
 
-3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
+  3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
 
 ### 3.5 Output
 
@@ -162,9 +166,9 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 - **Middle**, anchored at the type line: zone/timing symbols, supertype, subtype.
 - **Bottom**, anchored to the bottom: stats, loyalty, or the permanence label.
 
-4.3 **[Open]** Exact dimensions: bar width, icon sizes, spacing and margins, in pixels or mm at the chosen output resolution.
+  4.3 **[Open]** Exact dimensions: bar width, icon sizes, spacing and margins, in pixels or mm at the chosen output resolution.
 
-4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
+  4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
 
 ---
 
@@ -174,15 +178,15 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.1.1 **[Confirmed]** The card type icon is the first item at the top of the bar. Mockup icons:
 
-| Card type | Icon (as seen in mockups) |
-|---|---|
-| Creature | Claw marks |
-| Sorcery | Swirl |
-| Instant | Bolt |
-| Artifact | Chalice |
-| Enchantment | Sunburst |
-| Planeswalker | Planeswalker symbol |
-| Land | Land icon |
+| Card type    | Icon (as seen in mockups) |
+| ------------ | ------------------------- |
+| Creature     | Claw marks                |
+| Sorcery      | Swirl                     |
+| Instant      | Bolt                      |
+| Artifact     | Chalice                   |
+| Enchantment  | Sunburst                  |
+| Planeswalker | Planeswalker symbol       |
+| Land         | Land icon                 |
 
 5.1.2 **[Inferred]** Multi-type cards show one icon per type, side by side (Wurmcoil Engine shows artifact + creature).
 
@@ -216,20 +220,20 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.3.6 Symbol types to support. The Components doc lists colours (W, U, B, R, G), generic, colourless, Phyrexian, snow and hybrid. Items marked **[Open]** need a decision:
 
-| Symbol | Display | Status |
-|---|---|---|
-| W, U, B, R, G | Symbol + count | Confirmed |
-| Generic | Grey symbol + count | Confirmed |
-| Colourless {C} | Must be visibly distinct from generic; both are grey | **Open** |
-| X | Symbol, no count | Confirmed |
-| XX / XXX (e.g. {X}{X}{R}) | Without a count, {X} and {X}{X} look identical | **Open** |
-| Y, Z | Presumably as X | **Open** |
-| Hybrid ({W/U}) | Is {W/U}{W/U} one hybrid symbol + 2? | **Open** |
-| Mono-hybrid ({2/W}) | Display undefined | **Open** |
-| Phyrexian ({W/P}) | Symbol + count | **Open** (confirm) |
-| Phyrexian hybrid ({G/U/P}) | Display undefined | **Open** |
-| Colourless hybrid ({C/W}) | Display undefined | **Open** |
-| Snow {S} | Symbol + count | **Open** (confirm) |
+| Symbol                     | Display                                              | Status             |
+| -------------------------- | ---------------------------------------------------- | ------------------ |
+| W, U, B, R, G              | Symbol + count                                       | Confirmed          |
+| Generic                    | Grey symbol + count                                  | Confirmed          |
+| Colourless {C}             | Must be visibly distinct from generic; both are grey | **Open**           |
+| X                          | Symbol, no count                                     | Confirmed          |
+| XX / XXX (e.g. {X}{X}{R})  | Without a count, {X} and {X}{X} look identical       | **Open**           |
+| Y, Z                       | Presumably as X                                      | **Open**           |
+| Hybrid ({W/U})             | Is {W/U}{W/U} one hybrid symbol + 2?                 | **Open**           |
+| Mono-hybrid ({2/W})        | Display undefined                                    | **Open**           |
+| Phyrexian ({W/P})          | Symbol + count                                       | **Open** (confirm) |
+| Phyrexian hybrid ({G/U/P}) | Display undefined                                    | **Open**           |
+| Colourless hybrid ({C/W})  | Display undefined                                    | **Open**           |
+| Snow {S}                   | Symbol + count                                       | **Open** (confirm) |
 
 5.3.7 **[Open]** Full symbol order, e.g. WUBRG, then hybrid/Phyrexian/snow, then X, then generic.
 
@@ -241,11 +245,11 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.4.1 **[Confirmed]** Instead of keyword symbols, symbols are needed for effects that change **where** a card can be cast or activated from, or **when** it can be cast. Confirmed examples:
 
-| Effect | Symbol |
-|---|---|
-| Flash | Lightning bolt (labelled "INSTANT" in the Feral Invocation mockup) |
-| Cycling | Hand |
-| Flashback | Graveyard |
+| Effect    | Symbol                                                             |
+| --------- | ------------------------------------------------------------------ |
+| Flash     | Lightning bolt (labelled "INSTANT" in the Feral Invocation mockup) |
+| Cycling   | Hand                                                               |
+| Flashback | Graveyard                                                          |
 
 5.4.2 **[Open]** The complete mapping from mechanic to symbol. A starting list for the owner to confirm:
 
@@ -256,7 +260,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 - **Top of library:** miracle
 - **Timing:** flash, and possibly split second
 
-5.4.3 **[Open]** Detection method:
+  5.4.3 **[Open]** Detection method:
 
 - the JSON `keywords` array
 - parsing Oracle text
@@ -291,12 +295,12 @@ Non-keyword text such as Gravecrawler's "you may cast this card from your gravey
 
 5.5.7 Subtypes listed in the Components doc:
 
-| Parent type | Subtypes listed |
-|---|---|
-| Artifact | Equipment, Vehicle, Food |
-| Enchantment | Aura, Saga, Curse, Rune |
-| Land | Desert, Gate, Lair, Locus, Urza's |
-| Instant/Sorcery | Adventure, Arcane, Lesson, Trap |
+| Parent type     | Subtypes listed                   |
+| --------------- | --------------------------------- |
+| Artifact        | Equipment, Vehicle, Food          |
+| Enchantment     | Aura, Saga, Curse, Rune           |
+| Land            | Desert, Gate, Lair, Locus, Urza's |
+| Instant/Sorcery | Adventure, Arcane, Lesson, Trap   |
 
 5.5.8 **[Open]** Whether this list is exhaustive or a starting set. Real subtypes not in it include:
 
@@ -385,7 +389,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 - loyalty cost symbols inside text
 - the planeswalker symbol
 
-6.4.8 **[Open]** Text fitting: font shrinking rules, minimum font size, and behaviour when Oracle text is too long.
+  6.4.8 **[Open]** Text fitting: font shrinking rules, minimum font size, and behaviour when Oracle text is too long.
 
 ### 6.5 Footer
 
@@ -397,22 +401,22 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 - copyright line
 - the holo stamp in the centre
 
-6.5.2 **[Open]** Copyright year: every mockup shows "© 2014". Should it be the printing's release year or a fixed string?
+  6.5.2 **[Open]** Copyright year: every mockup shows "© 2014". Should it be the printing's release year or a fixed string?
 
-6.5.3 **[Open]** Whether the holo stamp always appears, or only on certain rarities.
+  6.5.3 **[Open]** Whether the holo stamp always appears, or only on certain rarities.
 
 ### 6.6 Frame colour
 
 6.6.1 **[Confirmed]** The name bar, type line and text box are coloured by card colour:
 
-| Card | Frame |
-|---|---|
-| Black (Damnation) | Black/grey |
-| Blue (Jace) | Blue |
-| Green (Feral Invocation) | Green |
-| Multicolour (Niv-Mizzet) | Gold |
+| Card                                        | Frame       |
+| ------------------------------------------- | ----------- |
+| Black (Damnation)                           | Black/grey  |
+| Blue (Jace)                                 | Blue        |
+| Green (Feral Invocation)                    | Green       |
+| Multicolour (Niv-Mizzet)                    | Gold        |
 | Colourless artifact (Sword of Fire and Ice) | Silver/grey |
-| Land (Forest, Wasteland) | Tan |
+| Land (Forest, Wasteland)                    | Tan         |
 
 6.6.2 **[Open]** Frames not yet shown:
 
@@ -494,9 +498,9 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 - Modal (front)
 - Modal (back)
 
-8.1 **[Open]** What each marker means and when it applies. Sun/Moon, Spark and Emrakul are transform markers, Day/Night is a mechanic (daybound), and Modal is MDFC.
+  8.1 **[Open]** What each marker means and when it applies. Sun/Moon, Spark and Emrakul are transform markers, Day/Night is a mechanic (daybound), and Modal is MDFC.
 
-8.2 **[Open]** Each of the following layouts needs a mockup or an explicit "out of scope for v1":
+  8.2 **[Open]** Each of the following layouts needs a mockup or an explicit "out of scope for v1":
 
 - transform double-faced cards (front and back)
 - modal double-faced cards
@@ -517,7 +521,7 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 - omen
 - tokens and emblems
 
-8.3 **[Open]** How double-faced cards map to output images (see 3.5.5), and how the back face is identified in the stat bar.
+  8.3 **[Open]** How double-faced cards map to output images (see 3.5.5), and how the back face is identified in the stat bar.
 
 ---
 
@@ -525,16 +529,16 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 
 The implementation should keep these as configuration tables rather than hard-coding them, so they can be extended:
 
-| Table | Maps | Status |
-|---|---|---|
-| Card type → icon | 5.1 | Partly defined by mockups |
-| Supertype → icon + label | 5.5.1–5.5.4 | Legendary and Basic defined; others open |
-| Subtype → icon + label | 5.5.7–5.5.9 | Partial list |
-| Mana symbol → icon, count rule, order | 5.3 | Colours, generic and X defined; others open |
-| Mechanic → zone/timing symbol + label | 5.4 | Flash, cycling and flashback defined; rest open |
-| Text symbol → icon | 6.4.7 | Partial |
-| Colour(s) → frame style | 6.6 | Mono, gold, colourless and land defined; others open |
-| Layout → marker / rendering rules | 8 | Open |
+| Table                                 | Maps        | Status                                               |
+| ------------------------------------- | ----------- | ---------------------------------------------------- |
+| Card type → icon                      | 5.1         | Partly defined by mockups                            |
+| Supertype → icon + label              | 5.5.1–5.5.4 | Legendary and Basic defined; others open             |
+| Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
+| Mana symbol → icon, count rule, order | 5.3         | Colours, generic and X defined; others open          |
+| Mechanic → zone/timing symbol + label | 5.4         | Flash, cycling and flashback defined; rest open      |
+| Text symbol → icon                    | 6.4.7       | Partial                                              |
+| Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |
+| Layout → marker / rendering rules     | 8           | Open                                                 |
 
 9.1 **[Open]** Symbol and icon sourcing and licensing: the Mana and Keyrune fonts, Scryfall SVGs, or custom artwork. Check each licence's compatibility with the repository's GPL-3.0 licence.
 
@@ -549,11 +553,11 @@ The implementation should keep these as configuration tables rather than hard-co
 - The output is effectively a set of proxies using Wizards of the Coast card art, text and symbols. State the project's position relative to the Wizards Fan Content Policy.
 - Resolve design attribution (1.4) and symbol licensing (9.1).
 
-10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators.
+  10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators.
 
-10.4 **Localisation [Open].** Whether non-English cards and non-English labels ("PERMANENT", "LEGENDARY", etc.) are in scope. The footer already shows a language code ("EN").
+  10.4 **Localisation [Open].** Whether non-English cards and non-English labels ("PERMANENT", "LEGENDARY", etc.) are in scope. The footer already shows a language code ("EN").
 
-10.5 **Performance [Open].** Expected batch size, e.g. a 100-card Commander deck, and acceptable generation time, given art downloads and rate limits.
+  10.5 **Performance [Open].** Expected batch size, e.g. a 100-card Commander deck, and acceptable generation time, given art downloads and rate limits.
 
 ---
 
