@@ -40,6 +40,20 @@ const FRAMES = {
 };
 const PIPS = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };
 const PERMANENT_TYPES = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Land', 'Planeswalker'];
+// Placeholder type icons until the real set arrives (D14). Full-size icon
+// height; two or three types shrink to fit one row.
+const TYPE_ROW = 44;
+const TYPE_ICONS = {
+  Kindred: 'KIN',
+  Artifact: 'ART',
+  Enchantment: 'ENC',
+  Land: 'LND',
+  Creature: 'CRE',
+  Planeswalker: 'PW',
+  Battle: 'BTL',
+  Instant: 'INS',
+  Sorcery: 'SOR',
+};
 // Labels for the zone and timing symbols (D12, 5.4.2).
 const ZONE_LABELS = {
   flash: 'Flash',
@@ -138,14 +152,9 @@ async function drawStatBar(ctx, model) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  // Top: card types (labels stand in for icons), colour indicator, mana.
-  ctx.fillStyle = '#fff';
-  for (const type of model.types) {
-    ctx.font = LABEL(type.length > 9 ? 12 : 14);
-    ctx.fillText(type.toUpperCase(), cx, y);
-    y += 18;
-  }
-  y += 4;
+  // Top: card type icons, colour indicator, mana.
+  drawTypeIcons(ctx, model.types, y);
+  y += TYPE_ROW + 8;
 
   if (model.colorIndicator) {
     const pip = 16;
@@ -222,6 +231,39 @@ async function drawStatBar(ctx, model) {
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
   }
   ctx.textAlign = 'left';
+}
+
+/**
+ * One row of type icons in type-line order, shrunk to fit the bar (D14, 5.1.3).
+ * Boxes with abbreviations stand in for the icons. Types without an icon
+ * (Dungeon, Plane, ...; out of scope for v1) are skipped.
+ */
+function drawTypeIcons(ctx, types, y) {
+  const shown = types.filter((t) => TYPE_ICONS[t]);
+  if (!shown.length) return;
+  const gap = 3;
+  const size = Math.min(
+    TYPE_ROW,
+    Math.floor((BAR.width - 4 - gap * (shown.length - 1)) / shown.length),
+  );
+  let x = (BAR.width - (size * shown.length + gap * (shown.length - 1))) / 2;
+  const top = y + (TYPE_ROW - size) / 2;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const type of shown) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x, top, size, size, size / 5);
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    const text = TYPE_ICONS[type];
+    ctx.font = LABEL(fitSize(ctx, text, size - 4, Math.round(size / 2.6), LABEL, 6));
+    ctx.fillText(text, x + size / 2, top + size / 2 + 1);
+    x += size + gap;
+  }
+  ctx.restore();
 }
 
 function drawStat(ctx, label, value, y) {

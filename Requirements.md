@@ -189,12 +189,14 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 | Enchantment  | Sunburst                  |
 | Planeswalker | Planeswalker symbol       |
 | Land         | Land icon                 |
+| Battle       | New icon (D14)            |
+| Kindred      | New icon (D14)            |
 
-5.1.2 **[Inferred]** Multi-type cards show one icon per type, side by side (Wurmcoil Engine shows artifact + creature).
+5.1.2 **[Confirmed]** Multi-type cards show one icon per type, side by side in a single row (Wurmcoil Engine shows artifact + creature). Kindred counts as a type and gets its own icon, so Bitterblossom shows Kindred + Enchantment (D14).
 
-5.1.3 **[Open]** Icon order for multi-type cards, and the layout when there are three types (e.g. Artifact Land Creature).
+5.1.3 **[Confirmed]** Icons appear in type-line order, which Wizards already standardises (Kindred, then Artifact/Enchantment/Land, then Creature): Wurmcoil Engine = Artifact, Creature; Dryad Arbor = Land, Creature (D14). Icons shrink so the row always fits the bar width: one icon at full size, two at about 40px, three at about 28px. The top of the bar keeps a fixed height, so the mana block does not move down. As of this decision no real (non-Un) card face has more than two card types, so the three-icon case is future-proofing.
 
-5.1.4 **[Open]** Icons for types not in the Components doc: Battle, Kindred (Tribal), and, if in scope, Dungeon, Plane, Phenomenon, Scheme, Conspiracy, Vanguard.
+5.1.4 **[Confirmed]** Battle and Kindred (formerly Tribal) get new icons (D14). Dungeon, Plane, Phenomenon, Scheme, Conspiracy and Vanguard are out of scope for v1: if one is requested it renders with no type icon, and its type still appears in the type line.
 
 ### 5.2 Colour indicator (top)
 
@@ -483,7 +485,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 ### 7.7 Multi-type cards
 
-- One type icon per type at the top.
+- One type icon per type at the top, in type-line order, shrunk to fit one row (5.1.2–5.1.3).
 - Stats if the card is a creature.
 - Reference: Wurmcoil Engine (Artifact Creature).
 
@@ -536,7 +538,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 | Table                                 | Maps        | Status                                               |
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
-| Card type → icon                      | 5.1         | Partly defined by mockups                            |
+| Card type → icon                      | 5.1         | Defined (D14); Battle and Kindred icons to be made   |
 | Supertype → icon + label              | 5.5.1–5.5.4 | Legendary and Basic defined; others open             |
 | Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
