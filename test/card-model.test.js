@@ -76,6 +76,18 @@ test('checks grouped mana cost', () => {
   );
 });
 
+test('checks zone symbols and their order', () => {
+  const check = (zoneSymbols) => validateCardModel({ ...valid(), zoneSymbols });
+  const error =
+    'zoneSymbols must be distinct values from flash, split-second, hand, library, graveyard, in that order';
+  assert.deepEqual(check([]), []);
+  assert.deepEqual(check(['flash', 'split-second', 'graveyard']), []);
+  assert.deepEqual(check(['graveyard', 'hand']), [error]);
+  assert.deepEqual(check(['exile']), [error]);
+  assert.deepEqual(check(['hand', 'hand']), [error]);
+  assert.deepEqual(check(null), [error]);
+});
+
 test('requires power and toughness together', () => {
   assert.deepEqual(validateCardModel({ ...valid(), toughness: null }), [
     'power and toughness must both be set or both be null',

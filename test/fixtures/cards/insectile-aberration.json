@@ -9,6 +9,7 @@
   "colors": ["U"],
   "colorIndicator": ["U"],
   "manaCost": null,
+  "zoneSymbols": [],
   "power": "3",
   "toughness": "2",
   "loyalty": null,

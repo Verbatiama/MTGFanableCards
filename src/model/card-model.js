@@ -16,6 +16,8 @@
  *   symbol for every kind, X included (D11). For 'generic' it is the total
  *   generic amount, so `{0}` is `{ symbol: 'generic', count: 0 }`.
  *
+ * @typedef {'flash' | 'split-second' | 'hand' | 'library' | 'graveyard'} ZoneSymbol
+ *
  * @typedef {object} CardModel
  * @property {string} name Face name.
  * @property {string} layout Scryfall layout ('normal', 'transform', 'modal_dfc', ...).
@@ -30,6 +32,8 @@
  *   has no mana cost (lands, Ancestral Vision, back faces). Order (D11, 5.3.7):
  *   coloured, hybrid and Phyrexian symbols in printed order, then S, C, X, Y, Z,
  *   and generic last.
+ * @property {ZoneSymbol[]} zoneSymbols Zone and timing symbols for the middle of
+ *   the stat bar (D12, 5.4), in ZONE_SYMBOLS order; empty when none apply.
  * @property {string | null} power Strings, because of '*', '1+*' and 'X'.
  * @property {string | null} toughness
  * @property {string | null} loyalty Starting loyalty (planeswalkers).
@@ -49,6 +53,8 @@
 const COLORS = ['W', 'U', 'B', 'R', 'G'];
 // Symbols that follow the printed-order ones, in this order (D11, 5.3.7).
 const MANA_TAIL = ['S', 'C', 'X', 'Y', 'Z', 'generic'];
+/** Zone and timing symbols in display order, top to bottom (D12, 5.4.7). */
+export const ZONE_SYMBOLS = ['flash', 'split-second', 'hand', 'library', 'graveyard'];
 const RARITIES = ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'];
 
 const STRING_FIELDS = [
@@ -81,6 +87,7 @@ export const CARD_MODEL_FIELDS = [
   'colors',
   'colorIndicator',
   'manaCost',
+  'zoneSymbols',
   'rarity',
 ];
 
@@ -131,6 +138,11 @@ export function validateCardModel(model) {
   }
   if ('manaCost' in model && model.manaCost !== null)
     errors.push(...validateManaCost(model.manaCost));
+  if ('zoneSymbols' in model && !isOrderedSubset(model.zoneSymbols, ZONE_SYMBOLS)) {
+    errors.push(
+      `zoneSymbols must be distinct values from ${ZONE_SYMBOLS.join(', ')}, in that order`,
+    );
+  }
   if ('rarity' in model && !RARITIES.includes(model.rarity)) {
     errors.push(`rarity must be one of ${RARITIES.join(', ')}`);
   }
@@ -177,7 +189,12 @@ function isStringArray(value) {
 }
 
 function isColorList(value) {
+  return isOrderedSubset(value, COLORS);
+}
+
+/** True when `value` is an array of distinct items from `allowed`, in its order. */
+function isOrderedSubset(value, allowed) {
   if (!Array.isArray(value)) return false;
-  const order = value.map((c) => COLORS.indexOf(c));
+  const order = value.map((c) => allowed.indexOf(c));
   return order.every((n, i) => n >= 0 && (i === 0 || n > order[i - 1]));
 }

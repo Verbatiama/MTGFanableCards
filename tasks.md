@@ -28,7 +28,7 @@ These decisions block most of the build work, so they should be settled first.
 | S1   | ✓ AGREED: Card-model schema sufficient for v1; keep oracle text in Scryfall formatting, with `manaCost` grouped and extra fields only added if a concrete need appears | A + B  | —          | 3.3.1       |
 | T-A1 | ✓ DONE: Scaffold the project: Node repo, linting (ESLint + Prettier), test framework (node:test), CI (GitHub Actions), folder structure                          | A      | —          | 3.1.1       |
 | T-B1 | ✓ DONE: Rendering spike (spikes/rendering/): node-canvas vs @napi-rs/canvas. node-canvas fonts fail on native Windows, work on Linux/WSL; D5 kept, project moves to WSL | B      | —          | 3.1.3       |
-| T-A2 | ✓ DONE: Fixture set (test/fixtures/cards/): 10 mockup cards + 27 edge-case faces as card-model JSON, schema and validator in src/model/card-model.js | A      | S1         | all         |
+| T-A2 | ✓ DONE: Fixture set (test/fixtures/cards/): 10 mockup cards + 30 edge-case faces as card-model JSON, schema and validator in src/model/card-model.js | A      | S1         | all         |
 
 ## Phase 1: Rule decisions (weeks 1–3, alongside build work)
 
@@ -37,7 +37,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | ID   | Task                                                                                                                                                                                      | Owner  | Depends on | Req               |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ----------------- |
 | D11  | ✓ DECIDED: Symbol + count for every symbol (X, hybrid, Phyrexian, snow included); new generic symbol in the bar only, diamond for {C}; {0} = generic 0; printed order, then S, C, X, generic last; text symbols as printed | PO     | —          | 5.3, 6.4.6        |
-| D12  | Zone/timing symbols: full mechanic → symbol mapping, detection method, whether triggered abilities count, FLASH vs INSTANT label, whether instants get the bolt, maximum number and order | PO     | —          | 5.4.1–5.4.7       |
+| D12  | ✓ DECIDED: Flash (also on instants, labelled FLASH), Split second, Hand, Top of library, Graveyard; no Exile (suspend/foretell/plot/madness = Hand); keywords + type + phrase detection; any ability active in the zone counts; no maximum, fixed order | PO     | —          | 5.4.1–5.4.7       |
 | D13  | Meaning of the "NORMAL" icon and when it appears                                                                                                                                          | PO     | —          | 5.4.8             |
 | D14  | Card type icons for Battle, Kindred and others; icon order for multi-type cards                                                                                                           | PO     | D1         | 5.1.3–5.1.4       |
 | D15  | Supertypes: whether planeswalkers show LEGENDARY; icons for Snow, World and Token                                                                                                         | PO     | —          | 5.5.3–5.5.4       |

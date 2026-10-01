@@ -246,39 +246,41 @@ The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **onl
 
 ### 5.4 Zone and timing symbols (middle)
 
-5.4.1 **[Confirmed]** Instead of keyword symbols, symbols are needed for effects that change **where** a card can be cast or activated from, or **when** it can be cast. Confirmed examples:
+5.4.1 **[Confirmed]** Instead of keyword symbols, symbols are needed for effects that change **where** a card can be used from (cast, activated, or otherwise working there; see 5.4.4), or **when** it can be cast. Confirmed examples:
 
-| Effect    | Symbol                                                             |
-| --------- | ------------------------------------------------------------------ |
-| Flash     | Lightning bolt (labelled "INSTANT" in the Feral Invocation mockup) |
-| Cycling   | Hand                                                               |
-| Flashback | Graveyard                                                          |
+| Effect    | Symbol                                                           |
+| --------- | ---------------------------------------------------------------- |
+| Flash     | Lightning bolt, labelled "FLASH" (5.4.5)                         |
+| Cycling   | Hand                                                             |
+| Flashback | Graveyard                                                        |
 
-5.4.2 **[Open]** The complete mapping from mechanic to symbol. A starting list for the owner to confirm:
+5.4.2 **[Confirmed]** Mechanic → symbol mapping (D12). v1 has five symbols: two timing symbols and three zone symbols. There is **no Exile symbol**; mechanics that start in hand and are cast from exile show the Hand symbol, because that is where the player starts using them.
 
-- **Hand:** cycling, channel, ninjutsu, madness, transmute, forecast, bloodrush, reinforce
-- **Graveyard:** flashback, unearth, escape, disturb, embalm, eternalize, retrace, jump-start, scavenge, aftermath (second half)
-- **Exile:** foretell, suspend, plot, adventure (cast from exile after the adventure)
-- **Command zone:** if relevant
-- **Top of library:** miracle
-- **Timing:** flash, and possibly split second
+| Symbol (model id)                 | Label        | Keywords                                                                                                                       |
+| --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Flash (`flash`)                   | FLASH        | Flash; also every Instant (5.4.6)                                                                                              |
+| Split second (`split-second`)     | SPLIT SECOND | Split second (new icon needed)                                                                                                 |
+| Hand (`hand`)                     | HAND         | Cycling and every _-cycling_ variant, channel, ninjutsu, commander ninjutsu, transmute, forecast, bloodrush, reinforce, madness, suspend, foretell, plot |
+| Top of library (`library`)        | LIBRARY      | Miracle                                                                                                                        |
+| Graveyard (`graveyard`)           | GRAVEYARD    | Flashback, unearth, escape, disturb, embalm, eternalize, retrace, jump-start, scavenge, encore, dredge, aftermath               |
 
-  5.4.3 **[Open]** Detection method:
+The keyword lists live in a configuration table (section 9), so new mechanics are added there.
 
-- the JSON `keywords` array
-- parsing Oracle text
-- a hand-maintained mapping table
-- a combination of these
+5.4.3 **[Confirmed]** Detection (D12) combines three sources:
 
-Non-keyword text such as Gravecrawler's "you may cast this card from your graveyard" will not appear in a keywords field.
+- the Scryfall `keywords` array, looked up in the mapping table above
+- the card type: every Instant gets Flash
+- oracle-text phrases for abilities without a keyword, where the card refers to itself in that zone: "this card from/in your hand", "this card from/on the top of your library", "this card from/in your graveyard" (e.g. Gravecrawler's "You may cast this card from your graveyard")
 
-5.4.4 **[Open]** Whether triggered abilities that work from a zone count. Bloodghast returns from the graveyard via a trigger; it is not "cast" or "activated" there.
+The result is stored in the card model as `zoneSymbols` (T-A8).
 
-5.4.5 **[Open]** Label text. The flash bolt is labelled "INSTANT", which could be confused with the Instant card type. Consider "FLASH".
+5.4.4 **[Confirmed]** Any ability that works while the card is in the zone counts, not only casting and activating (D12). Bloodghast ("return this card from your graveyard to the battlefield", a triggered ability) gets the Graveyard symbol. This also covers README goal 12, "Active in grave". Abilities that trigger as the card moves into a zone, such as Emrakul's "When Emrakul is put into a graveyard from anywhere", do not count.
 
-5.4.6 **[Open]** Whether an Instant also gets the bolt symbol, which would duplicate its type icon.
+5.4.5 **[Confirmed]** The flash symbol is labelled **FLASH**, not "INSTANT", so it is not confused with the Instant card type (D12).
 
-5.4.7 **[Open]** Maximum number of zone/timing symbols, and their order when a card has several.
+5.4.6 **[Confirmed]** Instants also get the Flash symbol, so the timing slot is consistent for every card castable at instant speed (D12).
+
+5.4.7 **[Confirmed]** There is no maximum number of zone/timing symbols; every symbol that applies is shown (D12). Order, top to bottom: Flash, Split second, Hand, Top of library, Graveyard. Running out of space is handled by the stat-bar collision rules (D19).
 
 5.4.8 **[Open]** The **"NORMAL"** icon. Damnation and Jace show an icon labelled NORMAL in the slot where Feral Invocation shows the flash bolt. It likely means normal (sorcery-speed) timing, but it is inconsistent: Sword of Fire and Ice and Niv-Mizzet are also sorcery-speed and don't show it. Confirm its meaning and whether it appears on every card without flash.
 
@@ -460,7 +462,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 - Stat bar: type icon, mana, "NON-PERMANENT" at the bottom.
 - References: Damnation, Lightning Strike.
-- See 5.4.6 on whether instants also get the flash bolt.
+- Instants also get the FLASH symbol (5.4.6).
 
 ### 7.4 Artifact (including Equipment)
 
@@ -538,7 +540,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | Supertype → icon + label              | 5.5.1–5.5.4 | Legendary and Basic defined; others open             |
 | Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
-| Mechanic → zone/timing symbol + label | 5.4         | Flash, cycling and flashback defined; rest open      |
+| Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |
 | Text symbol → icon                    | 6.4.7       | Partial                                              |
 | Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |
 | Layout → marker / rendering rules     | 8           | Open                                                 |

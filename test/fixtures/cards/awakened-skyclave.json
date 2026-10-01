@@ -9,6 +9,7 @@
   "colors": ["G"],
   "colorIndicator": ["G"],
   "manaCost": null,
+  "zoneSymbols": [],
   "power": "4",
   "toughness": "4",
   "loyalty": null,

@@ -40,6 +40,14 @@ const FRAMES = {
 };
 const PIPS = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };
 const PERMANENT_TYPES = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Land', 'Planeswalker'];
+// Labels for the zone and timing symbols (D12, 5.4.2).
+const ZONE_LABELS = {
+  flash: 'Flash',
+  'split-second': 'Split second',
+  hand: 'Hand',
+  library: 'Library',
+  graveyard: 'Graveyard',
+};
 // Subtypes of these types don't get icons (5.5.6), so the preview skips them.
 const NO_SUBTYPE_ICON = ['Creature', 'Planeswalker', 'Kindred'];
 
@@ -168,17 +176,24 @@ async function drawStatBar(ctx, model) {
     y += BAR.icon + BAR.gap;
   }
 
-  // Middle: anchored at the type line, growing upward.
-  const middle = [...model.supertypes];
-  if (!model.types.some((t) => NO_SUBTYPE_ICON.includes(t))) middle.push(...model.subtypes);
+  // Middle: anchored at the type line, growing upward. Top to bottom: zone and
+  // timing symbols (D12), supertypes, subtypes (5.6.1). Boxes stand in for icons;
+  // zone/timing boxes are gold so they stand out from type boxes.
+  const middle = model.zoneSymbols.map((z) => ({ label: ZONE_LABELS[z], zone: true }));
+  middle.push(...model.supertypes.map((label) => ({ label })));
+  if (!model.types.some((t) => NO_SUBTYPE_ICON.includes(t))) {
+    middle.push(...model.subtypes.map((label) => ({ label })));
+  }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   let my = TYPE.y + TYPE.h - 4;
-  for (const label of middle.reverse()) {
+  for (const { label, zone } of middle.reverse()) {
+    const text = label.toUpperCase();
     ctx.fillStyle = '#fff';
-    ctx.font = LABEL(label.length > 9 ? 11 : 13);
-    ctx.fillText(label.toUpperCase(), cx, my);
-    ctx.strokeStyle = '#777';
+    ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));
+    ctx.fillText(text, cx, my);
+    ctx.strokeStyle = zone ? '#d9a441' : '#777';
+    ctx.lineWidth = zone ? 2 : 1;
     ctx.strokeRect(cx - 18, my - 54, 36, 34);
     my -= 62;
   }
@@ -383,8 +398,8 @@ function drawCover(ctx, img, box) {
   );
 }
 
-function fitSize(ctx, text, maxWidth, size, font) {
-  for (; size > 12; size -= 1) {
+function fitSize(ctx, text, maxWidth, size, font, min = 12) {
+  for (; size > min; size -= 1) {
     ctx.font = font(size);
     if (ctx.measureText(text).width <= maxWidth) break;
   }

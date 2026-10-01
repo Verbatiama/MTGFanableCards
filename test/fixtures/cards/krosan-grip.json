@@ -1,0 +1,36 @@
+{
+  "name": "Krosan Grip",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Instant",
+  "supertypes": [],
+  "types": ["Instant"],
+  "subtypes": [],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    },
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "zoneSymbols": ["flash", "split-second"],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Split second (As long as this spell is on the stack, players can't cast spells or activate abilities that aren't mana abilities.)\nDestroy target artifact or enchantment.",
+  "flavorText": "\"Give up these unnatural weapons, these scrolls. Heart and mind and fist are enough.\"\n—Zyd, Kamahlite druid",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/5/9/59b524bb-5a18-4dda-9c45-26ce9ff0f0c1.jpg?1783943211",
+  "artist": "Zoltan Boros & Gabor Szikszai",
+  "collectorNumber": "202",
+  "rarity": "uncommon",
+  "setCode": "TSP",
+  "lang": "en",
+  "copyright": "™ & © 2006 Wizards of the Coast"
+}

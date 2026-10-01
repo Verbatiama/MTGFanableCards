@@ -1,0 +1,32 @@
+{
+  "name": "Bloodghast",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Creature — Vampire Spirit",
+  "supertypes": [],
+  "types": ["Creature"],
+  "subtypes": ["Vampire", "Spirit"],
+  "colors": ["B"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "B",
+      "count": 2
+    }
+  ],
+  "zoneSymbols": ["graveyard"],
+  "power": "2",
+  "toughness": "1",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "This creature can't block.\nThis creature has haste as long as an opponent has 10 or less life.\nLandfall — Whenever a land you control enters, you may return this card from your graveyard to the battlefield.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/6/3/63870c81-63bf-4a9a-aeb5-74c6eaded9f1.jpg?1783942155",
+  "artist": "Daarken",
+  "collectorNumber": "83",
+  "rarity": "rare",
+  "setCode": "ZEN",
+  "lang": "en",
+  "copyright": "™ & © 2009 Wizards of the Coast"
+}

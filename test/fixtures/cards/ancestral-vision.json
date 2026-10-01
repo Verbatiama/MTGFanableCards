@@ -9,6 +9,7 @@
   "colors": ["U"],
   "colorIndicator": ["U"],
   "manaCost": null,
+  "zoneSymbols": ["hand"],
   "power": null,
   "toughness": null,
   "loyalty": null,
