@@ -24,9 +24,10 @@ Requires Linux and Node.js 22 or later (see `.nvmrc`). On Windows, use WSL and c
 
 ```
 npm install
-npm run check    # lint + format check + tests (what CI runs)
-npm test         # tests only (node:test)
-npm start        # backend API on http://localhost:3000
+npm run check         # lint + format check + tests (what CI runs)
+npm test              # tests only (node:test)
+npm start             # backend API on http://localhost:3000
+npm run spike:preview # Generate priview images from development spikes
 ```
 
 ### Folder structure
