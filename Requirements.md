@@ -156,7 +156,16 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 - **Middle**, anchored at the type line: zone/timing symbols, supertype, subtype.
 - **Bottom**, anchored to the bottom: stats, loyalty, or the permanence label.
 
-  4.3 **[Open]** Exact dimensions: bar width, icon sizes, spacing and margins, in pixels or mm at the chosen output resolution.
+  4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
+  - **Stat bar width:** ~90 pixels
+  - **Icon sizes:** ~50 pixels (square)
+  - **Card name font:** ~26pt
+  - **Type line font:** ~14pt
+  - **Rules text font:** ~11pt
+  - **Footer font:** ~8pt
+  - **Spacing:** 5-8px between elements
+  - All dimensions are configurable and can be fine-tuned during development.
+  - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
   4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
 

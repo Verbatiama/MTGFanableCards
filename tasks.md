@@ -22,7 +22,7 @@ These decisions block most of the build work, so they should be settled first.
 | D5   | ✓ DECIDED: node-canvas with Canvas 2D API (backend and frontend, same code)                                                  | B      | —          | 3.1.3       |
 | D6   | ✓ DECIDED: Use Beleren fonts from Assets/Fonts/ (free to use)                                                                | PO + B | —          | 10.1        |
 | D7   | ✓ DECIDED: Custom SVG mana symbols from res/symbols/, Scryfall SVGs for set/type icons, custom watermarks                    | PO     | —          | 9.1         |
-| D8   | Set exact layout dimensions, icon sizes and spacing, and decide whether a mirrored bar is needed                             | PO     | D4         | 1.3, 4.3    |
+| D8   | ✓ DECIDED: Dimensions from example mockups, configurable in code, no mirrored bar for v1                                     | PO     | D4         | 1.3, 4.3    |
 | D9   | ✓ DECIDED: Backend API + frontend UI (API for programmatic access, UI for decklist input)                                    | PO     | —          | 3.1.2       |
 | D10  | Decide the art policy: runtime download, caching, rate limiting, offline behaviour and placeholder, cropping                 | PO     | D2         | 3.4         |
 | S1   | Agree the card-model schema: types, grouped mana, stats, loyalty, colour indicator, zone symbols, text tokens, footer fields | A + B  | —          | 3.3.1       |
