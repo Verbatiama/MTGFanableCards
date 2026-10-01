@@ -60,7 +60,7 @@ Each requirement is tagged:
 
 3.1.1 **[Confirmed]** The application runs on Node.js and is written in JavaScript.
 
-3.1.2 **[Open]** Interface: command-line tool only, or also a local server/UI.
+3.1.2 **[Confirmed]** Interface: **Backend API for programmatic access + frontend UI for decklist input**. Users can input a decklist with quantities via the UI, and developers can call the API directly.
 
 3.1.3 **[Open]** Rendering approach, e.g. a canvas library such as node-canvas or skia-canvas, or a headless browser rendering HTML/SVG. This is an implementation choice, but it affects font and SVG symbol handling.
 
@@ -68,36 +68,25 @@ Each requirement is tagged:
 
 3.2.1 **[Confirmed]** The user supplies card names. Each name is looked up in a JSON file of Magic cards.
 
-3.2.2 **[Open]** Input format: CLI arguments, a text file, or a pasted decklist with quantities (e.g. `4 Lightning Bolt`).
+3.2.2 **[Confirmed]** Input format: **Decklist format with quantities** (e.g., `4 Lightning Bolt`, `1 Counterspell`). Quantities are respected; `4 Lightning Bolt` produces four card images.
 
-3.2.3 **[Open]** Quantities: whether `4 Lightning Bolt` produces four images or one.
+3.2.3 **[Confirmed]** Quantities: `4 Lightning Bolt` produces **four separate images** (one per copy).
 
 3.2.4 **[Open]** Name matching: exact, case-insensitive, or fuzzy.
 
-3.2.5 **[Open]** Double-faced card names: accept the full name (`Delver of Secrets // Insectile Aberration`), either face name, or both.
+3.2.5 **[Confirmed]** Double-faced card names: accept **both** the full name with `//` (e.g., `Delver of Secrets // Insectile Aberration`) **and** either face name alone (e.g., `Delver of Secrets` or `Insectile Aberration`).
 
-3.2.6 **[Open]** Unmatched names: skip with a warning, fail the whole batch, or produce an error report alongside the zip.
+3.2.6 **[Confirmed]** Unmatched names (typos, card doesn't exist): **Frontend displays a warning; API returns a success/failure report** along with the generated files. Cards that match are processed; unmatched cards are reported but do not block the batch.
 
 3.2.7 **[Open]** Non-English card names and non-English output (see 10.4).
 
 ### 3.3 Card data source
 
-3.3.1 **[Open]** Which JSON source: MTGJSON (e.g. AllPrintings) or Scryfall bulk data (Oracle Cards / Default Cards). The choice matters because field names differ. The renderer depends on fields for:
+3.3.1 **[Confirmed]** Card data source: **Scryfall bulk data**. Use Default Cards JSON (one unique card per printing) plus Unique Artwork files (all artwork variants per card). This provides complete card details and all artwork options.
 
-- mana cost
-- colours and colour indicator
-- type line and supertypes/types/subtypes
-- Oracle text
-- power, toughness, loyalty and defense
-- layout and faces
-- keywords
-- rarity, set code and collector number
-- artist
-- release date
+3.3.2 **[Confirmed]** Files are downloaded daily. The app fetches updated data on startup (or on demand) and caches locally.
 
-  3.3.2 **[Open]** Whether the JSON is bundled with the app or downloaded, and how and when it is updated.
-
-  3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
+3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
 
 - a way for the user to specify a printing, e.g. `Lightning Bolt (M10) 146`
 - a defined default when none is given (e.g. latest printing, or first printing)

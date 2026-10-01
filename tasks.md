@@ -16,7 +16,7 @@ These decisions block most of the build work, so they should be settled first.
 | ID   | Task                                                                                                                                   | Owner  | Depends on | Req         |
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ----------- |
 | D1   | ✓ DECIDED: V1 includes all card types (single-face rendering), double-faced as two images, special layouts post-v1                     | PO     | —          | 2.5         |
-| D2   | Choose the card data source (MTGJSON or Scryfall) and whether it is bundled or downloaded                                              | PO + A | —          | 3.3.1–3.3.2 |
+| D2   | ✓ DECIDED: Scryfall Default Cards + Unique Artwork, downloaded daily                                                                   | PO + A | —          | 3.3.1–3.3.2 |
 | D3   | Define the input spec: format, quantities, name matching, double-faced card names, unmatched names, printing selection and its default | PO     | —          | 3.2, 3.3.3  |
 | D4   | Define the output spec: image format, dimensions, DPI, bleed, file naming, zip name, one or two images per double-faced card           | PO     | —          | 3.5         |
 | D5   | Choose the rendering technology (canvas library or headless browser)                                                                   | B      | T-B1       | 3.1.3       |
