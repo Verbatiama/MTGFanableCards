@@ -12,8 +12,9 @@
  * @typedef {object} ManaGroup
  * @property {string} symbol Scryfall symbol without braces ('U', 'W/U', '2/W',
  *   'B/P', 'G/U/P', 'C', 'S', 'X'), or 'generic' for the numeric part.
- * @property {number} count How many times the symbol appears. For 'generic' it
- *   is the total generic amount, so `{0}` is `{ symbol: 'generic', count: 0 }`.
+ * @property {number} count How many times the symbol appears, drawn next to the
+ *   symbol for every kind, X included (D11). For 'generic' it is the total
+ *   generic amount, so `{0}` is `{ symbol: 'generic', count: 0 }`.
  *
  * @typedef {object} CardModel
  * @property {string} name Face name.
@@ -26,8 +27,9 @@
  * @property {string[]} colors Card colours in WUBRG order; drives the frame (6.6).
  * @property {string[] | null} colorIndicator Colour indicator in WUBRG order, or null.
  * @property {ManaGroup[] | null} manaCost Grouped cost, or null when the face
- *   has no mana cost (lands, Ancestral Vision, back faces). Order follows 5.3.4
- *   until D11 settles it: WUBRG, hybrid/Phyrexian, snow, colourless, X, generic.
+ *   has no mana cost (lands, Ancestral Vision, back faces). Order (D11, 5.3.7):
+ *   coloured, hybrid and Phyrexian symbols in printed order, then S, C, X, Y, Z,
+ *   and generic last.
  * @property {string | null} power Strings, because of '*', '1+*' and 'X'.
  * @property {string | null} toughness
  * @property {string | null} loyalty Starting loyalty (planeswalkers).
@@ -45,6 +47,8 @@
  */
 
 const COLORS = ['W', 'U', 'B', 'R', 'G'];
+// Symbols that follow the printed-order ones, in this order (D11, 5.3.7).
+const MANA_TAIL = ['S', 'C', 'X', 'Y', 'Z', 'generic'];
 const RARITIES = ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'];
 
 const STRING_FIELDS = [
@@ -161,6 +165,10 @@ function validateManaCost(manaCost) {
       errors.push(`manaCost[${i}].count can only be 0 for generic ({0})`);
     }
   });
+  const ranks = manaCost.map((group) => MANA_TAIL.indexOf(group?.symbol));
+  if (ranks.some((rank, i) => i > 0 && rank < ranks[i - 1])) {
+    errors.push(`manaCost must list printed-order symbols first, then ${MANA_TAIL.join(', ')}`);
+  }
   return errors;
 }
 

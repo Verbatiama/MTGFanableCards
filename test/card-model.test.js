@@ -49,6 +49,31 @@ test('checks grouped mana cost', () => {
   assert.deepEqual(check([{ symbol: 'U', count: 0 }]), [
     'manaCost[0].count can only be 0 for generic ({0})',
   ]);
+  const orderError = 'manaCost must list printed-order symbols first, then S, C, X, Y, Z, generic';
+  // Printed order is kept for coloured symbols, so G before W is fine.
+  assert.deepEqual(
+    check([
+      { symbol: 'G', count: 1 },
+      { symbol: 'W', count: 1 },
+      { symbol: 'X', count: 2 },
+      { symbol: 'generic', count: 1 },
+    ]),
+    [],
+  );
+  assert.deepEqual(
+    check([
+      { symbol: 'generic', count: 2 },
+      { symbol: 'U', count: 1 },
+    ]),
+    [orderError],
+  );
+  assert.deepEqual(
+    check([
+      { symbol: 'X', count: 1 },
+      { symbol: 'C', count: 1 },
+    ]),
+    [orderError],
+  );
 });
 
 test('requires power and toughness together', () => {

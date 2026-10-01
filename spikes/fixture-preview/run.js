@@ -52,6 +52,7 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
 const sheet = await readFile(path.join(SYMBOL_DIR, 'symbols.svg'), 'utf8');
 const sheetCodes = new Set(listSymbolCodes(sheet));
 const symbolCache = new Map();
+const genericSymbol = await loadImage(path.join(SYMBOL_DIR, 'generic.svg'));
 
 /** Scryfall symbol ('U', 'W/U', 'B/P', 'T', 'S', '12') → loaded sheet image, or null. */
 async function symbol(code) {
@@ -155,16 +156,15 @@ async function drawStatBar(ctx, model) {
 
   for (const { symbol: code, count } of model.manaCost ?? []) {
     const x = 8;
-    if (code === 'generic') drawFallbackSymbol(ctx, '', x, y, BAR.icon);
+    // The generic symbol is only for the bar; rules text keeps number symbols (D11).
+    if (code === 'generic') ctx.drawImage(genericSymbol, x, y, BAR.icon, BAR.icon);
     else await drawSymbol(ctx, code, x, y, BAR.icon);
-    // X is shown without a count (5.3.3); generic always shows its amount.
-    if (code !== 'X' || count > 1) {
-      ctx.fillStyle = '#fff';
-      ctx.font = FONT(count > 9 ? 20 : 24);
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(String(count), x + BAR.icon + 4, y + BAR.icon / 2 + 1);
-    }
+    // Every symbol shows its count, X and {0} included (D11).
+    ctx.fillStyle = '#fff';
+    ctx.font = FONT(count > 9 ? 20 : 24);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(count), x + BAR.icon + 4, y + BAR.icon / 2 + 1);
     y += BAR.icon + BAR.gap;
   }
 

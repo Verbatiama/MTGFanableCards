@@ -9,7 +9,7 @@ Load them with `loadCardFixtures()` / `loadCardFixture(slug)` from `test/fixture
 - **File name:** the face name in lower case, punctuation dropped, words joined by `-` (`Smuggler's Copter` → `smugglers-copter.json`).
 - **Printing:** a fixed printing per card (set and collector number in the file), so footer, art and copyright are stable. Niv-Mizzet (GPT 123) and Damnation (PLC 85) match the mockup footers. The others use a common printing of the card (e.g. Feral Invocation, JMP 396).
 - **Text:** `oracleText` and `flavorText` are copied from Scryfall unchanged, so they use current Oracle wording ("this creature", "any target"), not the mockup text.
-- **Mana cost order:** WUBRG, then hybrid and Phyrexian, snow, colourless, X, generic last (5.3.4). D11 will settle this; update the fixtures when it does.
+- **Mana cost order (D11):** coloured, hybrid and Phyrexian symbols in printed order, then snow, colourless, X, Y, Z, and generic last. Every group carries a count, X included; `{0}` is `generic` with count 0.
 - **Copyright:** `™ & © <release year> Wizards of the Coast`, from the printing's release year. The mockups all show 2014; see 6.5.2 (D20).
 - **Double-faced cards:** one file per face, sharing `layout`, `setCode` and `collectorNumber`, with `faceIndex` 0 (front) and 1 (back).
 

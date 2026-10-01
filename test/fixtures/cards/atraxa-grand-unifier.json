@@ -10,6 +10,10 @@
   "colorIndicator": null,
   "manaCost": [
     {
+      "symbol": "G",
+      "count": 1
+    },
+    {
       "symbol": "W",
       "count": 1
     },
@@ -19,10 +23,6 @@
     },
     {
       "symbol": "B",
-      "count": 1
-    },
-    {
-      "symbol": "G",
       "count": 1
     },
     {

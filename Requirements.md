@@ -214,32 +214,33 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.3.2 **[Confirmed]** Every mana symbol type follows this same pattern.
 
-5.3.3 **[Confirmed]** X is shown as a symbol **without** a number.
+5.3.3 **[Confirmed]** X is counted like any other symbol (D11): {X} is drawn as X 1 and {X}{X} as X 2. This replaces the earlier rule of showing X without a number.
 
-5.3.4 **[Inferred]** Coloured symbols come first and generic comes last (reverse of the printed order). The mockups show only one colour order (Niv-Mizzet: blue then red).
+5.3.4 **[Confirmed]** Coloured symbols come first and generic comes last (D11). See 5.3.7 for the full order.
 
 5.3.5 **[Confirmed]** Lands with no mana cost show no mana section.
 
-5.3.6 Symbol types to support. The Components doc lists colours (W, U, B, R, G), generic, colourless, Phyrexian, snow and hybrid. Items marked **[Open]** need a decision:
+5.3.6 **[Confirmed]** Symbol types (D11). Every symbol is drawn as its symbol plus a count; each distinct symbol is one row:
 
-| Symbol                     | Display                                              | Status             |
-| -------------------------- | ---------------------------------------------------- | ------------------ |
-| W, U, B, R, G              | Symbol + count                                       | Confirmed          |
-| Generic                    | Grey symbol + count                                  | Confirmed          |
-| Colourless {C}             | Must be visibly distinct from generic; both are grey | **Open**           |
-| X                          | Symbol, no count                                     | Confirmed          |
-| XX / XXX (e.g. {X}{X}{R})  | Without a count, {X} and {X}{X} look identical       | **Open**           |
-| Y, Z                       | Presumably as X                                      | **Open**           |
-| Hybrid ({W/U})             | Is {W/U}{W/U} one hybrid symbol + 2?                 | **Open**           |
-| Mono-hybrid ({2/W})        | Display undefined                                    | **Open**           |
-| Phyrexian ({W/P})          | Symbol + count                                       | **Open** (confirm) |
-| Phyrexian hybrid ({G/U/P}) | Display undefined                                    | **Open**           |
-| Colourless hybrid ({C/W})  | Display undefined                                    | **Open**           |
-| Snow {S}                   | Symbol + count                                       | **Open** (confirm) |
+| Symbol                     | Display                                                                     |
+| -------------------------- | --------------------------------------------------------------------------- |
+| W, U, B, R, G              | Symbol + count                                                              |
+| Generic                    | Generic mana symbol (`res/symbols/generic.svg`) + total generic amount      |
+| Colourless {C}             | Diamond symbol + count, distinct in shape from generic                      |
+| X (including {X}{X})       | X symbol + count: {X} = X 1, {X}{X} = X 2                                   |
+| Y, Z                       | As X: own symbol + count                                                    |
+| Hybrid ({W/U})             | One hybrid symbol + count: {W/U}{W/U} = W/U 2                               |
+| Mono-hybrid ({2/W})        | One mono-hybrid symbol + count                                              |
+| Phyrexian ({W/P})          | One Phyrexian symbol + count: {B/P}{B/P} = B/P 2                            |
+| Phyrexian hybrid ({G/U/P}) | One symbol + count                                                          |
+| Colourless hybrid ({C/W})  | One symbol + count                                                          |
+| Snow {S}                   | Snowflake symbol + count                                                    |
 
-5.3.7 **[Open]** Full symbol order, e.g. WUBRG, then hybrid/Phyrexian/snow, then X, then generic.
+The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **only** for the grouped generic cost in the stat bar. Rules text keeps the number symbols (6.4.6). The symbol sheet does not yet have Y, Z, Phyrexian hybrid or colourless hybrid symbols; they are needed before those costs render properly (T-B3).
 
-5.3.8 **[Open]** A {0} cost must look different from no mana cost (lands, Ancestral Vision). Define how {0} is drawn.
+5.3.7 **[Confirmed]** Symbol order (D11): coloured, hybrid and Phyrexian symbols in the order they are printed on the card (the printed order already follows the colour wheel, e.g. {G}{W} for Selesnya), then snow, colourless, X, Y, Z, and generic last. Niv-Mizzet ({2}{U}{U}{R}{R}) is drawn U 2, R 2, generic 2.
+
+5.3.8 **[Confirmed]** A {0} cost is drawn as the generic mana symbol with the count 0 (D11). A card with no mana cost (lands, Ancestral Vision, back faces) has no mana section at all (5.3.5), so the two stay visibly different.
 
 5.3.9 **[Open]** Maximum rows before the mana block collides with the middle section. Five-colour costs, and large costs such as Emrakul's {15} or Draco's {16} (which is one row but a two-digit count), need testing.
 
@@ -378,7 +379,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Open]** Whether this applies to all P/T references in text, including "-1/-1", "X/X" tokens, and counters.
 
-6.4.6 **[Inferred]** Mana symbols in rules text use the same symbol + count pill as the bar (Sword of Fire and Ice: "{2}: Equip"). **[Open]** Confirm this applies everywhere, including mana abilities such as "Add {C}{C}".
+6.4.6 **[Confirmed]** Mana symbols in rules text are drawn as printed, one symbol each, with no grouping or counts (D11): "Equip {2}" uses the 2 symbol, "Add {C}{C}" shows two diamonds, and "{2}{U}: Draw a card" shows the 2 and U symbols. The grouped symbol + count display and the generic mana symbol are used only in the stat bar.
 
 6.4.7 Symbols to support in rules text. The Components doc lists tap, untap, energy (listed twice) and mana symbols. Additional symbols to decide on **[Open]**:
 
@@ -536,7 +537,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | Card type → icon                      | 5.1         | Partly defined by mockups                            |
 | Supertype → icon + label              | 5.5.1–5.5.4 | Legendary and Basic defined; others open             |
 | Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
-| Mana symbol → icon, count rule, order | 5.3         | Colours, generic and X defined; others open          |
+| Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
 | Mechanic → zone/timing symbol + label | 5.4         | Flash, cycling and flashback defined; rest open      |
 | Text symbol → icon                    | 6.4.7       | Partial                                              |
 | Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |

@@ -10,15 +10,15 @@
   "colorIndicator": null,
   "manaCost": [
     {
-      "symbol": "W",
-      "count": 1
-    },
-    {
       "symbol": "G",
       "count": 1
     },
     {
       "symbol": "G/W/P",
+      "count": 1
+    },
+    {
+      "symbol": "W",
       "count": 1
     },
     {
