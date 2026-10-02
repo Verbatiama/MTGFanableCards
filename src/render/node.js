@@ -33,30 +33,48 @@ export function registerFonts() {
   fontsRegistered = true;
 }
 
+/** Decodes image bytes, or null when they're missing or can't be decoded. */
+export async function decode(bytes) {
+  if (!bytes) return null;
+  try {
+    return await loadImage(Buffer.from(bytes));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Scryfall's set SVGs have only a viewBox; give them a large pixel size so
+ * node-canvas rasterises them sharply rather than at their tiny default size.
+ */
+function sizedSvg(bytes, height = 120) {
+  const svg = Buffer.from(bytes).toString('utf8');
+  const box = /viewBox="[\d.-]+ [\d.-]+ ([\d.]+) ([\d.]+)"/.exec(svg);
+  if (!box) return bytes;
+  const width = Math.round((height * Number(box[1])) / Number(box[2]));
+  return Buffer.from(svg.replace('<svg ', `<svg width="${width}" height="${height}" `));
+}
+
+/** Decodes set symbol SVG bytes at a sharp size (T-B4). */
+export const decodeSetSymbol = (bytes) => decode(bytes && sizedSvg(bytes));
+
 /**
  * Renders a card model to a canvas.
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ art?: Buffer | Uint8Array | null }} [options] Art bytes from the art fetcher (T-A10).
+ * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null }} [options]
+ *   Art bytes (T-A10) and set symbol SVG bytes (T-B4); null for the fallbacks.
  */
-export async function renderCardCanvas(model, { art = null } = {}) {
+export async function renderCardCanvas(model, { art = null, setSymbol = null } = {}) {
   registerFonts();
   const canvas = createCanvas(CARD.width, CARD.height);
-  let image = null;
-  if (art) {
-    try {
-      image = await loadImage(Buffer.from(art));
-    } catch {
-      image = null; // undecodable art: black placeholder (3.4.1)
-    }
-  }
   await renderCard(canvas.getContext('2d'), model, {
     env: nodeEnv,
     assets: nodeAssets,
-    art: image,
+    art: await decode(art),
+    setSymbol: await decodeSetSymbol(setSymbol),
   });
   return canvas;
 }
-
 /** Renders a card model to PNG bytes (3.5.1). */
 export async function renderCardPng(model, options) {
   return (await renderCardCanvas(model, options)).toBuffer('image/png');

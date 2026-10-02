@@ -467,7 +467,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.3.2 **[Confirmed]** The set symbol is at the right end of the type line.
 
-6.3.3 **[Confirmed]** The set symbol comes from Scryfall's set SVGs (D7) and is drawn plain black for every rarity (D20). Rarity is shown only by the letter in the footer (6.5.1).
+6.3.3 **[Confirmed]** The set symbol comes from Scryfall's set SVGs (D7) and is drawn plain black for every rarity (D20). Rarity is shown only by the letter in the footer (6.5.1). Scryfall's set list maps each set code to its icon (promo sets often use their parent's); the list and the icons are cached, and the list is fetched again at most once a day when a code isn't in it. Without a symbol, the set code is shown instead (T-B4).
 
 ### 6.4 Text box
 

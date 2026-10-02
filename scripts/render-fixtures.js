@@ -9,6 +9,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage } from 'canvas';
 import { createArtFetcher } from '../src/art/art-cache.js';
+import { createSetSymbolFetcher } from '../src/art/set-symbols.js';
 import { OUT_DIR } from '../src/paths.js';
 import { renderCardPng } from '../src/render/node.js';
 import { loadCardFixtures } from '../test/fixtures/cards.js';
@@ -19,6 +20,7 @@ const wanted = args.filter((a) => !a.startsWith('--'));
 const dir = path.join(OUT_DIR, 'render');
 await mkdir(dir, { recursive: true });
 const artFetcher = createArtFetcher();
+const setSymbols = createSetSymbolFetcher();
 
 const created = [];
 const changed = [];
@@ -26,7 +28,8 @@ const rendered = [];
 for (const [slug, model] of loadCardFixtures()) {
   if (wanted.length && !wanted.includes(slug)) continue;
   const art = noArt ? null : await artFetcher.fetchArt(model.artUrl);
-  const png = await renderCardPng(model, { art });
+  const setSymbol = noArt ? null : await setSymbols.fetchSetSymbol(model.setCode);
+  const png = await renderCardPng(model, { art, setSymbol });
   const file = path.join(dir, `${slug}.png`);
   const previous = await readFile(file).catch(() => null);
   if (!previous) created.push(file);

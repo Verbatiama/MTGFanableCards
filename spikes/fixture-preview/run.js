@@ -13,7 +13,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 import { FONT_DIR, OUT_DIR } from '../../src/paths.js';
-import { nodeAssets as assets } from '../../src/render/node.js';
+import { decodeSetSymbol, nodeAssets as assets, nodeEnv } from '../../src/render/node.js';
+import { drawFrame } from '../../src/render/frame.js';
+import { createSetSymbolFetcher } from '../../src/art/set-symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
@@ -27,14 +29,11 @@ import {
   CARD,
   CARD_TYPES,
   FOOTER,
-  NAME,
   TEXT,
   TYPE,
   DEFENSE_BADGE,
-  FRAME,
   INDICATOR,
   LABELS,
-  LAND_FRAME as LAND,
   LAND_TYPE_MANA,
   LOYALTY_BADGES,
   STAT_ICONS,
@@ -120,168 +119,6 @@ function drawBadge(ctx, icon, colour, cx, cy, size, text) {
   ctx.font = FONT(fitSize(ctx, text, size * 0.62, Math.round(size * 0.42), FONT, 10));
   ctx.fillText(text, cx, cy + size * 0.03);
   ctx.restore();
-}
-
-/**
- * Land palettes (D21 revised): the card's colours if it has any, otherwise the
- * colours it taps for. None → colourless grey, one → that colour, two → split,
- * three or more (or "any color") → gold.
- */
-function landPalettes(model) {
-  const colours = model.colors.length ? model.colors : producedColours(model);
-  if (!colours.length) return [LAND.colourless];
-  if (colours.length > 2) return [LAND.gold];
-  return colours.map((c) => LAND[c]);
-}
-
-/** Fill or stroke style across the card box: one colour, or a left-to-right blend. */
-function acrossBox(ctx, colours) {
-  if (colours.length === 1) return colours[0];
-  const gradient = ctx.createLinearGradient(BOX.x, 0, BOX.right, 0);
-  gradient.addColorStop(0.3, colours[0]);
-  gradient.addColorStop(0.7, colours[1]);
-  return gradient;
-}
-
-let speckles;
-/** Seeded transparent speckles laid over every border, for its texture. */
-function texture(ctx) {
-  if (!speckles) {
-    speckles = createCanvas(240, 240);
-    const t = speckles.getContext('2d');
-    let seed = 7;
-    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 900; i++) {
-      t.fillStyle = rand() < 0.55 ? 'rgba(70,50,35,0.18)' : 'rgba(245,230,205,0.22)';
-      t.beginPath();
-      t.ellipse(
-        rand() * 240,
-        rand() * 240,
-        2 + rand() * 9,
-        1 + rand() * 4,
-        rand() * 3,
-        0,
-        Math.PI * 2,
-      );
-      t.fill();
-    }
-  }
-  return ctx.createPattern(speckles, 'repeat');
-}
-
-/**
- * Border, pinline, bar and text-box styles for a card (6.6, D21), matching
- * real cards. Lands: stone border, colour from card colour or produced mana.
- * One colour: that frame. Two-colour hybrid: split border, pinlines and text
- * box with grey bars. Other multicolour: gold, with pinlines in the card's two
- * colours (gold pinlines for three or more). Colourless: artifact frame for
- * artifacts, colourless (Eldrazi) frame otherwise; devoid shows its art
- * through the border, tinted by its mana colours.
- */
-function framePaint(ctx, model) {
-  if (model.types.includes('Land')) {
-    const p = landPalettes(model);
-    return {
-      border: LAND.stone,
-      bar: p.length === 2 ? LAND.splitBar : p[0].bar,
-      text: acrossBox(
-        ctx,
-        p.map((x) => x.text),
-      ),
-      pin: acrossBox(
-        ctx,
-        p.map((x) => x.pin),
-      ),
-    };
-  }
-  const { colors } = model;
-  const printed = manaColours(model).filter((c) => colors.includes(c));
-  const pair = printed.length === 2 ? printed : colors;
-  if (colors.length === 1) return paletteOf(FRAME[colors[0]]);
-  if (colors.length === 2) {
-    // Two-colour hybrid, Phyrexian hybrid ({G/W/P}) included.
-    const hybrid = (model.manaCost ?? []).find((m) => /^[WUBRG]\/[WUBRG](\/P)?$/.test(m.symbol));
-    if (hybrid) {
-      const sides = hybrid.symbol
-        .split('/')
-        .slice(0, 2)
-        .map((c) => FRAME[c]);
-      return {
-        border: acrossBox(
-          ctx,
-          sides.map((x) => x.border),
-        ),
-        pin: acrossBox(
-          ctx,
-          sides.map((x) => x.pin),
-        ),
-        bar: FRAME.hybridBar,
-        text: acrossBox(
-          ctx,
-          sides.map((x) => mix(x.text, FRAME.hybridText, 0.5)),
-        ),
-      };
-    }
-    return {
-      ...FRAME.gold,
-      pin: acrossBox(
-        ctx,
-        pair.map((c) => FRAME[c].pin),
-      ),
-    };
-  }
-  if (colors.length > 2) return paletteOf(FRAME.gold);
-  const tints = manaColours(model);
-  if (tints.length) {
-    const tint = tints.length > 2 ? FRAME.gold.border : FRAME[tints[0]].border;
-    return {
-      ...FRAME.devoid,
-      border: hexAlpha(mix('#c8c0a8', tint, 0.3), 0.5),
-      devoid: true,
-    };
-  }
-  return paletteOf(model.types.includes('Artifact') ? FRAME.artifact : FRAME.colourless);
-}
-
-function paletteOf({ border, pin, bar, text }) {
-  return { border, pin, bar, text };
-}
-
-/** '#rrggbb' at the given opacity. */
-function hexAlpha(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-/** Coloured pinline around a frame panel. */
-function pinline(ctx, pin, x, y, w, h, r) {
-  if (!pin) return;
-  ctx.strokeStyle = pin;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.roundRect(x - 2, y - 2, w + 4, h + 4, r + 2);
-  ctx.stroke();
-}
-
-/** Colours in a mana cost, in printed order (a devoid card's tint). */
-function manaColours(model) {
-  const found = (model.manaCost ?? []).flatMap((m) => m.symbol.match(/[WUBRG]/g) ?? []);
-  return [...new Set(found)];
-}
-
-/**
- * Colours a land taps for, from its "Add ..." clauses and basic land types, in
- * the order found. "Any color" counts as all five.
- */
-function producedColours(model) {
-  const found = [];
-  for (const [clause] of model.oracleText.matchAll(/Add [^.]*/g)) {
-    if (/any colou?r/i.test(clause)) return [...'WUBRG'];
-    found.push(...[...clause.matchAll(/\{([WUBRG])\}/g)].map((m) => m[1]));
-  }
-  const landTypes = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
-  found.push(...model.subtypes.map((t) => landTypes[t]).filter(Boolean));
-  return [...new Set(found)];
 }
 
 /** Grey circle with text, for symbols the sheet doesn't have (e.g. G/U/P). */
@@ -697,53 +534,18 @@ function drawAsterisk(ctx, x, y, r, hollow) {
 }
 
 async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }) {
-  const paint = framePaint(ctx, model);
+  // The frame comes from the real renderer (T-B4).
+  const setSymbol = noArt
+    ? null
+    : await decodeSetSymbol(await setSymbols.fetchSetSymbol(model.setCode));
+  drawFrame(ctx, model, {
+    env: nodeEnv,
+    art,
+    setSymbol,
+    layout: { art: ART, type: TYPE, text: TEXT },
+  });
   const width = BOX.right - BOX.x;
 
-  // Border: colour (or the art showing through, for devoid) plus texture.
-  const frameBox = { x: BOX.x - 4, y: 4, w: width + 8, h: CARD.height - 8 - 80 };
-  if (paint.devoid && art) drawCover(ctx, art, frameBox);
-  ctx.fillStyle = paint.border;
-  ctx.fillRect(frameBox.x, frameBox.y, frameBox.w, frameBox.h);
-  ctx.fillStyle = texture(ctx);
-  ctx.fillRect(frameBox.x, frameBox.y, frameBox.w, frameBox.h);
-
-  // Name bar.
-  ctx.fillStyle = paint.bar;
-  pinline(ctx, paint.pin, BOX.x, NAME.y, width, NAME.h, 10);
-  roundRect(ctx, BOX.x, NAME.y, width, NAME.h, 10);
-  ctx.fillStyle = '#111';
-  ctx.textBaseline = 'middle';
-  ctx.font = FONT(fitSize(ctx, model.name, width - 30, 34, FONT));
-  ctx.fillText(model.name, BOX.x + 14, NAME.y + NAME.h / 2 + 2);
-
-  // Art box: the art crop, or the black placeholder when there is none (3.4.1).
-  const artBox = { x: BOX.x + 6, y: ART.y, w: width - 12, h: ART.h };
-  pinline(ctx, paint.pin, artBox.x, artBox.y, artBox.w, artBox.h, 0);
-  ctx.fillStyle = '#000';
-  ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);
-  if (art) drawCover(ctx, art, artBox);
-
-  // Type line with the set code standing in for the set symbol.
-  ctx.fillStyle = paint.bar;
-  pinline(ctx, paint.pin, BOX.x, TYPE.y, width, TYPE.h, 10);
-  roundRect(ctx, BOX.x, TYPE.y, width, TYPE.h, 10);
-  ctx.fillStyle = '#111';
-  ctx.font = FONT(fitSize(ctx, model.typeLine, width - 100, 24, FONT));
-  ctx.fillText(model.typeLine, BOX.x + 14, TYPE.y + TYPE.h / 2 + 2);
-  ctx.font = LABEL(16);
-  ctx.textAlign = 'right';
-  ctx.fillText(
-    `${model.setCode} ${model.rarity[0].toUpperCase()}`,
-    BOX.right - 14,
-    TYPE.y + TYPE.h / 2,
-  );
-  ctx.textAlign = 'left';
-
-  // Text box.
-  pinline(ctx, paint.pin, BOX.x + 6, TEXT.y, width - 12, TEXT.h, 0);
-  ctx.fillStyle = paint.text;
-  ctx.fillRect(BOX.x + 6, TEXT.y, width - 12, TEXT.h);
   const watermark = ICONS.get(WATERMARKS[model.watermark]?.icon);
   if (watermark) {
     // Watermark icon, faint behind the text (6.4.3).
@@ -986,50 +788,12 @@ function layoutText(ctx, paragraphs, width, size) {
   return { lines, height: cursor + 6 };
 }
 
-/**
- * Scales the image to cover the box and crops the overflow evenly from both
- * sides (3.4.2).
- */
-function drawCover(ctx, img, box) {
-  const scale = Math.max(box.w / img.width, box.h / img.height);
-  const sw = box.w / scale;
-  const sh = box.h / scale;
-  ctx.drawImage(
-    img,
-    (img.width - sw) / 2,
-    (img.height - sh) / 2,
-    sw,
-    sh,
-    box.x,
-    box.y,
-    box.w,
-    box.h,
-  );
-}
-
 function fitSize(ctx, text, maxWidth, size, font, min = 12) {
   for (; size > min; size -= 1) {
     ctx.font = font(size);
     if (ctx.measureText(text).width <= maxWidth) break;
   }
   return size;
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
-
-/** Blend two hex colours; `amount` 0 = a, 1 = b. */
-function mix(a, b, amount) {
-  const [x, y] = [a, b].map((hex) => parseInt(hex.slice(1), 16));
-  const channel = (shift) =>
-    Math.round(((x >> shift) & 255) * (1 - amount) + ((y >> shift) & 255) * amount);
-  return `#${[16, 8, 0].map((sh) => channel(sh).toString(16).padStart(2, '0')).join('')}`;
 }
 
 async function drawContactSheet(cards) {
@@ -1053,7 +817,8 @@ async function drawContactSheet(cards) {
   return canvas;
 }
 
-const artFetcher = createArtFetcher(); // T-A10, shares cache/art/ with the app
+const artFetcher = createArtFetcher();
+const setSymbols = createSetSymbolFetcher(); // T-A10, shares cache/art/ with the app
 const fixtures = loadCardFixtures();
 const args = process.argv.slice(2);
 const noArt = args.includes('--no-art');
