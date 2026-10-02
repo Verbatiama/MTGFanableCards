@@ -61,6 +61,7 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `bitterblossom`                                | Kindred Enchantment (Kindred type icon, creature subtype that gets no icon)         |
 | `smugglers-copter`                             | Vehicle: P/T on a non-creature, drawn hollow (D18)                                   |
 | `wurmwall-sweeper`                             | Spacecraft: hollow P/T like a vehicle, station thresholds not in the bar (D18)       |
+| `city-of-brass`                                | Land that taps for any colour: tan frame with a gold tint (D21)                     |
 | `deep-analysis`                                | Flashback (graveyard zone) with a non-mana cost                                     |
 | `street-wraith`                                | Cycling (hand zone) with a non-mana cost                                            |
 | `gravecrawler`                                 | Cast from graveyard without a keyword (5.4.3)                                       |

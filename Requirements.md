@@ -448,17 +448,17 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 | Green (Feral Invocation)                    | Green       |
 | Multicolour (Niv-Mizzet)                    | Gold        |
 | Colourless artifact (Sword of Fire and Ice) | Silver/grey |
-| Land (Forest, Wasteland)                    | Tan         |
+| Land (Forest, Wasteland)                    | Tan, tinted by the mana it produces (6.6.2): Wasteland plain tan, Forest green-tinted (D21) |
 
-6.6.2 **[Open]** Frames not yet shown:
+6.6.2 **[Confirmed]** Frames not shown in the mockups (D21):
 
-- two-colour hybrid (split frame or gold)
-- coloured artifacts
-- coloured lands
-- devoid
-- colourless non-artifact cards
-- lands that produce a colour
-- tokens
+- **Two-colour hybrid** (Kitchen Finks {G/W}; Phyrexian hybrid such as Ajani's {G/W/P} too): a split frame, left half the first colour of the hybrid symbol, right half the second, blended in the middle. Other two-colour cards stay gold.
+- **Coloured artifacts** (Reaper King): the card's colour, by the same rule as any card (mono colour, gold, or split). Only colourless artifacts are silver.
+- **Coloured lands** (Dryad Arbor): the card's colour.
+- **Colourless lands**: tan, tinted by the colours the land taps for, from its "Add …" text and basic land types. One colour tints (Forest green, superseding the plain-tan Forest mockup); two colours give a split tint (Breeding Pool green | blue); three or more, or "any color", give a gold tint (City of Brass). A land that makes only colourless mana stays plain tan (Wasteland).
+- **Colourless non-artifact cards** (Ugin, Thought-Knot Seer): silver, like colourless artifacts.
+- **Devoid** (Complete Disregard): silver, tinted by the colours in its mana cost, with the same one / two / three-or-more rule as lands.
+- **Tokens**: out of scope for v1 (D15, section 8).
 
 ---
 
@@ -570,7 +570,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
 | Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |
 | Text symbol → icon                    | 6.4.7       | Defined (D20); chaos, {TK}, planeswalker and loyalty icons missing |
-| Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |
+| Colour(s) → frame style               | 6.6         | Defined (D21)                                        |
 | Layout → marker / rendering rules     | 8           | Open                                                 |
 
 9.1 **[Confirmed]** Symbol and icon sources:

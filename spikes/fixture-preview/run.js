@@ -39,6 +39,8 @@ const FRAMES = {
   colourless: '#c9ced2',
   land: '#d3bf98',
 };
+// How strongly a tan land or silver colourless frame is tinted (D21).
+const TINT = 0.4;
 const PIPS = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };
 const PERMANENT_TYPES = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Land', 'Planeswalker'];
 // Placeholder type icons until the real set arrives (D14). Full-size icon
@@ -127,10 +129,63 @@ function sheetCode(code) {
   return sheetCodes.has(key) ? key : null;
 }
 
-function frameColour(model) {
-  if (model.colors.length > 1) return FRAMES.gold;
-  if (model.colors.length === 1) return FRAMES[model.colors[0]];
-  return model.types.includes('Land') ? FRAMES.land : FRAMES.colourless;
+/**
+ * Frame colours (6.6, D21) as a list: one colour, or two for a split frame
+ * (left | right). Coloured cards use their colour, gold when multicoloured,
+ * except two-colour hybrid cards, which are split. Colourless lands are tan and
+ * colourless non-lands silver, tinted by the mana a land produces or a devoid
+ * card's mana cost uses: one colour tints, two split, three or more go gold.
+ */
+function frameColours(model) {
+  const { colors } = model;
+  if (colors.length === 1) return [FRAMES[colors[0]]];
+  if (colors.length === 2) {
+    // Two-colour hybrid, Phyrexian hybrid ({G/W/P}) included.
+    const hybrid = (model.manaCost ?? []).find((m) => /^[WUBRG]\/[WUBRG](\/P)?$/.test(m.symbol));
+    return hybrid
+      ? hybrid.symbol
+          .split('/')
+          .slice(0, 2)
+          .map((c) => FRAMES[c])
+      : [FRAMES.gold];
+  }
+  if (colors.length > 2) return [FRAMES.gold];
+  const land = model.types.includes('Land');
+  const base = land ? FRAMES.land : FRAMES.colourless;
+  const tints = land ? producedColours(model) : manaColours(model);
+  if (!tints.length) return [base];
+  if (tints.length > 2) return [mix(base, FRAMES.gold, TINT)];
+  return tints.map((c) => mix(base, FRAMES[c], TINT));
+}
+
+/** Colours in a mana cost, in printed order (a devoid card's tint). */
+function manaColours(model) {
+  const found = (model.manaCost ?? []).flatMap((m) => m.symbol.match(/[WUBRG]/g) ?? []);
+  return [...new Set(found)];
+}
+
+/**
+ * Colours a land taps for, from its "Add ..." clauses and basic land types, in
+ * the order found. "Any color" counts as all five.
+ */
+function producedColours(model) {
+  const found = [];
+  for (const [clause] of model.oracleText.matchAll(/Add [^.]*/g)) {
+    if (/any colou?r/i.test(clause)) return [...'WUBRG'];
+    found.push(...[...clause.matchAll(/\{([WUBRG])\}/g)].map((m) => m[1]));
+  }
+  const landTypes = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
+  found.push(...model.subtypes.map((t) => landTypes[t]).filter(Boolean));
+  return [...new Set(found)];
+}
+
+/** Fill for a frame part: a colour, or a left/right split blended in the middle. */
+function frameFill(ctx, colours, factor) {
+  if (colours.length === 1) return shade(colours[0], factor);
+  const gradient = ctx.createLinearGradient(BOX.x, 0, BOX.right, 0);
+  gradient.addColorStop(0.45, shade(colours[0], factor));
+  gradient.addColorStop(0.55, shade(colours[1], factor));
+  return gradient;
 }
 
 /** Grey circle with text, for symbols the sheet doesn't have (e.g. G/U/P). */
@@ -529,14 +584,14 @@ function drawAsterisk(ctx, x, y, r, hollow) {
 }
 
 async function drawCardBox(ctx, model, art) {
-  const frame = frameColour(model);
+  const frame = frameColours(model);
   const width = BOX.right - BOX.x;
 
-  ctx.fillStyle = frame;
+  ctx.fillStyle = frameFill(ctx, frame, 1);
   ctx.fillRect(BOX.x - 4, 4, width + 8, CARD.height - 8 - 80);
 
   // Name bar.
-  ctx.fillStyle = shade(frame, 1.12);
+  ctx.fillStyle = frameFill(ctx, frame, 1.12);
   roundRect(ctx, BOX.x, NAME.y, width, NAME.h, 10);
   ctx.fillStyle = '#111';
   ctx.textBaseline = 'middle';
@@ -550,7 +605,7 @@ async function drawCardBox(ctx, model, art) {
   if (art) drawCover(ctx, art, artBox);
 
   // Type line with the set code standing in for the set symbol.
-  ctx.fillStyle = shade(frame, 1.12);
+  ctx.fillStyle = frameFill(ctx, frame, 1.12);
   roundRect(ctx, BOX.x, TYPE.y, width, TYPE.h, 10);
   ctx.fillStyle = '#111';
   ctx.font = FONT(fitSize(ctx, model.typeLine, width - 100, 24, FONT));
@@ -565,7 +620,7 @@ async function drawCardBox(ctx, model, art) {
   ctx.textAlign = 'left';
 
   // Text box.
-  ctx.fillStyle = shade(frame, 1.22);
+  ctx.fillStyle = frameFill(ctx, frame, 1.22);
   ctx.fillRect(BOX.x + 6, TEXT.y, width - 12, TEXT.h);
   if (model.watermark) {
     ctx.fillStyle = 'rgba(0,0,0,0.08)';
@@ -664,12 +719,13 @@ function layoutText(ctx, paragraphs, width, size) {
     const tokens = p.t
       .split(/(\{[^}]+\}|\s+)/)
       .filter(Boolean)
-      .flatMap((part) => {
+      .flatMap((part, i, parts) => {
         const sym = /^\{(.+)\}$/.exec(part);
         if (sym) return [{ symbol: sym[1], ...icon }];
-        // Only numeric +N/+N and -N/-N get sword/shield; X/X, 1/1 tokens and
-        // the like stay as text (6.4.5, D20). Rules text only.
-        const pt = !p.flavor && /^([+\-−]\d+)\/([+\-−]\d+)(.*)$/.exec(part);
+        // Only numeric +N/+N and -N/-N modifiers get sword/shield; counters,
+        // X/X, 1/1 tokens and the like stay as text (6.4.5, D20). Rules text only.
+        const counter = /^counters?\b/.test(parts[i + 2] ?? '');
+        const pt = !p.flavor && !counter && /^([+\-−]\d+)\/([+\-−]\d+)(.*)$/.exec(part);
         if (pt) {
           const text = (t) => ({ text: t, width: ctx.measureText(t).width });
           return [
@@ -751,6 +807,14 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.strokeStyle = 'rgba(0,0,0,0.5)';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+/** Blend two hex colours; `amount` 0 = a, 1 = b. */
+function mix(a, b, amount) {
+  const [x, y] = [a, b].map((hex) => parseInt(hex.slice(1), 16));
+  const channel = (shift) =>
+    Math.round(((x >> shift) & 255) * (1 - amount) + ((y >> shift) & 255) * amount);
+  return `#${[16, 8, 0].map((sh) => channel(sh).toString(16).padStart(2, '0')).join('')}`;
 }
 
 function shade(hex, factor) {
