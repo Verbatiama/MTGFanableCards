@@ -141,11 +141,18 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 | `POST /api/jobs`             | Body: `{ decklist, format }` with `format` `zip` (default) or `pdf`. Returns `202` with the job id                        |
 | `GET /api/jobs/:id`          | Status: `queued`, `running`, `done` or `failed`; cards total and done; unmatched names with suggestions (3.2.4, 3.2.6)     |
 | `GET /api/jobs/:id/download` | The finished `cards.zip` or `cards.pdf`                                                                                    |
+| `GET /api/cards`             | Preview data (D27): `?line=` one decklist line; returns the card model(s) for the matched printing, or the unmatched report |
+| `GET /api/art/:id`           | Art for a preview, served from the art cache (3.4)                                                                         |
+| `GET /assets/*`              | Fonts and symbol files for in-browser rendering                                                                            |
 | `GET /api/docs`              | OpenAPI description                                                                                                        |
 
 - **Limits**, set by environment variables with generous defaults: decklist body 64 KB, 250 cards per job, 2 jobs running at once (others wait in a queue), finished files kept for 1 hour. Self-hosters can raise or remove them; the CLI has no limits (10.5). Abuse protection for a public instance is D30.
 
-3.6.2 **[Open]** Frontend stack (D27): plain HTML and JavaScript or a framework such as React, Svelte or Vue; build tooling; whether cards are rendered in the browser or on the server (the drawing code runs in both, 3.1.3), and, if in the browser, how card data and art reach it.
+3.6.2 **[Confirmed]** Frontend stack (D27):
+
+- **Stack:** React with Vite, in JavaScript (3.1.1). The source lives in `web/`; Vite builds it into static files that Fastify serves, and during development Vite's dev server proxies `/api` to Fastify.
+- **Rendering:** batches are rendered on the server, in the background job (3.6.1). The UI also previews single cards live in the browser with the same drawing code from `src/render/` (3.1.3): selecting a decklist line shows that card (both faces for double-faced cards). Previews use the Beleren fonts and symbol files served by the app, so they match the server output closely, but small font-rendering differences between browsers and node-canvas are possible; the downloaded files are the reference.
+- **No thumbnails:** after a batch finishes, the UI offers the download only; it does not show the generated images.
 
 3.6.3 **[Open]** Cloud hosting (D28): the platform (a container service such as Fly.io, Render or Google Cloud Run, a VPS, or serverless functions), region, budget and who pays for it (the project is non-commercial, 10.2), storage for the Scryfall bulk data (3.3) and the art cache (3.4), domain and TLS.
 
@@ -637,7 +644,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 49–52, on hosting, are open (D27–D30).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 50–52, on hosting, are open (D28–D30).
 
 ### Product and scope
 
@@ -710,7 +717,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 ### Hosting and deployment
 
 48. Which backend framework, and what does the API look like? [3.6.1] — **Answered:** Fastify, JSON REST with background jobs and polling, configurable limits (D26).
-49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Open** (D27).
+49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Answered:** React with Vite; batches on the server, live single-card previews in the browser (D27).
 50. Where is the public instance hosted, and who pays? [3.6.3] — **Open** (D28).
 51. How do people self-host it? [3.6.4] — **Open** (D29).
 52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Open** (D30).

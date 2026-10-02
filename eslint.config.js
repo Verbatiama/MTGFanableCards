@@ -22,7 +22,7 @@ export default [
   {
     // Drawing code runs in both node-canvas and the browser (D5), so it must
     // not rely on Node-only globals.
-    files: ['src/render/**/*.js', 'src/model/**/*.js', 'public/**/*.js'],
+    files: ['src/render/**/*.js', 'src/model/**/*.js', 'web/**/*.js'],
     languageOptions: {
       globals: globals.browser,
     },

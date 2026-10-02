@@ -61,7 +61,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | ID  | Task                                                                                                                                                                                                                       | Owner  | Depends on   | Req   |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ | ----- |
 | D26 | ✓ DECIDED: Fastify; JSON REST under /api with background jobs + polling (POST /api/jobs, GET status, download); OpenAPI from route schemas; configurable limits (64 KB, 250 cards, 2 concurrent jobs, files kept 1 h) | PO + A | D9           | 3.6.1 |
-| D27 | Frontend stack: plain HTML/JS or a framework (React, Svelte, Vue); build tooling; whether cards are rendered in the browser or on the server (D5 allows both), and how card data reaches the browser if rendered there   | PO + B | D5, D9       | 3.6.2 |
+| D27 | ✓ DECIDED: React + Vite (JS, source in web/, served by Fastify); batches rendered on the server, live single-card previews in the browser with src/render/; no thumbnail gallery | PO + B | D5, D9       | 3.6.2 |
 | D28 | Cloud hosting: platform (container service such as Fly.io, Render or Google Cloud Run; a VPS; or serverless), region, budget and who pays (non-commercial, D23), storage for Scryfall bulk data and the art cache, domain and TLS | PO     | D2, D10, D23 | 3.6.3 |
 | D29 | Self-hosting: how others run their own copy (Docker image and Compose file, or plain `npm start`), configuration (environment variables for port, data and cache directories), minimum requirements, CLI-only use without the server | PO + A | D5, D26      | 3.6.4 |
 | D30 | Operations: deployment pipeline (GitHub Actions to the chosen host), scheduled Scryfall bulk-data refresh (daily, D2), logging and monitoring, abuse protection for a public instance (rate limits, per-request batch size; D24 sets no limit) | PO + A | D26, D28     | 3.6.5 |
@@ -102,8 +102,8 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 
 | ID   | Task                                                                                                                                                         | Owner | Depends on       | Req                 |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ---------------- | ------------------- |
-| T-C1 | API on Fastify (D26): job endpoints (create, status with progress and unmatched names, download), job queue and expiry, schema validation, configurable limits, OpenAPI, health check | A     | D26, T-A4, T-A11 | 3.1.2, 3.2.6, 3.5   |
-| T-C2 | Frontend UI: decklist input, unmatched-name warnings, generation progress, zip/PDF download, and the Fan Content notice                                      | B     | D27, T-C1        | 3.1.2, 3.2.6, 10.2  |
+| T-C1 | API on Fastify (D26): job endpoints (create, status with progress and unmatched names, download), preview endpoints (card models, art, fonts and symbols; D27), job queue and expiry, schema validation, configurable limits, OpenAPI, health check | A     | D26, T-A4, T-A11 | 3.1.2, 3.2.6, 3.5   |
+| T-C2 | Frontend UI in React + Vite (D27): decklist input, live preview of the selected line rendered in the browser, unmatched-name warnings, generation progress, zip/PDF download, and the Fan Content notice | B     | D27, T-C1        | 3.1.2, 3.2.6, 10.2  |
 
 ## Phase 3: Integration and hardening (weeks 6–8)
 

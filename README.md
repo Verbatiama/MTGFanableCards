@@ -41,7 +41,7 @@ src/
   output/   PNG writer, file naming, zip and PDF bundling
   render/   Dev B: Canvas 2D drawing code, shared by node-canvas and the browser
   server/   Backend API
-public/     Frontend UI for decklist input
+web/        Frontend UI (React + Vite, D27): decklist input and live card previews
 test/       Tests (*.test.js), with card-model fixtures in test/fixtures/cards/
 spikes/     Throwaway experiments and their write-ups (e.g. spikes/rendering/, T-B1)
 res/        Bundled assets: fonts/ (Beleren, D6) and symbols/ (mana symbols, D7)
@@ -49,7 +49,7 @@ cache/      Downloaded Scryfall data and art (not committed)
 out/        Generated cards (not committed)
 ```
 
-Code in `src/render/`, `src/model/` and `public/` must not use Node-only APIs, because it also runs in the browser.
+Code in `src/render/`, `src/model/` and `web/` must not use Node-only APIs, because it also runs in the browser.
 
 ## Legal
 
