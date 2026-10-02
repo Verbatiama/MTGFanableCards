@@ -154,7 +154,12 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 - **Rendering:** batches are rendered on the server, in the background job (3.6.1). The UI also previews single cards live in the browser with the same drawing code from `src/render/` (3.1.3): selecting a decklist line shows that card (both faces for double-faced cards). Previews use the Beleren fonts and symbol files served by the app, so they match the server output closely, but small font-rendering differences between browsers and node-canvas are possible; the downloaded files are the reference.
 - **No thumbnails:** after a batch finishes, the UI offers the download only; it does not show the generated images.
 
-3.6.3 **[Open]** Cloud hosting (D28): the platform (a container service such as Fly.io, Render or Google Cloud Run, a VPS, or serverless functions), region, budget and who pays for it (the project is non-commercial, 10.2), storage for the Scryfall bulk data (3.3) and the art cache (3.4), domain and TLS.
+3.6.3 **[Confirmed]** Cloud hosting (D28):
+
+- **Platform:** a VPS on DigitalOcean in Sydney (SYD1): 2 GB RAM, 1 vCPU, 50 GB SSD, about US$12/month. It runs the same Docker setup self-hosters use (3.6.4), as one long-running process, which suits the in-memory job model (3.6.1).
+- **Cost:** paid by the project owner. The target was about US$10/month; the 2 GB machine, chosen for room to index the Scryfall data in memory, is slightly over. No ads, donations or paid features (10.2).
+- **Storage:** the Scryfall bulk data (3.3) and the art cache (3.4) live on the VPS disk, in a Docker volume so they survive redeploys.
+- **Domain and TLS:** `fannable.verbatiam.dev`, a subdomain of the owner's domain, pointed at the VPS by a DNS record. A Caddy reverse proxy on the VPS terminates TLS with automatic Let's Encrypt certificates (T-S10, T-S11).
 
 3.6.4 **[Open]** Self-hosting (D29): how others run their own copy (a Docker image and Compose file, or `npm start` on Linux with Node.js 22), configuration through environment variables (port, data and cache directories), minimum disk and memory, and using the CLI on its own without the server.
 
@@ -644,7 +649,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 50–52, on hosting, are open (D28–D30).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 51–52, on hosting, are open (D29–D30).
 
 ### Product and scope
 
@@ -718,7 +723,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 
 48. Which backend framework, and what does the API look like? [3.6.1] — **Answered:** Fastify, JSON REST with background jobs and polling, configurable limits (D26).
 49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Answered:** React with Vite; batches on the server, live single-card previews in the browser (D27).
-50. Where is the public instance hosted, and who pays? [3.6.3] — **Open** (D28).
+50. Where is the public instance hosted, and who pays? [3.6.3] — **Answered:** a DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) at `fannable.verbatiam.dev` (D28).
 51. How do people self-host it? [3.6.4] — **Open** (D29).
 52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Open** (D30).
 

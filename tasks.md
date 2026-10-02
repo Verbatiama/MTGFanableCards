@@ -62,7 +62,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ | ----- |
 | D26 | ✓ DECIDED: Fastify; JSON REST under /api with background jobs + polling (POST /api/jobs, GET status, download); OpenAPI from route schemas; configurable limits (64 KB, 250 cards, 2 concurrent jobs, files kept 1 h) | PO + A | D9           | 3.6.1 |
 | D27 | ✓ DECIDED: React + Vite (JS, source in web/, served by Fastify); batches rendered on the server, live single-card previews in the browser with src/render/; no thumbnail gallery | PO + B | D5, D9       | 3.6.2 |
-| D28 | Cloud hosting: platform (container service such as Fly.io, Render or Google Cloud Run; a VPS; or serverless), region, budget and who pays (non-commercial, D23), storage for Scryfall bulk data and the art cache, domain and TLS | PO     | D2, D10, D23 | 3.6.3 |
+| D28 | ✓ DECIDED: DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) running the self-hosting Docker setup; data and art cache on a Docker volume; fannable.verbatiam.dev with Caddy and automatic TLS | PO     | D2, D10, D23 | 3.6.3 |
 | D29 | Self-hosting: how others run their own copy (Docker image and Compose file, or plain `npm start`), configuration (environment variables for port, data and cache directories), minimum requirements, CLI-only use without the server | PO + A | D5, D26      | 3.6.4 |
 | D30 | Operations: deployment pipeline (GitHub Actions to the chosen host), scheduled Scryfall bulk-data refresh (daily, D2), logging and monitoring, abuse protection for a public instance (rate limits, per-request batch size; D24 sets no limit) | PO + A | D26, D28     | 3.6.5 |
 
@@ -115,7 +115,9 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
 | T-S7 | Accessibility and localisation work, as scoped by D24                          | B     | D24, T-S3         | 10.3–10.4 |
 | T-S8 | User documentation: README usage, input format, licensing notes                | A     | T-S3, D23         | —         |
-| T-S9 | Deployment: container image, deployment pipeline to the chosen host, self-hosting guide | A     | T-S3, D26–D30     | 3.6       |
+| T-S9 | Deployment: container image, deployment pipeline to the VPS, self-hosting guide | A     | T-S3, D26–D30, T-S11     | 3.6       |
+| T-S10 | Provision the VPS (D28): DigitalOcean droplet in Sydney, 2 GB; firewall (SSH, HTTP, HTTPS only), Docker, Caddy reverse proxy | PO + A | D28, D29 | 3.6.3 |
+| T-S11 | Set up the subdomain: DNS record for `fannable.verbatiam.dev` pointing at the VPS, Caddy site with automatic Let's Encrypt TLS, check HTTPS works | PO | T-S10 | 3.6.3 |
 
 ## Phase 4: Special layouts (after v1, or as scoped by D1)
 
