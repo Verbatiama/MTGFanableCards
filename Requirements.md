@@ -122,14 +122,28 @@ Each requirement is tagged:
 
   3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
 
-  3.5.6 **[Confirmed]** The zip is named `cards` (`cards.zip`, or `cards.pdf` for the PDF option; D4). The frontend downloads it in the browser and API calls return it in the response; nothing is kept on the server afterwards. Script and command-line runs write to `out/` (T-S2 review).
+  3.5.6 **[Confirmed]** The zip is named `cards` (`cards.zip`, or `cards.pdf` for the PDF option; D4). The frontend downloads it in the browser and API calls return it in the response; the server keeps the finished file only until it expires (1 hour by default, 3.6.1). Script and command-line runs write to `out/` (T-S2 review).
 
 
 ### 3.6 Hosting and deployment
 
 The application has a backend API and a frontend UI (3.1.2, D9), but how it is built and hosted is not decided yet (decisions D26–D30 in `tasks.md`).
 
-3.6.1 **[Open]** Backend framework and API design (D26): keep `node:http` (the current health-check stub) or adopt a framework such as Express, Fastify or Hono; the endpoints and their request and response formats; whether a batch is generated within the request or as a background job; request size limits.
+3.6.1 **[Confirmed]** Backend framework and API design (D26):
+
+- **Framework:** Fastify, replacing the `node:http` health-check stub. Requests are validated with Fastify's JSON schemas, and the OpenAPI description is generated from the same schemas.
+- **Batch flow:** background jobs with polling, so long decks don't hit proxy timeouts and the UI can show progress. Jobs and their finished files are held by the single server process (in memory and a local temporary directory), so unfinished jobs are lost on restart.
+- **Endpoints**, JSON under `/api`:
+
+| Method and path              | Purpose                                                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/health`            | Health check (exists)                                                                                                      |
+| `POST /api/jobs`             | Body: `{ decklist, format }` with `format` `zip` (default) or `pdf`. Returns `202` with the job id                        |
+| `GET /api/jobs/:id`          | Status: `queued`, `running`, `done` or `failed`; cards total and done; unmatched names with suggestions (3.2.4, 3.2.6)     |
+| `GET /api/jobs/:id/download` | The finished `cards.zip` or `cards.pdf`                                                                                    |
+| `GET /api/docs`              | OpenAPI description                                                                                                        |
+
+- **Limits**, set by environment variables with generous defaults: decklist body 64 KB, 250 cards per job, 2 jobs running at once (others wait in a queue), finished files kept for 1 hour. Self-hosters can raise or remove them; the CLI has no limits (10.5). Abuse protection for a public instance is D30.
 
 3.6.2 **[Open]** Frontend stack (D27): plain HTML and JavaScript or a framework such as React, Svelte or Vue; build tooling; whether cards are rendered in the browser or on the server (the drawing code runs in both, 3.1.3), and, if in the browser, how card data and art reach it.
 
@@ -623,7 +637,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 48–52, on hosting, are open (D26–D30).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 49–52, on hosting, are open (D27–D30).
 
 ### Product and scope
 
@@ -695,7 +709,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 
 ### Hosting and deployment
 
-48. Which backend framework, and what does the API look like? [3.6.1] — **Open** (D26).
+48. Which backend framework, and what does the API look like? [3.6.1] — **Answered:** Fastify, JSON REST with background jobs and polling, configurable limits (D26).
 49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Open** (D27).
 50. Where is the public instance hosted, and who pays? [3.6.3] — **Open** (D28).
 51. How do people self-host it? [3.6.4] — **Open** (D29).
