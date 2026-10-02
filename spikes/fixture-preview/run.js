@@ -66,18 +66,18 @@ const ZONE_LABELS = {
 // Supertypes that get an icon + label (D15, 5.5.4). Token, Ongoing and Elite
 // get none. Planeswalkers show Legendary too (5.5.3).
 const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
-// The only subtypes with icons (D16, 5.5.8): attaching subtypes (placeholder
-// boxes until traced) and basic land types (their mana symbol). Icon-only.
-const SUBTYPE_ICONS = {
-  Aura: 'AUR',
-  Equipment: 'EQP',
-  Fortification: 'FRT',
-  Plains: { mana: 'W' },
-  Island: { mana: 'U' },
-  Swamp: { mana: 'B' },
-  Mountain: { mana: 'R' },
-  Forest: { mana: 'G' },
-  Wastes: { mana: 'C' },
+// Attaching subtypes get an icon in the middle stack (D16, 5.5.8): placeholder
+// boxes until traced. Icon-only.
+const SUBTYPE_ICONS = { Aura: 'AUR', Equipment: 'EQP', Fortification: 'FRT' };
+// Basic land types show the mana symbol they tap for, under the type icons
+// (D16 revised, 5.5.8).
+const LAND_TYPE_MANA = {
+  Plains: 'W',
+  Island: 'U',
+  Swamp: 'B',
+  Mountain: 'R',
+  Forest: 'G',
+  Wastes: 'C',
 };
 
 registerFont(path.join(FONT_DIR, 'Beleren2016-Bold.ttf'), { family: 'Beleren', weight: 'bold' });
@@ -184,9 +184,26 @@ async function drawStatBar(ctx, model) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  // Top: card type icons, colour indicator, mana.
+  // Top: card type icons, land mana symbols, colour indicator, mana.
   drawTypeIcons(ctx, model.types, y);
   y += TYPE_ROW + 8;
+
+  // What a land taps for: one mana symbol per basic land type, in type-line
+  // order, one row under the type icons, shrunk to fit (D16 revised).
+  const landMana = model.subtypes.filter((t) => LAND_TYPE_MANA[t]).map((t) => LAND_TYPE_MANA[t]);
+  if (landMana.length) {
+    const gap = 4;
+    const size = Math.min(
+      BAR.icon,
+      Math.floor((BAR.width - 4 - gap * (landMana.length - 1)) / landMana.length),
+    );
+    let x = (BAR.width - (size * landMana.length + gap * (landMana.length - 1))) / 2;
+    for (const code of landMana) {
+      await drawSymbol(ctx, code, x, y + (BAR.icon - size) / 2, size);
+      x += size + gap;
+    }
+    y += BAR.icon + 8;
+  }
 
   // Colour indicator (D17): one circle, a wedge per colour in WUBRG order
   // clockwise from the top, divider lines between wedges. Only takes a row
@@ -243,8 +260,7 @@ async function drawStatBar(ctx, model) {
   // Boxes stand in for missing icons; zone/timing boxes are gold.
   const middle = [];
   for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
-    const entry = SUBTYPE_ICONS[subtype];
-    middle.push(entry.mana ? { icon: await symbol(entry.mana) } : { abbr: entry });
+    middle.push({ abbr: SUBTYPE_ICONS[subtype] });
   }
   // Snow reuses the {S} art.
   for (const label of model.supertypes.filter((t) => SUPERTYPE_ICONS.includes(t))) {
