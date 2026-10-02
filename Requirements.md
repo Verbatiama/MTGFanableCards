@@ -124,6 +124,20 @@ Each requirement is tagged:
 
   3.5.6 **[Confirmed]** The zip is named `cards` (`cards.zip`, or `cards.pdf` for the PDF option; D4). The frontend downloads it in the browser and API calls return it in the response; nothing is kept on the server afterwards. Script and command-line runs write to `out/` (T-S2 review).
 
+
+### 3.6 Hosting and deployment
+
+The application has a backend API and a frontend UI (3.1.2, D9), but how it is built and hosted is not decided yet (decisions D26–D30 in `tasks.md`).
+
+3.6.1 **[Open]** Backend framework and API design (D26): keep `node:http` (the current health-check stub) or adopt a framework such as Express, Fastify or Hono; the endpoints and their request and response formats; whether a batch is generated within the request or as a background job; request size limits.
+
+3.6.2 **[Open]** Frontend stack (D27): plain HTML and JavaScript or a framework such as React, Svelte or Vue; build tooling; whether cards are rendered in the browser or on the server (the drawing code runs in both, 3.1.3), and, if in the browser, how card data and art reach it.
+
+3.6.3 **[Open]** Cloud hosting (D28): the platform (a container service such as Fly.io, Render or Google Cloud Run, a VPS, or serverless functions), region, budget and who pays for it (the project is non-commercial, 10.2), storage for the Scryfall bulk data (3.3) and the art cache (3.4), domain and TLS.
+
+3.6.4 **[Open]** Self-hosting (D29): how others run their own copy (a Docker image and Compose file, or `npm start` on Linux with Node.js 22), configuration through environment variables (port, data and cache directories), minimum disk and memory, and using the CLI on its own without the server.
+
+3.6.5 **[Open]** Operations (D30): the deployment pipeline (GitHub Actions to the chosen host), the scheduled daily Scryfall refresh (3.3.2), logging and monitoring, and abuse protection for a public instance, such as rate limits and a per-request batch size (10.5 sets no limit for the tool itself).
 ---
 
 ## 4. Card anatomy overview
@@ -609,7 +623,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question has now been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 48–52, on hosting, are open (D26–D30).
 
 ### Product and scope
 
@@ -678,6 +692,14 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 45. What are the accessibility requirements? [10.3] — **Answered:** no formal target (D24).
 46. Is localisation in scope? [10.4] — **Answered:** English only for v1 (D24).
 47. What are the expected batch sizes and performance targets? [10.5] — **Answered:** no hard target; measured and reported (D24).
+
+### Hosting and deployment
+
+48. Which backend framework, and what does the API look like? [3.6.1] — **Open** (D26).
+49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Open** (D27).
+50. Where is the public instance hosted, and who pays? [3.6.3] — **Open** (D28).
+51. How do people self-host it? [3.6.4] — **Open** (D29).
+52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Open** (D30).
 
 ---
 

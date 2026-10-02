@@ -54,6 +54,18 @@ These can be settled while building starts. Each one blocks only the tasks liste
 
 ## Phase 2: Core build (weeks 2–6)
 
+### Planning: hosting and deployment
+
+Decide these first: they set the frameworks the API, frontend and deployment are built on, so they block the server, UI and deployment work, but not the parsing or rendering tasks.
+
+| ID  | Task                                                                                                                                                                                                                       | Owner  | Depends on   | Req   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ | ----- |
+| D26 | Backend framework and API design: keep `node:http` or adopt a framework (Express, Fastify, Hono); endpoints and request/response format; synchronous response or background jobs for large batches; request size limits | PO + A | D9           | 3.6.1 |
+| D27 | Frontend stack: plain HTML/JS or a framework (React, Svelte, Vue); build tooling; whether cards are rendered in the browser or on the server (D5 allows both), and how card data reaches the browser if rendered there   | PO + B | D5, D9       | 3.6.2 |
+| D28 | Cloud hosting: platform (container service such as Fly.io, Render or Google Cloud Run; a VPS; or serverless), region, budget and who pays (non-commercial, D23), storage for Scryfall bulk data and the art cache, domain and TLS | PO     | D2, D10, D23 | 3.6.3 |
+| D29 | Self-hosting: how others run their own copy (Docker image and Compose file, or plain `npm start`), configuration (environment variables for port, data and cache directories), minimum requirements, CLI-only use without the server | PO + A | D5, D26      | 3.6.4 |
+| D30 | Operations: deployment pipeline (GitHub Actions to the chosen host), scheduled Scryfall bulk-data refresh (daily, D2), logging and monitoring, abuse protection for a public instance (rate limits, per-request batch size; D24 sets no limit) | PO + A | D26, D28     | 3.6.5 |
+
 ### Dev A: data pipeline
 
 | ID    | Task                                                                                                                                                           | Depends on           | Req          |
@@ -95,6 +107,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
 | T-S7 | Accessibility and localisation work, as scoped by D24                          | B     | D24, T-S3         | 10.3–10.4 |
 | T-S8 | User documentation: README usage, input format, licensing notes                | A     | T-S3, D23         | —         |
+| T-S9 | Deployment: container image, deployment pipeline to the chosen host, self-hosting guide | A     | T-S3, D26–D30     | 3.6       |
 
 ## Phase 4: Special layouts (after v1, or as scoped by D1)
 
