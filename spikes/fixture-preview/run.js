@@ -69,8 +69,8 @@ const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
 // Attaching subtypes get an icon in the middle stack (D16, 5.5.8): placeholder
 // boxes until traced. Icon-only.
 const SUBTYPE_ICONS = { Aura: 'AUR', Equipment: 'EQP', Fortification: 'FRT' };
-// Basic land types show the mana symbol they tap for, under the type icons
-// (D16 revised, 5.5.8).
+// Basic land types show the mana symbol they tap for, in the middle stack below
+// the subtype and supertype icons (D16 revised, 5.5.8).
 const LAND_TYPE_MANA = {
   Plains: 'W',
   Island: 'U',
@@ -184,26 +184,9 @@ async function drawStatBar(ctx, model) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  // Top: card type icons, land mana symbols, colour indicator, mana.
+  // Top: card type icons, colour indicator, mana.
   drawTypeIcons(ctx, model.types, y);
   y += TYPE_ROW + 8;
-
-  // What a land taps for: one mana symbol per basic land type, in type-line
-  // order, one row under the type icons, shrunk to fit (D16 revised).
-  const landMana = model.subtypes.filter((t) => LAND_TYPE_MANA[t]).map((t) => LAND_TYPE_MANA[t]);
-  if (landMana.length) {
-    const gap = 4;
-    const size = Math.min(
-      BAR.icon,
-      Math.floor((BAR.width - 4 - gap * (landMana.length - 1)) / landMana.length),
-    );
-    let x = (BAR.width - (size * landMana.length + gap * (landMana.length - 1))) / 2;
-    for (const code of landMana) {
-      await drawSymbol(ctx, code, x, y + (BAR.icon - size) / 2, size);
-      x += size + gap;
-    }
-    y += BAR.icon + 8;
-  }
 
   // Colour indicator (D17): one circle, a wedge per colour in WUBRG order
   // clockwise from the top, divider lines between wedges. Only takes a row
@@ -255,8 +238,9 @@ async function drawStatBar(ctx, model) {
     y += BAR.icon + BAR.gap;
   }
 
-  // Middle (D19, 5.6): top to bottom, subtypes (icon-only, D16), supertypes
-  // (D15), zone/timing symbols (D12), so zone/timing sits nearest the type line.
+  // Middle (D19, 5.6): top to bottom, attaching subtypes (icon-only, D16),
+  // supertypes (D15), land mana symbols (icon-only, D16 revised), zone/timing
+  // symbols (D12), so zone/timing sits nearest the type line.
   // Boxes stand in for missing icons; zone/timing boxes are gold.
   const middle = [];
   for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
@@ -268,6 +252,9 @@ async function drawStatBar(ctx, model) {
       ICONS.get(`supertypes/${label.toLowerCase()}`) ??
       (label === 'Snow' ? await symbol('S') : undefined);
     middle.push({ label, icon });
+  }
+  for (const t of model.subtypes.filter((t) => LAND_TYPE_MANA[t])) {
+    middle.push({ icon: await symbol(LAND_TYPE_MANA[t]) });
   }
   for (const z of model.zoneSymbols) {
     middle.push({ label: ZONE_LABELS[z], zone: true, icon: ICONS.get(`zones/${z}`) });

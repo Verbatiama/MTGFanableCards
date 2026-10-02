@@ -155,8 +155,8 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 4.2 **[Inferred]** The stat bar has three sections:
 
-- **Top**, anchored to the top: card type icon, land mana symbols (5.5.8), colour indicator, mana cost.
-- **Middle**, anchored at the type line: subtype, supertype, zone/timing symbols (5.6.1).
+- **Top**, anchored to the top: card type icon, colour indicator, mana cost.
+- **Middle**, anchored at the type line: attaching subtypes, supertypes, land mana symbols, zone/timing symbols (5.6.1).
 - **Bottom**, anchored to the bottom: stats, loyalty, defense, or the NON-PERMANENT label (5.7.3).
 
   4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
@@ -200,7 +200,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 ### 5.2 Colour indicator (top)
 
-5.2.1 **[Confirmed]** For cards that have a colour indicator, it is placed under the card type icon, below the land mana symbols if the card has any (Dryad Arbor, 5.5.8).
+5.2.1 **[Confirmed]** For cards that have a colour indicator, it is placed directly under the card type icon.
 
 5.2.2 **[Inferred]** Cards that need it are mainly back faces of double-faced cards, plus cards such as Ancestral Vision and Dryad Arbor. It should be driven by the JSON colour indicator field.
 
@@ -328,7 +328,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 | Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
 | Wastes                                      | The colourless mana symbol ({C})                         |
 
-**[Confirmed]** The basic land type symbols show what the land taps for, so they sit in the top section, directly under the type icons, not in the middle stack (D16, revised). Several land types sit side by side in one row in type-line order, shrinking to fit the bar like type icons (5.1.3): Breeding Pool (Land — Forest Island) shows {G}{U}. The row is only there when the card has a basic land type, and it pushes the colour indicator and mana block down. Aura, Equipment and Fortification stay in the middle stack.
+**[Confirmed]** The basic land type symbols show what the land taps for. They sit in the middle stack below the attaching subtype and supertype icons, and above the zone/timing symbols (D16, revised; 5.6.1). Each land type is its own icon, in type-line order: Breeding Pool (Land — Forest Island) shows {G} above {U}.
 
 Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc:
 
@@ -343,7 +343,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 5.6 Middle-section layout
 
-5.6.1 **[Confirmed]** Stack order, top to bottom (D19): subtype icons → supertype icons → zone/timing symbols, so zone/timing sits nearest the type line. Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
+5.6.1 **[Confirmed]** Stack order, top to bottom (D19, D16 revised): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → land mana symbols → zone/timing symbols, so zone/timing sits nearest the type line. Snow-Covered Forest shows BASIC, SNOW, {G}. Within each group the earlier rules apply: subtypes, supertypes and land types in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
 
 5.6.2 **[Confirmed]** The stack is anchored at the type line and grows upward into the space beside the art, unless it would meet the mana block (5.6.3).
 
@@ -503,7 +503,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 7.6 Land
 
-- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and, under the land icon, the mana symbol of each basic land type it has, icon-only (Forest; dual lands show two side by side, 5.5.8).
+- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and the mana symbol of each basic land type it has, icon-only, below the supertype icons (Forest; dual lands show two, 5.5.8).
 - Basic lands show a large mana symbol in the text box.
 - References: Forest, Wasteland.
 - No permanence label (5.7.4, D18).

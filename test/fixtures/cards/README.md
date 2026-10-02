@@ -49,7 +49,7 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `dark-depths`                                  | Two supertypes, Legendary Snow (D15): one icon each, type-line order                 |
 | `snow-covered-forest`                          | Basic Snow land (D15): BASIC then SNOW, large mana symbol in the text box            |
 | `concordant-crossroads`                        | World supertype (D15)                                                                |
-| `breeding-pool`                                | Two basic land types (D16): {G}{U} side by side under the land icon, no labels       |
+| `breeding-pool`                                | Two basic land types (D16): {G} above {U} in the middle stack, no labels             |
 | `curse-of-deaths-hold`                         | Aura Curse (D16): only the Aura subtype gets an icon                                 |
 | `nicol-bolas-the-ravager`, `nicol-bolas-the-arisen` | Transform DFC; back face has a three-colour indicator (D17: one circle, three wedges) |
 | `thought-knot-seer`                            | Colourless mana `{C}` in the cost, distinct from generic                            |
