@@ -51,7 +51,7 @@
 
 const COLORS = ['W', 'U', 'B', 'R', 'G'];
 // Symbols that follow the printed-order ones, in this order (D11, 5.3.7).
-const MANA_TAIL = ['S', 'C', 'X', 'Y', 'Z', 'generic'];
+export const MANA_TAIL = ['S', 'C', 'X', 'Y', 'Z', 'generic'];
 /** Zone and timing symbols in display order, top to bottom (D12, 5.4.7). */
 export const ZONE_SYMBOLS = ['flash', 'split-second', 'hand', 'library', 'graveyard'];
 const RARITIES = ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'];
