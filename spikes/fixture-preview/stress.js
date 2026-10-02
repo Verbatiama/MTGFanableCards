@@ -13,6 +13,22 @@ const STRESS = {
       zoneSymbols: ['flash', 'hand', 'graveyard'],
     },
   ],
+  // Land with a basic land type whose middle stack spills below the type line
+  // far enough to push the land mana symbol down (D16 revised).
+  'stress-land-push': [
+    'dryad-arbor',
+    {
+      supertypes: ['Legendary', 'Snow', 'World'],
+      zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
+      manaCost: [
+        { symbol: 'W', count: 1 },
+        { symbol: 'U', count: 1 },
+        { symbol: 'B', count: 1 },
+        { symbol: 'R', count: 1 },
+        { symbol: 'G', count: 1 },
+      ],
+    },
+  ],
   // Planeswalker: can't spill (loyalty costs use the bar below the type line),
   // so the labels are dropped.
   'stress-drop-labels': [

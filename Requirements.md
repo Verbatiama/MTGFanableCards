@@ -156,7 +156,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 4.2 **[Inferred]** The stat bar has three sections:
 
 - **Top**, anchored to the top: card type icon, colour indicator, mana cost.
-- **Middle**, anchored at the type line: attaching subtypes, supertypes, land mana symbols, zone/timing symbols (5.6.1).
+- **Middle**, anchored at the type line: attaching subtypes, supertypes, zone/timing symbols (5.6.1). Below it, beside the text box, the land mana symbols (5.5.8).
 - **Bottom**, anchored to the bottom: stats, loyalty, defense, or the NON-PERMANENT label (5.7.3).
 
   4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
@@ -328,7 +328,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 | Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
 | Wastes                                      | The colourless mana symbol ({C})                         |
 
-**[Confirmed]** The basic land type symbols show what the land taps for. They sit in the middle stack below the attaching subtype and supertype icons, and above the zone/timing symbols (D16, revised; 5.6.1). Each land type is its own icon, in type-line order: Breeding Pool (Land — Forest Island) shows {G} above {U}.
+**[Confirmed]** The basic land type symbols show what the land taps for (D16, revised). They are not part of the middle stack: they form their own group in the bar, one icon per land type in type-line order, centred on the middle of the text box (Breeding Pool shows {G} above {U} there). The middle stack has priority: if it spills below the type line (5.6.3) far enough to reach them, they are pushed down to sit just under it.
 
 Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc:
 
@@ -343,13 +343,13 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 5.6 Middle-section layout
 
-5.6.1 **[Confirmed]** Stack order, top to bottom (D19, D16 revised): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → land mana symbols → zone/timing symbols, so zone/timing sits nearest the type line. Snow-Covered Forest shows BASIC, SNOW, {G}. Within each group the earlier rules apply: subtypes, supertypes and land types in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
+5.6.1 **[Confirmed]** Stack order, top to bottom (D19): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → zone/timing symbols, so zone/timing sits nearest the type line. Land mana symbols are a separate group beside the text box (5.5.8). Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
 
 5.6.2 **[Confirmed]** The stack is anchored at the type line and grows upward into the space beside the art, unless it would meet the mana block (5.6.3).
 
 5.6.3 **[Confirmed]** Collision rule (D19). When the stack would meet the mana block, these steps apply in order, stopping at the first that fits:
 
-1. **Continue below the type line.** The stack starts just under the mana block and runs down past the type line into the empty bar beside the text box, keeping its order. It may go down to the top of the bottom section (stats, defense badge, NON-PERMANENT). Planeswalkers skip this step, as their loyalty costs use the bar beside the text box (7.2.1).
+1. **Continue below the type line.** The stack starts just under the mana block and runs down past the type line into the empty bar beside the text box, keeping its order. It may go down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. Planeswalkers skip this step, as their loyalty costs use the bar beside the text box (7.2.1).
 2. **Drop the labels** under supertype and zone/timing icons.
 3. **Shrink the icons**, all together, down to a minimum of half size.
 
@@ -503,7 +503,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 7.6 Land
 
-- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and the mana symbol of each basic land type it has, icon-only, below the supertype icons (Forest; dual lands show two, 5.5.8).
+- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and the mana symbol of each basic land type it has, icon-only, centred beside the text box (Forest; dual lands show two, 5.5.8).
 - Basic lands show a large mana symbol in the text box.
 - References: Forest, Wasteland.
 - No permanence label (5.7.4, D18).

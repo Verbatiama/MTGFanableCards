@@ -69,8 +69,8 @@ const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
 // Attaching subtypes get an icon in the middle stack (D16, 5.5.8): placeholder
 // boxes until traced. Icon-only.
 const SUBTYPE_ICONS = { Aura: 'AUR', Equipment: 'EQP', Fortification: 'FRT' };
-// Basic land types show the mana symbol they tap for, in the middle stack below
-// the subtype and supertype icons (D16 revised, 5.5.8).
+// Basic land types show the mana symbol they tap for (D16 revised, 5.5.8), in
+// their own group centred on the text box, outside the middle stack.
 const LAND_TYPE_MANA = {
   Plains: 'W',
   Island: 'U',
@@ -239,8 +239,8 @@ async function drawStatBar(ctx, model) {
   }
 
   // Middle (D19, 5.6): top to bottom, attaching subtypes (icon-only, D16),
-  // supertypes (D15), land mana symbols (icon-only, D16 revised), zone/timing
-  // symbols (D12), so zone/timing sits nearest the type line.
+  // supertypes (D15), zone/timing symbols (D12), so zone/timing sits nearest
+  // the type line.
   // Boxes stand in for missing icons; zone/timing boxes are gold.
   const middle = [];
   for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
@@ -253,13 +253,24 @@ async function drawStatBar(ctx, model) {
       (label === 'Snow' ? await symbol('S') : undefined);
     middle.push({ label, icon });
   }
-  for (const t of model.subtypes.filter((t) => LAND_TYPE_MANA[t])) {
-    middle.push({ icon: await symbol(LAND_TYPE_MANA[t]) });
-  }
   for (const z of model.zoneSymbols) {
     middle.push({ label: ZONE_LABELS[z], zone: true, icon: ICONS.get(`zones/${z}`) });
   }
-  drawMiddle(ctx, middle, y + 4, middleLimit(model));
+  // Land mana symbols: one icon each in type-line order, centred on the text
+  // box. The middle stack has priority: if it spills that far it pushes them
+  // down, and it may only spill as far as leaves them room (D16 revised).
+  const landMana = [];
+  for (const t of model.subtypes.filter((t) => LAND_TYPE_MANA[t])) {
+    landMana.push(await symbol(LAND_TYPE_MANA[t]));
+  }
+  const landHeight = landMana.length * (BAR.icon + MIDDLE.gap);
+  const limit = middleLimit(model) - landHeight;
+  const stackBottom = drawMiddle(ctx, middle, y + 4, limit);
+  let landTop = Math.max(TEXT.y + TEXT.h / 2 - landHeight / 2, stackBottom + MIDDLE.gap);
+  for (const icon of landMana) {
+    ctx.drawImage(icon, cx - BAR.icon / 2, landTop, BAR.icon, BAR.icon);
+    landTop += BAR.icon + MIDDLE.gap;
+  }
 
   // Bottom: stats, loyalty, defense badge, or NON-PERMANENT (D18, 5.7).
   ctx.fillStyle = '#fff';
@@ -352,9 +363,10 @@ function middleLimit(model) {
  * and grows upward. If it would meet the mana block (`floor`), it starts just
  * under the mana block and continues below the type line, down to `limit`. If
  * it still doesn't fit, labels are dropped; then icons shrink. Nothing is hidden.
+ * Returns the bottom of the stack.
  */
 function drawMiddle(ctx, items, floor, limit) {
-  if (!items.length) return;
+  if (!items.length) return 0;
   const anchor = TYPE.y + TYPE.h - 4;
   const height = (labels, scale = 1) =>
     items.reduce(
@@ -377,6 +389,7 @@ function drawMiddle(ctx, items, floor, limit) {
     ctx.fillStyle = '#e33';
     ctx.fillRect(0, limit, 4, top - limit);
   }
+  return top;
 }
 
 /** One middle icon (and its label, if shown) at `top`; returns the height used. */
