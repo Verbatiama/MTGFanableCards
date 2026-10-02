@@ -63,7 +63,7 @@ const ZONE_LABELS = {
   graveyard: 'Graveyard',
 };
 // Supertypes that get an icon + label (D15, 5.5.4). Token, Ongoing and Elite
-// get none. Planeswalkers never show Legendary (5.5.3).
+// get none. Planeswalkers show Legendary too (5.5.3).
 const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
 // The only subtypes with icons (D16, 5.5.8): attaching subtypes (placeholder
 // boxes until traced) and basic land types (their mana symbol). Icon-only.
@@ -187,19 +187,40 @@ async function drawStatBar(ctx, model) {
   drawTypeIcons(ctx, model.types, y);
   y += TYPE_ROW + 8;
 
+  // Colour indicator (D17): one circle, a wedge per colour in WUBRG order
+  // clockwise from the top, divider lines between wedges. Only takes a row
+  // when present, pushing the mana block down.
   if (model.colorIndicator) {
-    const pip = 16;
-    const width = model.colorIndicator.length * (pip + 3) - 3;
-    model.colorIndicator.forEach((c, i) => {
+    const r = 14;
+    const cy = y + r;
+    const colours = model.colorIndicator;
+    const step = (Math.PI * 2) / colours.length;
+    const start = -Math.PI / 2;
+    colours.forEach((c, i) => {
       ctx.fillStyle = PIPS[c];
       ctx.beginPath();
-      ctx.arc(cx - width / 2 + i * (pip + 3) + pip / 2, y + pip / 2, pip / 2, 0, Math.PI * 2);
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start + i * step, start + (i + 1) * step);
+      ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
     });
-    y += pip + 8;
+    if (colours.length > 1) {
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      colours.forEach((_, i) => {
+        const a = start + i * step;
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      });
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    y += r * 2 + 8;
   }
 
   for (const { symbol: code, count } of model.manaCost ?? []) {
@@ -225,7 +246,7 @@ async function drawStatBar(ctx, model) {
     icon: ICONS.get(`zones/${z}`),
   }));
   // One icon per supertype in type-line order (D15). Snow reuses the {S} art.
-  for (const label of supertypeIcons(model)) {
+  for (const label of model.supertypes.filter((t) => SUPERTYPE_ICONS.includes(t))) {
     const icon =
       ICONS.get(`supertypes/${label.toLowerCase()}`) ??
       (label === 'Snow' ? await symbol('S') : undefined);
@@ -292,14 +313,6 @@ async function drawStatBar(ctx, model) {
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
   }
   ctx.textAlign = 'left';
-}
-
-/** Supertypes that get a middle-section icon (D15, 5.5.3–5.5.4). */
-function supertypeIcons(model) {
-  return model.supertypes.filter(
-    (t) =>
-      SUPERTYPE_ICONS.includes(t) && !(t === 'Legendary' && model.types.includes('Planeswalker')),
-  );
 }
 
 /**

@@ -204,11 +204,11 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.2.2 **[Inferred]** Cards that need it are mainly back faces of double-faced cards, plus cards such as Ancestral Vision and Dryad Arbor. It should be driven by the JSON colour indicator field.
 
-5.2.3 **[Open]** Appearance: plain colour pips, or mana symbols without counts. How two-colour and multi-colour indicators are drawn.
+5.2.3 **[Confirmed]** Appearance (D17): a single circle, as on printed cards. A one-colour indicator is a solid circle; a multi-colour indicator is the same circle split into equal wedges, one per colour, in WUBRG order clockwise from the top (Nicol Bolas, the Arisen: blue, black, red). It is never more than one circle, however many colours.
 
-5.2.4 **[Open]** Reflow: whether the mana block moves down to make room.
+5.2.4 **[Confirmed]** Reflow (D17): the indicator takes its own row under the type icons only when the card has one, and the mana block starts below it. Cards without an indicator keep the space.
 
-5.2.5 **[Open]** Accessibility: the indicator should not rely on colour alone (see 10.3).
+5.2.5 **[Confirmed]** Accessibility (D17): thin divider lines separate the wedges, so the number of colours can be counted without seeing colour. Which colour each wedge is still relies on colour; this is accepted for the indicator (10.3).
 
 ### 5.3 Mana cost (top)
 
@@ -292,7 +292,7 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 5.5.2 **[Inferred]** Basic is shown with a labelled icon (Forest, composite image).
 
-5.5.3 **[Confirmed]** Planeswalkers are exempt: they never show the LEGENDARY icon, because every planeswalker is legendary and the bar is already taken up by loyalty costs (Jace, D15). Their other supertypes, if any, still show. Every other legendary card shows the crown + LEGENDARY.
+5.5.3 **[Confirmed]** Planeswalkers are not exempt: every legendary card, planeswalkers included, shows the crown + LEGENDARY (D15, revised). The Jace mockup's missing LEGENDARY icon is treated as an omission.
 
 5.5.4 **[Confirmed]** Snow and World get an icon with a label, like Legendary and Basic (D15):
 
@@ -471,7 +471,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 7.2.4 **[Confirmed]** Static abilities get a band with no cost in the bar (Components doc: "blank space").
 
-7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** No LEGENDARY icon on planeswalkers (5.5.3, D15).
+7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** Planeswalkers show the LEGENDARY icon like any legendary card (5.5.3, D15).
 
 7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
 
@@ -583,7 +583,7 @@ The implementation should keep these as configuration tables rather than hard-co
 - The output is effectively a set of proxies using Wizards of the Coast card art, text and symbols. State the project's position relative to the Wizards Fan Content Policy.
 - Resolve design attribution (1.4) and symbol licensing (9.1).
 
-  10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators.
+  10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators. The colour indicator itself is decided by D17 (5.2.5): divider lines between wedges, no letters.
 
   10.4 **Localisation [Open].** Whether non-English cards and non-English labels ("PERMANENT", "LEGENDARY", etc.) are in scope. The footer already shows a language code ("EN").
 

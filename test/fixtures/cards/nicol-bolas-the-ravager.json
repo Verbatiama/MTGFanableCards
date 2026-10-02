@@ -1,0 +1,32 @@
+{
+  "name": "Nicol Bolas, the Ravager",
+  "layout": "transform",
+  "faceIndex": 0,
+  "typeLine": "Legendary Creature — Elder Dragon",
+  "supertypes": ["Legendary"],
+  "types": ["Creature"],
+  "subtypes": ["Elder", "Dragon"],
+  "colors": ["U", "B", "R"],
+  "colorIndicator": null,
+  "manaCost": [
+    { "symbol": "U", "count": 1 },
+    { "symbol": "B", "count": 1 },
+    { "symbol": "R", "count": 1 },
+    { "symbol": "generic", "count": 1 }
+  ],
+  "zoneSymbols": [],
+  "power": "4",
+  "toughness": "4",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "Flying\nWhen Nicol Bolas enters, each opponent discards a card.\n{4}{U}{B}{R}: Exile Nicol Bolas, then return him to the battlefield transformed under his owner's control. Activate only as a sorcery.",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/7/b/7b215968-93a6-4278-ac61-4e3e8c3c3943.jpg?1783934524",
+  "artist": "Svetlin Velinov",
+  "collectorNumber": "218",
+  "rarity": "mythic",
+  "setCode": "M19",
+  "lang": "en",
+  "copyright": "™ & © 2018 Wizards of the Coast"
+}

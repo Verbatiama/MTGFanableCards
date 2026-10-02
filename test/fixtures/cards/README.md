@@ -51,6 +51,7 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `concordant-crossroads`                        | World supertype (D15)                                                                |
 | `breeding-pool`                                | Two basic land types (D16): {G} then {U} subtype icons, no labels                     |
 | `curse-of-deaths-hold`                         | Aura Curse (D16): only the Aura subtype gets an icon                                 |
+| `nicol-bolas-the-ravager`, `nicol-bolas-the-arisen` | Transform DFC; back face has a three-colour indicator (D17: one circle, three wedges) |
 | `thought-knot-seer`                            | Colourless mana `{C}` in the cost, distinct from generic                            |
 | `ornithopter`                                  | `{0}` cost (must differ from no cost), 0 power                                      |
 | `gelatinous-genesis`                           | `{X}{X}{G}` (X count 2), `X/X` in text                                              |
