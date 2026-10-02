@@ -470,7 +470,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 7.2 Planeswalker
 
-7.2.1 **[Confirmed]** Loyalty ability costs (+N, 0, −N) appear in the stat bar, each vertically aligned with its ability in the text box.
+7.2.1 **[Confirmed]** Loyalty ability costs (+N, 0, −N) appear in the stat bar, each vertically centred on its ability's band in the text box. **[Confirmed]** They are drawn in the printed-card shapes (D22): + costs in a badge pointing up, − costs in a badge pointing down, 0 in a flat badge, with a white number on dark grey. Badges scale down to fit short bands, so they never touch.
 
 7.2.2 **[Confirmed]** The text box is divided into alternating shaded bands, one per ability.
 
@@ -480,9 +480,13 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 7.2.5 **[Confirmed]** No permanence label (5.7.3, D18); the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** Planeswalkers show the LEGENDARY icon like any legendary card (5.5.3, D15).
 
-7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
+7.2.6 **[Confirmed]** Band layout (D22). Band heights drive the vertical positions in the bar, so text layout is calculated before the bar is drawn.
 
-7.2.7 **[Open]** Display of −X and +X costs.
+- Every Oracle line gets a band, loyalty abilities and static abilities alike (7.2.4). All bands are the same height and together fill the text box. All abilities share one font size, chosen so the longest ability fits its band; the font shrinks under the normal text-fitting rules (6.4.8).
+- There is no maximum number of abilities. If the text still doesn't fit at the minimum font size, the text box grows upward into the art: the type line moves up with it, and the art gets shorter. The middle stack stays anchored at the type line, wherever it ends up.
+- The preview spike's `stress-many-abilities` case (nine abilities) shows the text box growing. No real in-scope card has more than four loyalty abilities; Urza, Planeswalker has five but is a meld card (post-v1).
+
+7.2.7 **[Confirmed]** −X and +X costs are drawn like numbers, in the same badges (D22): Ugin's −X shows "−X" in a downward badge.
 
 ### 7.3 Instant and sorcery
 

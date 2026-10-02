@@ -22,6 +22,24 @@ const STRESS = {
         'Synthetic flavour text for the D20 stress case. It should never be drawn, because the rules text alone already fills the text box.',
     },
   ],
+  // Nine abilities, several long, and ±X costs: the bands shrink to the
+  // minimum size, then the text box grows up into the art (D22, 7.2.6).
+  'stress-many-abilities': [
+    'jace-the-mind-sculptor',
+    {
+      oracleText: [
+        'Spells your opponents cast that target Jace cost {2} more to cast.',
+        "+2: Look at the top card of target player's library. You may put that card on the bottom of that player's library.",
+        "+X: Draw X cards, then discard X cards. X can't be greater than the number of cards in your hand.",
+        '0: Draw three cards, then put two cards from your hand on top of your library in any order. If you control another planeswalker, draw an additional card, then put it on the bottom of your library.',
+        "−X: Return each creature with mana value X or less to its owner's hand. Each player who controls one or more of those creatures loses 2 life.",
+        '+1: Up to one target creature gets -2/-0 until your next turn. Whenever a creature an opponent controls attacks you or a planeswalker you control this turn, tap it.',
+        '−2: Target player reveals the top five cards of their library. You may exile any number of them face down. Then that player puts the rest into their graveyard in any order.',
+        '−7: You get an emblem with "Whenever you cast a spell, copy it. You may choose new targets for the copy. Instants and sorceries you cast this way cost {1} less."',
+        '−12: Exile all cards from target player\'s library, then that player shuffles their hand into their library. You get an emblem with "At the beginning of your upkeep, each opponent mills ten cards."',
+      ].join('\n'),
+    },
+  ],
   // Land with a basic land type whose middle stack spills below the type line
   // far enough to push the land mana symbol down (D16 revised).
   'stress-land-push': [

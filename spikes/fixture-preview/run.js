@@ -327,12 +327,13 @@ async function drawCard(model) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CARD.width, CARD.height);
 
-  await drawStatBar(ctx, model);
-  await drawCardBox(ctx, model, art);
+  const layout = cardLayout(ctx, model);
+  await drawStatBar(ctx, model, layout);
+  await drawCardBox(ctx, model, art, layout);
   return canvas;
 }
 
-async function drawStatBar(ctx, model) {
+async function drawStatBar(ctx, model, layout) {
   const cx = BAR.width / 2;
   let y = 14;
   ctx.textAlign = 'center';
@@ -418,9 +419,18 @@ async function drawStatBar(ctx, model) {
     landMana.push(await symbol(LAND_TYPE_MANA[t]));
   }
   const landHeight = landMana.length * (BAR.icon + MIDDLE.gap);
-  const limit = middleLimit(model) - landHeight;
-  const stackBottom = drawMiddle(ctx, middle, y + 4, limit);
-  let landTop = Math.max(TEXT.y + TEXT.h / 2 - landHeight / 2, stackBottom + MIDDLE.gap);
+  const limit = middleLimit(model, layout) - landHeight;
+  const anchor = layout.type.y + layout.type.h - 4;
+  const stackBottom = drawMiddle(ctx, middle, y + 4, limit, anchor);
+
+  // Loyalty costs, each centred on its ability band (7.2.1, D22).
+  for (const band of layout.pw?.bands ?? []) {
+    if (band.cost !== null) drawLoyaltyCost(ctx, band.cost, band.top + band.h / 2, band.h);
+  }
+  let landTop = Math.max(
+    layout.text.y + layout.text.h / 2 - landHeight / 2,
+    stackBottom + MIDDLE.gap,
+  );
   for (const icon of landMana) {
     ctx.drawImage(icon, cx - BAR.icon / 2, landTop, BAR.icon, BAR.icon);
     landTop += BAR.icon + MIDDLE.gap;
@@ -502,9 +512,9 @@ const MIDDLE = { icon: 40, label: 16, gap: 6, minScale: 0.5 };
  * top of the bottom section. Planeswalker loyalty costs use the bar beside the
  * text box (7.2.1), so their stack must stay above the type line.
  */
-function middleLimit(model) {
+function middleLimit(model, layout) {
   const bottom = CARD.height - 14;
-  if (model.types.includes('Planeswalker')) return TYPE.y + TYPE.h - 4;
+  if (model.types.includes('Planeswalker')) return layout.type.y + layout.type.h - 4;
   if (model.power !== null) return bottom - 120 - 8;
   if (model.loyalty !== null) return bottom - 60 - 8;
   if (model.defense !== null) return CARD.height - 78 - 8;
@@ -519,9 +529,8 @@ function middleLimit(model) {
  * it still doesn't fit, labels are dropped; then icons shrink. Nothing is hidden.
  * Returns the bottom of the stack.
  */
-function drawMiddle(ctx, items, floor, limit) {
+function drawMiddle(ctx, items, floor, limit, anchor) {
   if (!items.length) return 0;
-  const anchor = TYPE.y + TYPE.h - 4;
   const height = (labels, scale = 1) =>
     items.reduce(
       (h, it) => h + (MIDDLE.icon + (labels && it.label ? MIDDLE.label : 0) + MIDDLE.gap) * scale,
@@ -682,7 +691,7 @@ function drawAsterisk(ctx, x, y, r, hollow) {
   ctx.restore();
 }
 
-async function drawCardBox(ctx, model, art) {
+async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }) {
   const paint = framePaint(ctx, model);
   const width = BOX.right - BOX.x;
 
@@ -737,7 +746,8 @@ async function drawCardBox(ctx, model, art) {
     const mana = /\{([WUBRGC])\}/.exec(model.oracleText);
     if (mana) await drawSymbol(ctx, mana[1], BOX.x + width / 2 - 90, TEXT.y + TEXT.h / 2 - 90, 180);
   } else {
-    await drawTextBox(ctx, model, BOX.x + 20, TEXT.y + 14, width - 40, TEXT.h - 24);
+    if (pw) await drawAbilityBands(ctx, pw, BOX.x + 6, width - 12);
+    else await drawTextBox(ctx, model, BOX.x + 20, TEXT.y + 14, width - 40, TEXT.h - 24);
   }
 
   // Footer.
@@ -759,6 +769,101 @@ async function drawCardBox(ctx, model, art) {
 }
 
 /**
+ * Per-card geometry. Planeswalkers (7.2.6, D22) get equal-height ability bands,
+ * one per Oracle line, sized to the longest; the font shrinks to fit (normal
+ * text-fitting rules). If it still doesn't fit at the minimum size, the text box
+ * grows upward: the type line moves up with it and the art gets shorter.
+ */
+function cardLayout(ctx, model) {
+  const base = { art: ART, type: TYPE, text: TEXT, pw: null };
+  if (!model.types.includes('Planeswalker') || !model.oracleText) return base;
+  const width = BOX.right - BOX.x - 12 - 40;
+  const abilities = model.oracleText.split('\n').map((line) => {
+    const m = /^([+−-](?:\d+|X)|0): ?(.*)$/.exec(line);
+    return m ? { cost: m[1].replace('-', '−'), t: m[2] } : { cost: null, t: line };
+  });
+  const measure = (size) => {
+    const layouts = abilities.map((a) => layoutText(ctx, [{ t: a.t }], width, size));
+    return { layouts, h: Math.max(...layouts.map((l) => l.height)) + 18 };
+  };
+  let size = 26;
+  let m = measure(size);
+  while (size > 12 && m.h * abilities.length > TEXT.h) m = measure(--size);
+  const textH = Math.max(TEXT.h, m.h * abilities.length);
+  const grow = textH - TEXT.h;
+  const text = { y: TEXT.y - grow, h: textH };
+  // Equal bands that fill the text box.
+  const h = textH / abilities.length;
+  const bands = abilities.map((a, i) => ({
+    cost: a.cost,
+    layout: m.layouts[i],
+    top: text.y + i * h,
+    h,
+  }));
+  return {
+    art: { y: ART.y, h: ART.h - grow },
+    type: { y: TYPE.y - grow, h: TYPE.h },
+    text,
+    pw: { size, bands },
+  };
+}
+
+/** Alternating shaded ability bands, text centred in each (7.2.2). */
+async function drawAbilityBands(ctx, pw, x, width) {
+  for (const [i, band] of pw.bands.entries()) {
+    if (i % 2) {
+      ctx.fillStyle = 'rgba(0,0,0,0.09)';
+      ctx.fillRect(x, band.top, width, band.h);
+    }
+    const top = band.top + (band.h - band.layout.height) / 2;
+    await drawLines(ctx, band.layout, x + 20, top, width - 40, pw.size);
+  }
+}
+
+/**
+ * Loyalty cost marker in the bar (D22), shaped like printed cards: + points
+ * up, − points down, 0 is flat. ±X is drawn like a number. Scales down to
+ * fit short bands, so markers never touch.
+ */
+function drawLoyaltyCost(ctx, cost, cy, bandH) {
+  const cx = BAR.width / 2;
+  const scale = Math.min(1, (bandH - 6) / 52);
+  const w = 66 * scale;
+  const h = 34 * scale;
+  const tip = 9 * scale;
+  const [l, r, t, b] = [cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2];
+  ctx.save();
+  ctx.beginPath();
+  if (cost.startsWith('+')) {
+    ctx.moveTo(l, b);
+    ctx.lineTo(l, t + tip);
+    ctx.lineTo(cx, t - tip);
+    ctx.lineTo(r, t + tip);
+    ctx.lineTo(r, b);
+  } else if (cost.startsWith('−')) {
+    ctx.moveTo(l, t);
+    ctx.lineTo(r, t);
+    ctx.lineTo(r, b - tip);
+    ctx.lineTo(cx, b + tip);
+    ctx.lineTo(l, b - tip);
+  } else {
+    ctx.rect(l, t, w, h);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#3a3a3a';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = FONT(fitSize(ctx, cost, w - 10, Math.round(24 * scale), FONT, 10));
+  ctx.fillText(cost, cx, cy + 1);
+  ctx.restore();
+}
+
+/**
  * Wraps oracle and flavour text with inline symbols (6.4.8, D20): if the text
  * doesn't fit at full size, flavour text is dropped first, then the rules text
  * shrinks to the minimum.
@@ -776,6 +881,11 @@ async function drawTextBox(ctx, model, x, y, width, height) {
     }
   }
 
+  await drawLines(ctx, layout, x, y, width, size);
+}
+
+/** Draw lines from layoutText at (x, y). */
+async function drawLines(ctx, layout, x, y, width, size) {
   for (const line of layout.lines) {
     ctx.fillStyle = line.flavor ? '#3a3a3a' : '#111';
     ctx.font = FONT(line.flavor ? size - 2 : size);
