@@ -114,9 +114,10 @@ async function* readJsonLines(file) {
   }
 }
 
+// Collector numbers compare numerically ("9" before "10"), letters after ("10a").
 const byRelease = (a, b) =>
   a.released_at.localeCompare(b.released_at) ||
-  a.collector_number.localeCompare(b.collector_number);
+  a.collector_number.localeCompare(b.collector_number, 'en', { numeric: true });
 
 export class CardDatabase {
   /** @type {Map<string, { name: string, printings: object[] }>} full name → card */

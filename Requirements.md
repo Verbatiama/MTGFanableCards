@@ -70,6 +70,9 @@ Each requirement is tagged:
 
 3.2.2 **[Confirmed]** Input format: **Decklist format with quantities** (e.g., `4 Lightning Bolt`, `1 Counterspell`). Quantities are respected; `4 Lightning Bolt` produces four card images.
 
+- Accepted lines (T-A4): `4 Lightning Bolt`, `4x Lightning Bolt`, or a bare name (quantity 1), optionally followed by a printing as `(M10)`, `(M10) 146` or `[M10]`, the formats Arena, MTGO and Moxfield export. Trailing foil markers such as `*F*` are ignored.
+- Blank lines, comments (`//` or `#`) and section headers (Deck, Sideboard, Commander, Companion, Maybeboard, ...) are skipped. Cards in every section are generated. A quantity of 0 is reported as an error for that line.
+
 3.2.3 **[Confirmed]** Quantities: `4 Lightning Bolt` produces **four separate images** (one per copy).
 
 3.2.4 **[Confirmed]** Name matching is case-insensitive exact (T-S2 review): case, repeated spaces and curly vs straight apostrophes are ignored, otherwise the name must match. A name that doesn't match is reported as unmatched (3.2.6), with up to three close suggestions in the warning; it is never replaced automatically.
@@ -89,7 +92,8 @@ Each requirement is tagged:
 3.3.3 **[Confirmed]** Printing selection (T-S2 review). One card name matches many printings, and art, set symbol, collector number and rarity all vary by printing.
 
 - The user can name a printing after the card: `4 Lightning Bolt (M10)` (set code) or `4 Lightning Bolt (M10) 146` (set code and collector number), the format Arena and MTGO exports use.
-- Without one, the card's first printing is used.
+- Without one, the card's first printing is used: the earliest paper printing that isn't a promo, oversized or gold-bordered memorabilia, so the default is never a prerelease promo or a digital-only version. A card with no such printing uses its earliest printing (T-A4).
+- A set code with no printing of the card, or a collector number not in that set, falls back (to the default, or to the set's first printing) with a warning; Arena's own set codes, such as DAR for Dominaria, can differ from Scryfall's.
 
   3.3.4 **[Confirmed]** The type line shows the card's real type line from the JSON. Subtypes invented in the mockups ("Sorcery - Wrath", "Artifact - Sword", "Enchantment - Beast", "Planeswalker - Jace Beleren") are to be ignored.
 
