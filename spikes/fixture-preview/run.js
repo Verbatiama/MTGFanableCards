@@ -37,10 +37,25 @@ const FRAMES = {
   G: '#a9cba0',
   gold: '#e3c873',
   colourless: '#c9ced2',
-  land: '#d3bf98',
 };
-// How strongly a tan land or silver colourless frame is tinted (D21).
+// How strongly a devoid card's silver frame is tinted (D21).
 const TINT = 0.4;
+// Land frames as on real cards (current frame, D21 revised): every land has the
+// same stone frame; the colour is in the pinlines, the name/type bars and the
+// text box. Colours sampled from Scryfall scans of M19 basics, Wasteland (EMA),
+// Command Tower (CMR) and Breeding Pool (RNA).
+const LAND = {
+  stone: '#b49679',
+  colourless: { pin: '#9e8a7e', bar: '#d6ced2', text: '#d5cfd4' },
+  W: { pin: '#ebeae4', bar: '#f8f8f5', text: '#ebdbac' },
+  U: { pin: '#085f94', bar: '#b9d0e4', text: '#aac0e1' },
+  B: { pin: '#2a3a3a', bar: '#b8b1b2', text: '#a09b9b' },
+  R: { pin: '#c8310f', bar: '#eabeaa', text: '#e19774' },
+  G: { pin: '#05683a', bar: '#b7c9c3', text: '#aecdb6' },
+  gold: { pin: '#e8dc90', bar: '#e0ce8b', text: '#f8f3e6' },
+  // Two-colour lands keep grey bars; only pinlines and text box are split.
+  splitBar: '#d2cfd2',
+};
 const PIPS = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };
 const PERMANENT_TYPES = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Land', 'Planeswalker'];
 // Placeholder type icons until the real set arrives (D14). Full-size icon
@@ -150,12 +165,96 @@ function frameColours(model) {
       : [FRAMES.gold];
   }
   if (colors.length > 2) return [FRAMES.gold];
-  const land = model.types.includes('Land');
-  const base = land ? FRAMES.land : FRAMES.colourless;
-  const tints = land ? producedColours(model) : manaColours(model);
+  const base = FRAMES.colourless;
+  const tints = manaColours(model);
   if (!tints.length) return [base];
   if (tints.length > 2) return [mix(base, FRAMES.gold, TINT)];
   return tints.map((c) => mix(base, FRAMES[c], TINT));
+}
+
+/**
+ * Land palettes (D21 revised): the card's colours if it has any, otherwise the
+ * colours it taps for. None → colourless grey, one → that colour, two → split,
+ * three or more (or "any color") → gold.
+ */
+function landPalettes(model) {
+  const colours = model.colors.length ? model.colors : producedColours(model);
+  if (!colours.length) return [LAND.colourless];
+  if (colours.length > 2) return [LAND.gold];
+  return colours.map((c) => LAND[c]);
+}
+
+/** Fill or stroke style across the card box: one colour, or a left-to-right blend. */
+function acrossBox(ctx, colours) {
+  if (colours.length === 1) return colours[0];
+  const gradient = ctx.createLinearGradient(BOX.x, 0, BOX.right, 0);
+  gradient.addColorStop(0.3, colours[0]);
+  gradient.addColorStop(0.7, colours[1]);
+  return gradient;
+}
+
+let stoneTexture;
+/** Seeded speckled stone, standing in for the land frame's texture. */
+function stonePattern(ctx) {
+  if (!stoneTexture) {
+    stoneTexture = createCanvas(240, 240);
+    const t = stoneTexture.getContext('2d');
+    t.fillStyle = LAND.stone;
+    t.fillRect(0, 0, 240, 240);
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 900; i++) {
+      t.fillStyle = rand() < 0.55 ? 'rgba(70,50,35,0.18)' : 'rgba(245,230,205,0.22)';
+      t.beginPath();
+      t.ellipse(
+        rand() * 240,
+        rand() * 240,
+        2 + rand() * 9,
+        1 + rand() * 4,
+        rand() * 3,
+        0,
+        Math.PI * 2,
+      );
+      t.fill();
+    }
+  }
+  return ctx.createPattern(stoneTexture, 'repeat');
+}
+
+/** Frame, bar and text-box fills and the pinline colour for a card (6.6). */
+function framePaint(ctx, model) {
+  if (model.types.includes('Land')) {
+    const p = landPalettes(model);
+    return {
+      frame: stonePattern(ctx),
+      bar: p.length === 2 ? LAND.splitBar : p[0].bar,
+      text: acrossBox(
+        ctx,
+        p.map((x) => x.text),
+      ),
+      pin: acrossBox(
+        ctx,
+        p.map((x) => x.pin),
+      ),
+    };
+  }
+  const frame = frameColours(model);
+  return {
+    frame: frameFill(ctx, frame, 1),
+    bar: frameFill(ctx, frame, 1.12),
+    text: frameFill(ctx, frame, 1.22),
+    pin: null,
+  };
+}
+
+/** Coloured pinline around a frame panel (land frames). */
+function pinline(ctx, pin, x, y, w, h, r) {
+  if (!pin) return;
+  ctx.strokeStyle = pin;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(x - 2, y - 2, w + 4, h + 4, r + 2);
+  ctx.stroke();
 }
 
 /** Colours in a mana cost, in printed order (a devoid card's tint). */
@@ -584,14 +683,15 @@ function drawAsterisk(ctx, x, y, r, hollow) {
 }
 
 async function drawCardBox(ctx, model, art) {
-  const frame = frameColours(model);
+  const paint = framePaint(ctx, model);
   const width = BOX.right - BOX.x;
 
-  ctx.fillStyle = frameFill(ctx, frame, 1);
+  ctx.fillStyle = paint.frame;
   ctx.fillRect(BOX.x - 4, 4, width + 8, CARD.height - 8 - 80);
 
   // Name bar.
-  ctx.fillStyle = frameFill(ctx, frame, 1.12);
+  ctx.fillStyle = paint.bar;
+  pinline(ctx, paint.pin, BOX.x, NAME.y, width, NAME.h, 10);
   roundRect(ctx, BOX.x, NAME.y, width, NAME.h, 10);
   ctx.fillStyle = '#111';
   ctx.textBaseline = 'middle';
@@ -600,12 +700,14 @@ async function drawCardBox(ctx, model, art) {
 
   // Art box: the art crop, or the black placeholder when there is none (3.4.1).
   const artBox = { x: BOX.x + 6, y: ART.y, w: width - 12, h: ART.h };
+  pinline(ctx, paint.pin, artBox.x, artBox.y, artBox.w, artBox.h, 0);
   ctx.fillStyle = '#000';
   ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);
   if (art) drawCover(ctx, art, artBox);
 
   // Type line with the set code standing in for the set symbol.
-  ctx.fillStyle = frameFill(ctx, frame, 1.12);
+  ctx.fillStyle = paint.bar;
+  pinline(ctx, paint.pin, BOX.x, TYPE.y, width, TYPE.h, 10);
   roundRect(ctx, BOX.x, TYPE.y, width, TYPE.h, 10);
   ctx.fillStyle = '#111';
   ctx.font = FONT(fitSize(ctx, model.typeLine, width - 100, 24, FONT));
@@ -620,7 +722,8 @@ async function drawCardBox(ctx, model, art) {
   ctx.textAlign = 'left';
 
   // Text box.
-  ctx.fillStyle = frameFill(ctx, frame, 1.22);
+  pinline(ctx, paint.pin, BOX.x + 6, TEXT.y, width - 12, TEXT.h, 0);
+  ctx.fillStyle = paint.text;
   ctx.fillRect(BOX.x + 6, TEXT.y, width - 12, TEXT.h);
   if (model.watermark) {
     ctx.fillStyle = 'rgba(0,0,0,0.08)';

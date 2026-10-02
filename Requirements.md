@@ -448,14 +448,13 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 | Green (Feral Invocation)                    | Green       |
 | Multicolour (Niv-Mizzet)                    | Gold        |
 | Colourless artifact (Sword of Fire and Ice) | Silver/grey |
-| Land (Forest, Wasteland)                    | Tan, tinted by the mana it produces (6.6.2): Wasteland plain tan, Forest green-tinted (D21) |
+| Land (Forest, Wasteland)                    | Real land frame (6.6.2): stone frame, colour in pinlines, bars and text box (D21) |
 
 6.6.2 **[Confirmed]** Frames not shown in the mockups (D21):
 
 - **Two-colour hybrid** (Kitchen Finks {G/W}; Phyrexian hybrid such as Ajani's {G/W/P} too): a split frame, left half the first colour of the hybrid symbol, right half the second, blended in the middle. Other two-colour cards stay gold.
 - **Coloured artifacts** (Reaper King): the card's colour, by the same rule as any card (mono colour, gold, or split). Only colourless artifacts are silver.
-- **Coloured lands** (Dryad Arbor): the card's colour.
-- **Colourless lands**: tan, tinted by the colours the land taps for, from its "Add …" text and basic land types. One colour tints (Forest green, superseding the plain-tan Forest mockup); two colours give a split tint (Breeding Pool green | blue); three or more, or "any color", give a gold tint (City of Brass). A land that makes only colourless mana stays plain tan (Wasteland).
+- **Lands** use the land frame of real cards (current frame), with the same colours and saturation (D21, revised). Every land has the same textured stone frame; the colour is in the pinlines around each panel, the name and type bars, and the text box. The palette comes from the card's colour if it has one (Dryad Arbor green), otherwise from the colours it taps for (its "Add …" text and basic land types). No colour: grey panels with a grey-brown pinline (Wasteland). One colour: that colour's land palette (Forest green). Two colours: grey bars, with the pinlines and the text box blending from the first colour to the second (Breeding Pool green → blue). Three or more, or "any color": gold pinlines and bars with a cream text box (City of Brass). The colours are sampled from Scryfall scans: the M19 basics, Wasteland (EMA), Command Tower (CMR) and Breeding Pool (RNA); the values are in the preview spike (`LAND` in `spikes/fixture-preview/run.js`).
 - **Colourless non-artifact cards** (Ugin, Thought-Knot Seer): silver, like colourless artifacts.
 - **Devoid** (Complete Disregard): silver, tinted by the colours in its mana cost, with the same one / two / three-or-more rule as lands.
 - **Tokens**: out of scope for v1 (D15, section 8).
