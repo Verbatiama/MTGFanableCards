@@ -39,7 +39,7 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `dryad-arbor`                                  | Land Creature, colour indicator, P/T with no mana cost                              |
 | `delver-of-secrets`, `insectile-aberration`    | Transform DFC; back face has a colour indicator and no mana cost                    |
 | `agadeems-awakening`, `agadeem-the-undercrypt` | Modal DFC (sorcery // land), `{X}{B}{B}{B}`                                          |
-| `invasion-of-zendikar`, `awakened-skyclave`    | Battle with defense; transformed back face is a creature with a colour indicator    |
+| `invasion-of-zendikar`, `awakened-skyclave`    | Battle with a defense badge (D18); transformed back face is a creature with a colour indicator |
 | `emrakul-the-aeons-torn`                       | Two-digit generic `{15}` and two-digit P/T, long text                               |
 | `reaper-king`                                  | Five mono-hybrid symbols (`{2/W}`…), five colours, Legendary Artifact Creature     |
 | `kitchen-finks`                                | Hybrid `{G/W}{G/W}` grouped as one symbol with count 2                              |
@@ -55,11 +55,12 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `thought-knot-seer`                            | Colourless mana `{C}` in the cost, distinct from generic                            |
 | `ornithopter`                                  | `{0}` cost (must differ from no cost), 0 power                                      |
 | `gelatinous-genesis`                           | `{X}{X}{G}` (X count 2), `X/X` in text                                              |
-| `tarmogoyf`                                    | Special P/T `*` / `1+*`                                                             |
+| `tarmogoyf`                                    | Special P/T `*` / `1+*`, drawn as printed and shrunk to fit (D18)                   |
 | `atraxa-grand-unifier`                         | Four-colour cost (tall mana block), legendary, long text for text fitting           |
 | `complete-disregard`                           | Devoid: black mana cost but `colors` is empty                                       |
 | `bitterblossom`                                | Kindred Enchantment (Kindred type icon, creature subtype that gets no icon)         |
-| `smugglers-copter`                             | Vehicle: P/T on a non-creature                                                       |
+| `smugglers-copter`                             | Vehicle: P/T on a non-creature, drawn hollow (D18)                                   |
+| `wurmwall-sweeper`                             | Spacecraft: hollow P/T like a vehicle, station thresholds not in the bar (D18)       |
 | `deep-analysis`                                | Flashback (graveyard zone) with a non-mana cost                                     |
 | `street-wraith`                                | Cycling (hand zone) with a non-mana cost                                            |
 | `gravecrawler`                                 | Cast from graveyard without a keyword (5.4.3)                                       |

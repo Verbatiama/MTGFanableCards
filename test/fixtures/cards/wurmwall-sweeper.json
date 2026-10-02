@@ -1,0 +1,32 @@
+{
+  "name": "Wurmwall Sweeper",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "Artifact — Spacecraft",
+  "supertypes": [],
+  "types": ["Artifact"],
+  "subtypes": ["Spacecraft"],
+  "colors": [],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "generic",
+      "count": 2
+    }
+  ],
+  "zoneSymbols": [],
+  "power": "2",
+  "toughness": "2",
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "When this Spacecraft enters, surveil 2.\nStation (Tap another creature you control: Put charge counters equal to its power on this Spacecraft. Station only as a sorcery. It's an artifact creature at 4+.)\n4+ | Flying",
+  "flavorText": null,
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/9/a/9ace282a-5901-4d36-ad21-17eb88bc5138.jpg?1783905915",
+  "artist": "Hardy Fowler",
+  "collectorNumber": "249",
+  "rarity": "common",
+  "setCode": "EOE",
+  "lang": "en",
+  "copyright": "™ & © 2025 Wizards of the Coast"
+}

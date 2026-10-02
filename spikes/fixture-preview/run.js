@@ -294,20 +294,27 @@ async function drawStatBar(ctx, model) {
     ctx.fillRect(0, my, 4, y - my);
   }
 
-  // Bottom: stats, loyalty/defense, or the permanence label.
+  // Bottom: stats, loyalty, defense badge, or NON-PERMANENT (D18, 5.7).
   ctx.fillStyle = '#fff';
   const bottom = CARD.height - 14;
   if (model.power !== null) {
-    drawStat(ctx, 'PWR', model.power, bottom - 120, ICONS.get('stats/power'));
-    ctx.fillRect(18, bottom - 64, BAR.width - 36, 2);
-    drawStat(ctx, 'TGH', model.toughness, bottom - 56, ICONS.get('stats/toughness'));
+    // Vehicles and spacecraft: hollow stats, as they only apply once crewed
+    // or stationed (5.7.7).
+    const hollow = !model.types.includes('Creature');
+    drawStat(ctx, 'PWR', model.power, bottom - 120, ICONS.get('stats/power'), hollow);
+    if (hollow) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(18.5, bottom - 63.5, BAR.width - 37, 1);
+    } else ctx.fillRect(18, bottom - 64, BAR.width - 36, 2);
+    drawStat(ctx, 'TGH', model.toughness, bottom - 56, ICONS.get('stats/toughness'), hollow);
   } else if (model.loyalty !== null) {
     drawStat(ctx, 'LOYALTY', model.loyalty, bottom - 60);
   } else if (model.defense !== null) {
-    drawStat(ctx, 'DEFENSE', model.defense, bottom - 60);
-  } else {
-    const permanent = model.types.some((t) => PERMANENT_TYPES.includes(t));
-    const letters = [...(permanent ? 'PERMANENT' : 'NON-PERMANENT')];
+    drawDefenseBadge(ctx, model.defense);
+  } else if (!model.types.some((t) => PERMANENT_TYPES.includes(t))) {
+    // Only non-permanents get a label; permanents leave the bottom empty (5.7.3).
+    const letters = [...'NON-PERMANENT'];
     ctx.font = LABEL(18);
     ctx.textBaseline = 'bottom';
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
@@ -355,18 +362,110 @@ function drawTypeIcons(ctx, types, y) {
 }
 
 /** Value with its icon below (5.7.1), or a text label when there is no icon. */
-function drawStat(ctx, label, value, y, icon) {
+/**
+ * Placeholder defense badge (D18, 5.7.7): a shield outline at the bottom of the
+ * bar, like the planeswalker loyalty badge (7.2.3), until the icon exists.
+ */
+function drawDefenseBadge(ctx, defense) {
+  const cx = BAR.width / 2;
+  const w = 56;
+  const top = CARD.height - 78;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, top);
+  ctx.lineTo(cx + w / 2, top);
+  ctx.lineTo(cx + w / 2, top + 36);
+  ctx.quadraticCurveTo(cx + w / 2, top + 58, cx, top + 70);
+  ctx.quadraticCurveTo(cx - w / 2, top + 58, cx - w / 2, top + 36);
+  ctx.closePath();
+  ctx.fillStyle = '#7a1f1f';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = FONT(fitSize(ctx, defense, w - 12, 32, FONT, 14));
+  ctx.fillText(defense, cx, top + 30);
+  ctx.restore();
+}
+
+/**
+ * Value as printed (*, 1+*, X, -1, 15), shrunk to fit the bar (5.7.6). `*` is
+ * drawn as a shape the height of the digits, since the font's asterisk is a
+ * small raised glyph.
+ */
+function drawStat(ctx, label, value, y, icon, hollow = false) {
   const cx = BAR.width / 2;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.font = FONT(value.length > 2 ? 26 : 36);
-  ctx.fillText(value, cx, y);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  if (!value.includes('*')) {
+    ctx.font = FONT(fitSize(ctx, value, BAR.width - 10, 36, FONT, 14));
+    if (hollow) ctx.strokeText(value, cx, y);
+    else ctx.fillText(value, cx, y);
+  } else {
+    drawStarValue(ctx, value, cx, y, hollow);
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
   if (icon) {
+    // Faded stands in for a hollow icon until the real outline art exists.
+    ctx.globalAlpha = hollow ? 0.45 : 1;
     ctx.drawImage(icon, cx - 10, y + 36, 20, 20);
+    ctx.globalAlpha = 1;
   } else {
     ctx.font = LABEL(12);
     ctx.fillText(label, cx, y + 40);
   }
+}
+
+/** A value containing `*`: text parts as usual, each `*` as a digit-sized shape. */
+function drawStarValue(ctx, value, cx, y, hollow) {
+  ctx.textAlign = 'left';
+  const parts = value.split(/(\*)/).filter(Boolean);
+  let digit;
+  let widths;
+  for (let size = 36; size >= 14; size -= 1) {
+    ctx.font = FONT(size);
+    // With a 'top' baseline the ascent is measured up from y (so negative).
+    digit = ctx.measureText('0');
+    const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
+    widths = parts.map((p) => (p === '*' ? height * 0.95 : ctx.measureText(p).width));
+    if (widths.reduce((a, b) => a + b, 0) <= BAR.width - 10) break;
+  }
+  const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
+  const middle = y + (digit.actualBoundingBoxDescent - digit.actualBoundingBoxAscent) / 2;
+  let x = cx - widths.reduce((a, b) => a + b, 0) / 2;
+  parts.forEach((part, i) => {
+    if (part === '*') drawAsterisk(ctx, x + widths[i] / 2, middle, height / 2, hollow);
+    else if (hollow) ctx.strokeText(part, x, y);
+    else ctx.fillText(part, x, y);
+    x += widths[i];
+  });
+}
+
+/** Six-spoke asterisk of radius r centred on (x, y); outlined when hollow. */
+function drawAsterisk(ctx, x, y, r, hollow) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < 3; i++) {
+    const a = Math.PI / 2 + (i * Math.PI) / 3;
+    ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+    ctx.lineTo(x - Math.cos(a) * r, y - Math.sin(a) * r);
+  }
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = r * 0.42;
+  ctx.stroke();
+  if (hollow) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = r * 0.42 - 3;
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 async function drawCardBox(ctx, model, art) {
@@ -584,15 +683,30 @@ const wanted = args.filter((a) => !a.startsWith('--'));
 const dir = path.join(OUT_DIR, 'fixture-preview');
 await mkdir(dir, { recursive: true });
 
+// Compare against the previous run so new and changed previews can be listed
+// (and opened for review after each change).
+const created = [];
+const changed = [];
 const cards = [];
 for (const [slug, model] of fixtures) {
   if (wanted.length && !wanted.includes(slug)) continue;
   const canvas = await drawCard(model);
-  await writeFile(path.join(dir, `${slug}.png`), canvas.toBuffer('image/png'));
+  const file = path.join(dir, `${slug}.png`);
+  const png = canvas.toBuffer('image/png');
+  const previous = await readFile(file).catch(() => null);
+  if (!previous) created.push(file);
+  else if (!previous.equals(png)) changed.push(file);
+  await writeFile(file, png);
   cards.push([slug, canvas]);
 }
 await writeFile(path.join(dir, '_all.png'), (await drawContactSheet(cards)).toBuffer('image/png'));
 console.log(`Wrote ${cards.length} previews and _all.png to ${dir}`);
+console.log(
+  `New: ${created.length ? created.map((f) => path.relative(process.cwd(), f)).join(' ') : 'none'}`,
+);
+console.log(
+  `Changed: ${changed.length ? changed.map((f) => path.relative(process.cwd(), f)).join(' ') : 'none'}`,
+);
 if (!noArt) {
   console.log(
     `Art: ${artStats.downloaded} downloaded, ${artStats.cached} from cache, ${artStats.failed} failed`,

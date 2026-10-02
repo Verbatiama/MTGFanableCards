@@ -157,7 +157,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 - **Top**, anchored to the top: card type icon, colour indicator, mana cost.
 - **Middle**, anchored at the type line: zone/timing symbols, supertype, subtype.
-- **Bottom**, anchored to the bottom: stats, loyalty, or the permanence label.
+- **Bottom**, anchored to the bottom: stats, loyalty, defense, or the NON-PERMANENT label (5.7.3).
 
   4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
   - **Stat bar width:** ~90 pixels
@@ -328,7 +328,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 | Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
 | Wastes                                      | The colourless mana symbol ({C})                         |
 
-Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc: Real subtypes not in it include:
+Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc:
 
 - **Artifact:** Clue, Treasure, Blood, Map, Powerstone, Incubator, Gold, Contraption, Fortification, Attraction
 - **Enchantment:** Class, Room, Case, Role, Shrine, Cartouche, Background, Shard
@@ -341,7 +341,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 5.6 Middle-section layout
 
-5.6.1 **[Inferred]** Stack order, top to bottom (Feral Invocation): zone/timing symbol → subtype → permanence label. Niv-Mizzet shows the supertype in the same region.
+5.6.1 **[Inferred]** Stack order, top to bottom (Feral Invocation): zone/timing symbol → subtype. Feral Invocation's mockup shows PERMANENT below that, which D18 removes (5.7.3). Niv-Mizzet shows the supertype in the same region.
 
 5.6.2 **[Inferred]** The stack is anchored at the type line and grows upward into the space beside the art.
 
@@ -353,20 +353,20 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line).
 
-5.7.3 **[Inferred]** The permanence label only appears when the bottom isn't occupied by stats or loyalty. Creatures and planeswalkers don't show it. Confirm this rule.
+5.7.3 **[Confirmed]** Only NON-PERMANENT is shown (D18). Permanents never get a permanence label, so the PERMANENT label in the Sword of Fire and Ice and Feral Invocation mockups is dropped; on a permanent with no stats, loyalty or defense the bottom of the bar is left empty. Instants and sorceries always show NON-PERMANENT, as their bottom is never used by anything else.
 
-5.7.4 **[Open]** Lands: the Forest and Wasteland mockups don't clearly show a permanence label, although lands are permanents. Confirm.
+5.7.4 **[Confirmed]** Lands show no permanence label, like every other permanent (5.7.3, D18).
 
 5.7.5 **[Confirmed]** Planeswalkers: see section 7.2.
 
-5.7.6 **[Open]** Special power/toughness values: `*`, `1+*`, `X`, negative values, and two-digit values.
+5.7.6 **[Confirmed]** Special power/toughness values are drawn exactly as printed (the Scryfall string): `*`, `1+*` (Tarmogoyf), `X`, negative values, two-digit values (Emrakul 15/15). The font shrinks so the value fits the bar width (D18). A `*` is drawn the same size as the digits beside it, not as the font's small raised asterisk.
 
-5.7.7 **[Open]** Other stat-like values:
+5.7.7 **[Confirmed]** Other stat-like values (D18):
 
-- Vehicles have power/toughness but are not creatures. The Components doc says stats are "Creature only", which conflicts.
-- Battles have defense.
-- Spacecraft have station values.
-- Levelers, Sagas and Classes have segmented structures similar to loyalty.
+- **Vehicles** show power/toughness in the creature position (5.7.1), but drawn hollow (outlined numbers and icons) to show the stats only apply once crewed (Smuggler's Copter). This settles the Components doc's "Creature only" conflict (section 12).
+- **Battles** show defense in a defense badge (a new icon) at the bottom of the bar, overlapping the bar edge like the planeswalker loyalty badge (7.2.3) (Invasion of Zendikar).
+- **Spacecraft** render as normal artifacts. If one has power/toughness, it is drawn hollow like a vehicle, as it only applies once stationed. Station thresholds (STATION N+) are not shown in the bar in v1; they belong with the Phase 4 segmented layouts.
+- **Levelers, Sagas and Classes** are special layouts, post-v1 (2.5, section 8).
 
 ---
 
@@ -458,7 +458,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 7.1 Creature
 
-- Stat bar: creature type icon, mana, middle-section icons as applicable, stats at the bottom (5.7.1). No permanence label (5.7.3).
+- Stat bar: creature type icon, mana, middle-section icons as applicable, stats at the bottom (5.7.1, special values 5.7.6). No permanence label (5.7.3).
 - Reference: Niv-Mizzet, the Firemind; Fiendslayer Paladin; Wurmcoil Engine.
 
 ### 7.2 Planeswalker
@@ -471,7 +471,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 7.2.4 **[Confirmed]** Static abilities get a band with no cost in the bar (Components doc: "blank space").
 
-7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** Planeswalkers show the LEGENDARY icon like any legendary card (5.5.3, D15).
+7.2.5 **[Confirmed]** No permanence label (5.7.3, D18); the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** Planeswalkers show the LEGENDARY icon like any legendary card (5.5.3, D15).
 
 7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
 
@@ -485,12 +485,12 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 7.4 Artifact (including Equipment)
 
-- Stat bar: artifact icon, mana, Equipment subtype icon (no label, D16), "PERMANENT" at the bottom.
+- Stat bar: artifact icon, mana, Equipment subtype icon (no label, D16). No permanence label (5.7.3, D18); the bottom is empty unless it is a vehicle or spacecraft with hollow stats (5.7.7).
 - Reference: Sword of Fire and Ice.
 
 ### 7.5 Enchantment (including Aura)
 
-- Stat bar: enchantment icon, mana, zone/timing icons (flash), Aura subtype icon (no label, D16), "PERMANENT" at the bottom.
+- Stat bar: enchantment icon, mana, zone/timing icons (flash), Aura subtype icon (no label, D16). No permanence label (5.7.3, D18).
 - Reference: Feral Invocation.
 
 ### 7.6 Land
@@ -498,7 +498,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 - Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and the mana symbol of each basic land type it has, icon-only (Forest; dual lands show two, D16).
 - Basic lands show a large mana symbol in the text box.
 - References: Forest, Wasteland.
-- See 5.7.4 on the permanence label.
+- No permanence label (5.7.4, D18).
 
 ### 7.7 Multi-type cards
 
@@ -538,8 +538,9 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 - leveler
 - room
 - case
-- battle, including transforming battles
-- vehicle
+- battle, including transforming battles (single-face stat bar decided in 5.7.7)
+- vehicle (single-face stat bar decided in 5.7.7)
+- spacecraft station thresholds (5.7.7)
 - prototype
 - mutate
 - omen
