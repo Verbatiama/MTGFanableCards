@@ -16,6 +16,7 @@ import { extractSymbolSvg, listSymbolCodes } from '../rendering/symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { fetchArt, stats as artStats } from './art.js';
 import { stressModels } from './stress.js';
+import { tokenizeCard } from '../../src/parse/oracle-text.js';
 
 const CARD = { width: 750, height: 1050 };
 const BAR = { width: 90, icon: 40, gap: 6 };
@@ -813,12 +814,10 @@ function cardLayout(ctx, model) {
   const base = { art: ART, type: TYPE, text: TEXT, pw: null };
   if (!model.types.includes('Planeswalker') || !model.oracleText) return base;
   const width = BOX.right - BOX.x - 12 - 40;
-  const abilities = model.oracleText.split('\n').map((line) => {
-    const m = /^([+−-](?:\d+|X)|0): ?(.*)$/.exec(line);
-    return m ? { cost: m[1].replace('-', '−'), t: m[2] } : { cost: null, t: line };
-  });
+  // One band per Oracle line, with its loyalty cost (T-A7 tokenizer).
+  const abilities = tokenizeCard(model).filter((p) => p.kind === 'rules');
   const measure = (size) => {
-    const layouts = abilities.map((a) => layoutText(ctx, [{ t: a.t }], width, size));
+    const layouts = abilities.map((a) => layoutText(ctx, [a], width, size));
     return { layouts, h: Math.max(...layouts.map((l) => l.height)) + 18 };
   };
   let size = 26;
@@ -904,8 +903,9 @@ function drawLoyaltyCost(ctx, cost, cy, bandH) {
  * shrinks to the minimum.
  */
 async function drawTextBox(ctx, model, x, y, width, height) {
-  const rules = model.oracleText ? model.oracleText.split('\n').map((t) => ({ t })) : [];
-  const flavor = model.flavorText ? [{ t: model.flavorText, flavor: true }] : [];
+  const paragraphs = tokenizeCard(model);
+  const rules = paragraphs.filter((p) => p.kind === 'rules');
+  const flavor = paragraphs.filter((p) => p.kind === 'flavor');
 
   let size = 26;
   let layout = layoutText(ctx, [...rules, ...flavor], width, size);
@@ -969,49 +969,41 @@ function layoutText(ctx, paragraphs, width, size) {
   const lines = [];
   let cursor = 0;
   paragraphs.forEach((p, pi) => {
-    ctx.font = FONT(p.flavor ? size - 2 : size);
-    if (pi > 0) cursor += Math.round(size * (p.flavor ? 0.7 : 0.35));
+    const flavor = p.kind === 'flavor';
+    const textSize = flavor ? size - 2 : size;
+    ctx.font = FONT(textSize);
+    if (pi > 0) cursor += Math.round(size * (flavor ? 0.7 : 0.35));
     const icon = { width: Math.round(size * 0.95) + 2 };
-    const textSize = p.flavor ? size - 2 : size;
-    // Flavour text (6.4.1) and reminder text, anything inside parentheses
-    // (6.4.2), are italic.
-    let depth = 0;
-    const plain = (part) => {
-      const italic = p.flavor || depth > 0 || part.startsWith('(');
-      depth += (part.match(/\(/g) ?? []).length - (part.match(/\)/g) ?? []).length;
-      ctx.font = FONT(textSize);
-      return { text: part, width: ctx.measureText(part).width, italic };
-    };
-    const tokens = p.t
-      .split(/(\{[^}]+\}|\s+)/)
-      .filter(Boolean)
-      .flatMap((part, i, parts) => {
-        const sym = /^\{(.+)\}$/.exec(part);
-        if (sym) return [{ symbol: sym[1], ...icon }];
-        // Only numeric +N/+N and -N/-N modifiers get sword/shield; counters,
-        // X/X, 1/1 tokens and the like stay as text (6.4.5, D20). Rules text only.
-        const counter = /^counters?\b/.test(parts[i + 2] ?? '');
-        const pt = !p.flavor && !counter && /^([+\-−]\d+)\/([+\-−]\d+)(.*)$/.exec(part);
-        if (pt) {
-          const text = plain;
-          return [
-            { ...text(`${pt[1]} `), joined: true },
-            { pt: 'power', ...icon, joined: true },
-            { ...text(` ${pt[2]} `), joined: true },
-            { pt: 'toughness', ...icon, joined: !!pt[3] },
-            ...(pt[3] ? [text(pt[3])] : []),
-          ];
+    const measured = (text, italic) => ({ text, italic, width: ctx.measureText(text).width });
+    // Tokenizer output (T-A7) → words, spaces, symbols and sword/shield groups.
+    const tokens = [];
+    for (const t of p.tokens) {
+      if (t.type === 'symbol') {
+        tokens.push({ symbol: t.symbol, ...icon });
+      } else if (t.type === 'pt') {
+        tokens.push(
+          { ...measured(`${t.power} `, false), joined: true },
+          { pt: 'power', ...icon, joined: true },
+          { ...measured(` ${t.toughness} `, false), joined: true },
+          { pt: 'toughness', ...icon, joined: false },
+        );
+      } else {
+        for (const part of t.text.split(/(\s+)/).filter(Boolean)) {
+          // Text straight after a modifier (e.g. the "." in "+2/+2.") stays with it.
+          const last = tokens.at(-1);
+          if (last?.pt === 'toughness' && !/^\s/.test(part)) last.joined = true;
+          tokens.push({ ...measured(part, t.italic), space: /^\s+$/.test(part) });
         }
-        return [{ ...plain(part), space: /^\s+$/.test(part) }];
-      });
-    let line = { tokens: [], flavor: p.flavor, rule: p.flavor && !lines.some((l) => l.flavor) };
+      }
+    }
+    let line = { tokens: [], flavor, rule: flavor && !lines.some((l) => l.flavor) };
     let lineWidth = 0;
     const push = () => {
       while (line.tokens.at(-1)?.space) line.tokens.pop();
       cursor += lineHeight;
       line.y = cursor;
       lines.push(line);
-      line = { tokens: [], flavor: p.flavor };
+      line = { tokens: [], flavor };
       lineWidth = 0;
     };
     for (const [i, token] of tokens.entries()) {
