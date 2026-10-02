@@ -21,8 +21,7 @@ test('mapping the real printings reproduces every hand-written fixture', () => {
     );
     assert.ok(printing, `no Scryfall printing for ${slug}`);
     const model = mapCard(printing).find((m) => m.name === fixture.name);
-    // Zone/timing symbols come from detection (T-A8), not the mapper.
-    assert.deepEqual({ ...model, zoneSymbols: fixture.zoneSymbols }, fixture, slug);
+    assert.deepEqual(model, fixture, slug);
     assert.deepEqual(validateCardModel(model), [], slug);
   }
 });

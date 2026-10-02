@@ -335,7 +335,7 @@ The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **onl
 | --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | Flash (`flash`)                   | FLASH        | Flash; also every Instant (5.4.6)                                                                                              |
 | Split second (`split-second`)     | SPLIT SECOND | Split second (new icon needed)                                                                                                 |
-| Hand (`hand`)                     | HAND         | Cycling and every _-cycling_ variant, channel, ninjutsu, commander ninjutsu, transmute, forecast, bloodrush, reinforce, madness, suspend, foretell, plot |
+| Hand (`hand`)                     | HAND         | Cycling and every _-cycling_ variant, channel, ninjutsu, commander ninjutsu, transmute, forecast, bloodrush, reinforce, madness, suspend, foretell, plot, warp (added in T-A8: cast from hand, then from exile, like plot) |
 | Top of library (`library`)        | LIBRARY      | Miracle                                                                                                                        |
 | Graveyard (`graveyard`)           | GRAVEYARD    | Flashback, unearth, escape, disturb, embalm, eternalize, retrace, jump-start, scavenge, encore, dredge, aftermath               |
 

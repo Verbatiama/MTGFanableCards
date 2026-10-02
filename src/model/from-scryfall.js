@@ -1,12 +1,13 @@
 import { parseManaCost } from '../parse/mana-cost.js';
+import { detectZoneSymbols } from '../parse/zone-symbols.js';
 
 /**
  * Card-model mapper (T-A6, S1, Requirements 3.3): one Scryfall printing in,
  * one card model per face out.
  *
  * Takes a printing as stored by the card database (src/data/card-database.js)
- * or a raw Scryfall card object. Zone/timing symbols are detected separately
- * (T-A8), so `zoneSymbols` is left empty here.
+ * or a raw Scryfall card object. Zone/timing symbols come from the printing's
+ * keywords and each face's text (T-A8).
  */
 
 /** Layouts whose faces are separate card halves on one side (split, flip, adventure, ...). */
@@ -69,22 +70,27 @@ export function mapCard(card) {
 
 function mapFace(card, face, faceIndex) {
   const typeLine = face.type_line ?? card.type_line;
+  const typeParts = parseTypeLine(typeLine);
+  const oracleText = face.oracle_text ?? '';
   const indicator = face.color_indicator ?? (face === card ? card.color_indicator : null);
   return {
     name: face.name,
     layout: card.layout,
     faceIndex,
     typeLine,
-    ...parseTypeLine(typeLine),
+    ...typeParts,
     colors: wubrg(face.colors ?? card.colors ?? []),
     colorIndicator: indicator?.length ? wubrg(indicator) : null,
     manaCost: parseManaCost(face.mana_cost),
-    zoneSymbols: [],
+    zoneSymbols: detectZoneSymbols(
+      { name: face.name, types: typeParts.types, oracleText },
+      card.keywords,
+    ),
     power: face.power ?? null,
     toughness: face.toughness ?? null,
     loyalty: face.loyalty ?? null,
     defense: face.defense ?? null,
-    oracleText: face.oracle_text ?? '',
+    oracleText,
     flavorText: face.flavor_text ?? null,
     watermark: face.watermark ?? card.watermark ?? null,
     artUrl: artOf(face) ?? artOf(card),
