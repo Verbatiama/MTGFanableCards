@@ -11,5 +11,11 @@ export const SYMBOL_DIR = path.join(RES_DIR, 'symbols');
 /** Scryfall bulk data and downloaded art (D2, D10). Not committed. */
 export const CACHE_DIR = path.join(ROOT_DIR, 'cache');
 
+/**
+ * Where the Scryfall bulk files are kept. `DATA_DIR` overrides it, e.g. `/data`
+ * in the Docker image (D29).
+ */
+export const DATA_DIR = process.env.DATA_DIR ?? path.join(CACHE_DIR, 'scryfall');
+
 /** Generated card images and zips (D4). Not committed. */
 export const OUT_DIR = path.join(ROOT_DIR, 'out');

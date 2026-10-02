@@ -21,7 +21,8 @@
     "check": "npm run lint && npm run format:check && npm test",
     "spike:render": "node spikes/rendering/run.js",
     "spike:preview": "node spikes/fixture-preview/run.js",
-    "symbols:trace": "node scripts/trace-symbol.js"
+    "symbols:trace": "node scripts/trace-symbol.js",
+    "data:download": "node scripts/download-bulk-data.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

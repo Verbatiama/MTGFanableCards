@@ -70,7 +70,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 
 | ID    | Task                                                                                                                                                           | Depends on           | Req          |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
-| T-A3  | Card data loader: download the Scryfall bulk data, refresh it every 24 h and swap it in without a restart (D30), cache it locally, load and index the JSON, look up by name | T-A1, D2             |  3.3, 3.3.2          |
+| T-A3  | ✓ DONE: Card data loader (src/data/): downloads Scryfall Default Cards + Unique Artwork (gzipped JSON Lines) when newer, refreshes every 24 h and swaps without a restart, indexes English cards by full/face name with suggestions; real data: 35k cards, ~10 s, ~560 MB heap | T-A1, D2             |  3.3, 3.3.2          |
 | T-A4  | Input parser and printing selection                                                                                                                            | T-A3, D3, T-S2       | 3.2, 3.3.3   |
 | T-A5  | Mana cost parser: group symbols with counts, apply ordering                                                                                                    | S1, D11              | 5.3          |
 | T-A6  | Card-model mapper: JSON → card model (types, supertypes, subtypes, stats, loyalty, colour indicator, footer)                                                   | T-A3, T-A5, S1       | 3.3.1        |
@@ -115,7 +115,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
 | T-S7 | Accessibility and localisation work, as scoped by D24                          | B     | D24, T-S3         | 10.3–10.4 |
 | T-S8 | User documentation: README usage, input format, licensing notes                | A     | T-S3, D23         | —         |
-| T-S9 | Deployment: Docker image published to GHCR (`:main` on every push, `:vX.Y.Z`/`:latest` on tags), `docker-compose.yml` with the optional Caddy profile and log rotation, GitHub Actions deploy to the VPS on every push to main (D30), self-hosting guide (D29) | A     | T-S3, D26–D30, T-S11     | 3.6       |
+| T-S9 | Deployment: Docker image published to GHCR (`:main` on every push, `:vX.Y.Z`/`:latest` on tags), `docker-compose.yml` with the optional Caddy profile and log rotation, GitHub Actions deploy to the VPS on every push to main (D30), self-hosting guide (D29). Give Node enough heap for a refresh, when two card databases briefly coexist (~1.2 GB; e.g. `--max-old-space-size=1536`) | A     | T-S3, D26–D30, T-S11     | 3.6       |
 | T-S10 | Provision the VPS (D28): DigitalOcean droplet in Sydney, 2 GB; firewall (SSH, HTTP, HTTPS only), Docker, Caddy reverse proxy | PO + A | D28, D29 | 3.6.3 |
 | T-S11 | Set up the subdomain: DNS record for `fannable.verbatiam.dev` pointing at the VPS, Caddy site with automatic Let's Encrypt TLS, check HTTPS works | PO | T-S10 | 3.6.3 |
 | T-S12 | Monitoring: free uptime monitor on `https://fannable.verbatiam.dev/api/health` with email alerts to the owner | PO | T-S9 | 3.6.5 |
