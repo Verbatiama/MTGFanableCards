@@ -14,7 +14,7 @@ Each requirement is tagged:
 
 1.1 **[Confirmed]** The application generates Magic: The Gathering cards in a new "fannable" layout.
 
-1.2 **[Inferred]** "Fannable" means the card is readable when held fanned in hand. A black **stat bar** runs the full height of the card's left edge, and it carries the information a player needs while only that strip is visible: card type, mana cost, colour indicator, timing/zone symbols, supertype, subtype, permanence, and stats or loyalty.
+1.2 **[Confirmed]** "Fannable" means that when the cards in a hand are fanned out, as much information as possible sits on the visible edge. A black **stat bar** runs the full height of the card's left edge, and it carries the information a player needs while only that strip is visible: card type, mana cost, colour indicator, timing/zone symbols, supertype, subtype, the NON-PERMANENT label, and stats, loyalty or defense.
 
 1.3 **[Confirmed]** No mirrored (right-edge bar) variant for v1 (D8, 4.3).
 
