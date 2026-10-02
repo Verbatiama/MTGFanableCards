@@ -41,7 +41,8 @@ const FRAME = {
   B: { border: '#232728', pin: '#333331', bar: '#c8c6c8', text: '#eff4f6' },
   R: { border: '#c03c2b', pin: '#e4321e', bar: '#efbba3', text: '#efd3c6' },
   G: { border: '#557054', pin: '#256a40', bar: '#b0bbae', text: '#cddcce' },
-  gold: { border: '#d0b056', pin: '#d9b75a', bar: '#d2b16e', text: '#f5f3e7' },
+  // Gold pinline from three-colour cards: Mantis Rider (KTK), Bant Charm (2X2).
+  gold: { border: '#d0b056', pin: '#e9d875', bar: '#d2b16e', text: '#f5f3e7' },
   artifact: { border: '#95a3ae', pin: '#dfe0e2', bar: '#cfcfd3', text: '#d2d5d8' },
   colourless: { border: '#89807a', pin: '#e2dfe6', bar: '#b2a8a7', text: '#d8d2c6' },
   // Hybrid cards: grey bars, and a text box paler than either colour's.

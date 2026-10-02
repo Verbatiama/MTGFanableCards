@@ -70,7 +70,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 
 | ID    | Task                                                                                                                                                           | Depends on           | Req          |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
-| T-A3  | Card data loader: load and index the JSON, look up by name                                                                                                     | T-A1, D2             | 3.3          |
+| T-A3  | Card data loader: download the Scryfall bulk data and refresh it daily, cache it locally, load and index the JSON, look up by name | T-A1, D2             |  3.3, 3.3.2          |
 | T-A4  | Input parser and printing selection                                                                                                                            | T-A3, D3, T-S2       | 3.2, 3.3.3   |
 | T-A5  | Mana cost parser: group symbols with counts, apply ordering                                                                                                    | S1, D11              | 5.3          |
 | T-A6  | Card-model mapper: JSON → card model (types, supertypes, subtypes, stats, loyalty, colour indicator, footer)                                                   | T-A3, T-A5, S1       | 3.3.1        |
@@ -78,7 +78,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-A8  | Zone/timing detection                                                                                                                                          | T-A6, D12            | 5.4          |
 | T-A9  | Configuration tables: type, supertype, subtype, mechanic, text symbol and frame colour mappings. Build the structure early and fill contents as decisions land | S1, D7, D14–D16, D21 | 9            |
 | T-A10 | Art fetcher with cache, rate limiting and placeholder                                                                                                          | T-A4, D10, T-S2      | 3.4          |
-| T-A11 | Output: image writer, file naming, zip bundling                                                                                                                | D4, T-B2             | 3.5          |
+| T-A11 | Output: image writer, file naming, zip bundling, and the optional A4 PDF with 9 cards per sheet | D4, T-B2             | 3.5          |
 | T-A12 | CLI entry point and error reporting                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
 
 ### Dev B: renderer
@@ -96,12 +96,20 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-B10 | Stat-bar overflow and collision handling                                                            | T-B7–T-B9, D19                | 4.4          |
 | T-B11 | Planeswalker layout: shaded bands, loyalty costs aligned with abilities, loyalty badge              | T-B5, T-B9, D22               | 7.2          |
 | T-B12 | Basic land: large mana symbol in the text box                                                       | T-B5                          | 6.4.4        |
+| T-B14 | Make the missing icons listed in `res/symbols/README.md`: Battle, Kindred, supertypes, Aura/Equipment/Fortification, split second, power (crossed swords), loyalty and defense badges, text-box symbols (chaos, {TK}, planeswalker, loyalty costs), watermarks, artist paintbrush, and the missing mana symbols (Y, Z, Phyrexian and colourless hybrid) | D7, D14–D16, D18, D20 | 9.1 |
+
+### Application: API and frontend
+
+| ID   | Task                                                                                                                                                         | Owner | Depends on       | Req                 |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ---------------- | ------------------- |
+| T-C1 | API routes: generate cards from a decklist and return the zip or PDF, with the unmatched-name report; request validation and errors; health check (exists) | A     | D26, T-A4, T-A11 | 3.1.2, 3.2.6, 3.5   |
+| T-C2 | Frontend UI: decklist input, unmatched-name warnings, generation progress, zip/PDF download, and the Fan Content notice                                      | B     | D27, T-C1        | 3.1.2, 3.2.6, 10.2  |
 
 ## Phase 3: Integration and hardening (weeks 6–8)
 
 | ID   | Task                                                                           | Owner | Depends on        | Req       |
 | ---- | ------------------------------------------------------------------------------ | ----- | ----------------- | --------- |
-| T-S3 | Wire the full pipeline end to end: names → zip                                 | A + B | T-A12, T-B4–T-B12 | 3         |
+| T-S3 | Wire the full pipeline end to end: names → zip                                 | A + B | T-A12, T-B4–T-B12, T-C1, T-C2 | 3         |
 | T-S4 | Visual regression tests against the 10 mockups                                 | B     | T-A2, T-S3        | all       |
 | T-S5 | Unit tests for real JSON edge cases (hybrid, XX, colour indicator, multi-type) | A     | T-A6–T-A8         | 5         |
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |

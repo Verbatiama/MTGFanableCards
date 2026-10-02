@@ -2,21 +2,20 @@
 
 Scripts to generate MTG cards in a fannable style
 
-Goals
+## Goals
 
-1. Generate a normal card with a black bar on the left
-2. Mana symbols on the left
-3. Card types top left
-4. Power toughness
-5. Symbols in text
-6. Loyalty abilities
-7. Colour Indicator
-8. Flash symbol
-9. Subtype symbols (Not including creatures or tokens)
-10. Special symbols (Colour indicator, Flip)
-11. Keyword symbols (ones that exist in arena)
-12. Active in grave
-13. Keyword symbols (other)
+A feature list, not a priority order; the plan is in `tasks.md` and the full requirements in `Requirements.md`.
+
+- Generate a normal card with a black bar on the left
+- Mana symbols on the left
+- Card types top left
+- Power and toughness
+- Symbols in text
+- Loyalty abilities
+- Colour indicator
+- Zone and timing symbols: flash, split second, castable from hand, top of library or graveyard (replaces the earlier flash symbol, keyword symbols and "active in grave" goals)
+- Subtype symbols (not including creatures or tokens)
+- Special symbols (flip markers)
 
 ## Development
 
@@ -27,7 +26,7 @@ npm install
 npm run check         # lint + format check + tests (what CI runs)
 npm test              # tests only (node:test)
 npm start             # backend API on http://localhost:3000
-npm run spike:preview # Generate priview images from development spikes
+npm run spike:preview # Generate preview images from development spikes
 ```
 
 ### Folder structure

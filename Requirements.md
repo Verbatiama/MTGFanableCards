@@ -24,7 +24,7 @@ Each requirement is tagged:
 
 ## 2. Scope and priorities
 
-2.1 The README lists these goals. **[Confirmed]** They are a feature list, not a priority order or milestone plan; ordering and phases come from `tasks.md` (T-S2 review):
+2.1 The README originally listed these goals (it now lists them without numbers, with goals 8, 11, 12 and 13 merged as 2.2 describes). **[Confirmed]** They are a feature list, not a priority order or milestone plan; ordering and phases come from `tasks.md` (T-S2 review):
 
 1. Generate a normal card with a black bar on the left
 2. Mana symbols on the left
@@ -462,7 +462,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 | Black (Damnation)                           | Near-black border, grey bars, pale grey-white text box (Murder, EMN)            |
 | Red                                         | Red border, peach bars, pale pink text box (Shock, DDN)                         |
 | Green (Feral Invocation)                    | Green border, grey-green bars, pale green text box (Giant Growth, EVG)          |
-| Multicolour (Niv-Mizzet)                    | Gold border and bars, cream text box; pinlines in the card's two colours, or gold for three or more (Lightning Helix, DDN) |
+| Multicolour (Niv-Mizzet)                    | Gold border and bars, cream text box; pinlines in the card's two colours (Lightning Helix, DDN), or pale gold for three or more (Mantis Rider, KTK; Bant Charm, 2X2) |
 | Colourless artifact (Sword of Fire and Ice) | Blue-grey border, light grey bars and text box (Mind Stone, C14)                |
 | Land (Forest, Wasteland)                    | Land frame (6.6.2)                                                              |
 
@@ -705,7 +705,9 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 
 ## 12. Corrections to the source documents
 
-- **README goals 8, 11, 12, 13** (flash symbol, keyword symbols, active in grave) should be replaced by "Zone and timing symbols" (2.2).
+The Components doc is not in this repository, so its corrections are recorded here for whoever maintains it.
+
+- **README goals 8, 11, 12, 13** (flash symbol, keyword symbols, active in grave) should be replaced by "Zone and timing symbols" (2.2). **Applied** to the README; the colour indicator in goal 10 is merged with goal 7 (2.3).
 - **Components doc, Special → "Instant"** should read "Flash" (it is the timing symbol, not the card type).
 - **Components doc, Special → "Keywords"** should be replaced by "Zone and timing symbols".
 - **Components doc, Special → "Active in grave"** is covered by the graveyard zone symbol.
