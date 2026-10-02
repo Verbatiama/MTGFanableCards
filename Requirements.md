@@ -178,11 +178,20 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 | `MAX_CARDS_PER_JOB`   | `250`       | Cards per job (3.6.1); `0` for no limit                  |
 | `MAX_RUNNING_JOBS`    | `2`         | Jobs rendering at once; others queue (3.6.1)             |
 | `JOB_TTL_MINUTES`     | `60`        | How long finished files are kept (3.6.1)                 |
+| `SCRYFALL_REFRESH_HOURS` | `24`     | How often to check for new Scryfall data (3.6.5)         |
+| `RATE_LIMIT_JOBS_PER_HOUR` | `10`   | New jobs per client IP per hour; `0` for no limit (3.6.5) |
+| `RATE_LIMIT_PREVIEW_PER_MINUTE` | `120` | Preview requests per client IP per minute; `0` for no limit (3.6.5) |
 
 - **Art cache cap:** the cache records how often each art is used. When it reaches `ART_CACHE_MAX_GB`, the least-used 25% of cached art is deleted (ties broken by least recent use).
 - **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM, and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
 
-3.6.5 **[Open]** Operations (D30): the deployment pipeline (GitHub Actions to the chosen host), the scheduled daily Scryfall refresh (3.3.2), logging and monitoring, and abuse protection for a public instance, such as rate limits and a per-request batch size (10.5 sets no limit for the tool itself).
+3.6.5 **[Confirmed]** Operations (D30):
+
+- **Deployment:** continuous. Every push to `main` runs CI (lint, format, tests); if it passes, GitHub Actions builds the image, publishes it to GitHub Container Registry as `:main`, and deploys it to the VPS over SSH (`docker compose pull && docker compose up -d`). Version tags publish `:vX.Y.Z` and `:latest` for self-hosters (3.6.4). The SSH key and host are GitHub Actions secrets.
+- **Graceful shutdown:** because jobs live in the server process (3.6.1), a deploy must not kill them. On shutdown the server stops accepting new jobs and lets running jobs finish, within a grace period (`stop_grace_period` in the Compose file, 5 minutes); queued jobs that never started are lost.
+- **Scryfall refresh:** built into the app. Every `SCRYFALL_REFRESH_HOURS` (24) the server checks Scryfall's bulk-data timestamp, downloads newer data, and swaps it in without a restart (3.3.2). This works the same for self-hosters.
+- **Logging and monitoring:** structured JSON logs to stdout (Fastify's logger), with Docker log rotation. A free external uptime monitor (e.g. UptimeRobot) checks `GET /api/health` and emails the owner when it fails.
+- **Abuse protection:** per-IP rate limits on top of the request limits (3.6.1), returning `429`: `RATE_LIMIT_JOBS_PER_HOUR` (10) for new jobs and `RATE_LIMIT_PREVIEW_PER_MINUTE` (120) for preview requests; `0` turns a limit off. Client IPs come from the reverse proxy's forwarded headers. No accounts or captcha.
 ---
 
 ## 4. Card anatomy overview
@@ -668,7 +677,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Question 52, on operations, is open (D30).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 48–52, on hosting, are answered too (D26–D30).
 
 ### Product and scope
 
@@ -744,7 +753,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Answered:** React with Vite; batches on the server, live single-card previews in the browser (D27).
 50. Where is the public instance hosted, and who pays? [3.6.3] — **Answered:** a DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) at `fannable.verbatiam.dev` (D28).
 51. How do people self-host it? [3.6.4] — **Answered:** Docker image and Compose file (optional Caddy for HTTPS), environment-variable settings, capped art cache, CLI in the same image (D29).
-52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Open** (D30).
+52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Answered:** deploy on every push to `main`, built-in daily refresh, logs and an uptime check, per-IP rate limits (D30).
 
 ---
 

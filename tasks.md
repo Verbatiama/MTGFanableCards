@@ -64,13 +64,13 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | D27 | ✓ DECIDED: React + Vite (JS, source in web/, served by Fastify); batches rendered on the server, live single-card previews in the browser with src/render/; no thumbnail gallery | PO + B | D5, D9       | 3.6.2 |
 | D28 | ✓ DECIDED: DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) running the self-hosting Docker setup; data and art cache on a Docker volume; fannable.verbatiam.dev with Caddy and automatic TLS | PO     | D2, D10, D23 | 3.6.3 |
 | D29 | ✓ DECIDED: Docker image (GHCR) + Compose file with optional Caddy profile; env-var settings; art cache capped (10 GB default, drop least-used 25% at the cap); CLI via the same image or npm run cli; Linux x86-64, 2 GB RAM, ~15 GB disk | PO + A | D5, D26      | 3.6.4 |
-| D30 | Operations: deployment pipeline (GitHub Actions to the chosen host), scheduled Scryfall bulk-data refresh (daily, D2), logging and monitoring, abuse protection for a public instance (rate limits, per-request batch size; D24 sets no limit) | PO + A | D26, D28     | 3.6.5 |
+| D30 | ✓ DECIDED: Deploy on every push to main (CI → GHCR :main → SSH compose pull/up), graceful shutdown finishes running jobs; built-in Scryfall refresh every 24 h; JSON logs + free uptime check on /api/health; per-IP rate limits (10 jobs/h, 120 previews/min) | PO + A | D26, D28     | 3.6.5 |
 
 ### Dev A: data pipeline
 
 | ID    | Task                                                                                                                                                           | Depends on           | Req          |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
-| T-A3  | Card data loader: download the Scryfall bulk data and refresh it daily, cache it locally, load and index the JSON, look up by name | T-A1, D2             |  3.3, 3.3.2          |
+| T-A3  | Card data loader: download the Scryfall bulk data, refresh it every 24 h and swap it in without a restart (D30), cache it locally, load and index the JSON, look up by name | T-A1, D2             |  3.3, 3.3.2          |
 | T-A4  | Input parser and printing selection                                                                                                                            | T-A3, D3, T-S2       | 3.2, 3.3.3   |
 | T-A5  | Mana cost parser: group symbols with counts, apply ordering                                                                                                    | S1, D11              | 5.3          |
 | T-A6  | Card-model mapper: JSON → card model (types, supertypes, subtypes, stats, loyalty, colour indicator, footer)                                                   | T-A3, T-A5, S1       | 3.3.1        |
@@ -102,7 +102,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 
 | ID   | Task                                                                                                                                                         | Owner | Depends on       | Req                 |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ---------------- | ------------------- |
-| T-C1 | API on Fastify (D26): job endpoints (create, status with progress and unmatched names, download), preview endpoints (card models, art, fonts and symbols; D27), job queue and expiry, schema validation, configurable limits, OpenAPI, health check | A     | D26, T-A4, T-A11 | 3.1.2, 3.2.6, 3.5   |
+| T-C1 | API on Fastify (D26): job endpoints (create, status with progress and unmatched names, download), preview endpoints (card models, art, fonts and symbols; D27), job queue and expiry, schema validation, configurable limits, OpenAPI, health check, per-IP rate limits, graceful shutdown and JSON logging (D30) | A     | D26, D30, T-A4, T-A11 | 3.1.2, 3.2.6, 3.5   |
 | T-C2 | Frontend UI in React + Vite (D27): decklist input, live preview of the selected line rendered in the browser, unmatched-name warnings, generation progress, zip/PDF download, and the Fan Content notice | B     | D27, T-C1        | 3.1.2, 3.2.6, 10.2  |
 
 ## Phase 3: Integration and hardening (weeks 6–8)
@@ -115,9 +115,10 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
 | T-S7 | Accessibility and localisation work, as scoped by D24                          | B     | D24, T-S3         | 10.3–10.4 |
 | T-S8 | User documentation: README usage, input format, licensing notes                | A     | T-S3, D23         | —         |
-| T-S9 | Deployment: Docker image published to GHCR, `docker-compose.yml` with the optional Caddy profile, deployment pipeline to the VPS, self-hosting guide (D29) | A     | T-S3, D26–D30, T-S11     | 3.6       |
+| T-S9 | Deployment: Docker image published to GHCR (`:main` on every push, `:vX.Y.Z`/`:latest` on tags), `docker-compose.yml` with the optional Caddy profile and log rotation, GitHub Actions deploy to the VPS on every push to main (D30), self-hosting guide (D29) | A     | T-S3, D26–D30, T-S11     | 3.6       |
 | T-S10 | Provision the VPS (D28): DigitalOcean droplet in Sydney, 2 GB; firewall (SSH, HTTP, HTTPS only), Docker, Caddy reverse proxy | PO + A | D28, D29 | 3.6.3 |
 | T-S11 | Set up the subdomain: DNS record for `fannable.verbatiam.dev` pointing at the VPS, Caddy site with automatic Let's Encrypt TLS, check HTTPS works | PO | T-S10 | 3.6.3 |
+| T-S12 | Monitoring: free uptime monitor on `https://fannable.verbatiam.dev/api/health` with email alerts to the owner | PO | T-S9 | 3.6.5 |
 
 ## Phase 4: Special layouts (after v1, or as scoped by D1)
 
