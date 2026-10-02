@@ -1,4 +1,16 @@
 /**
+ * Zone/timing symbols: icon and label (D12, Requirements 5.4.2, 5.4.5), in
+ * display order. Split second has no icon yet (T-B14).
+ */
+export const ZONE_SYMBOL_STYLE = {
+  flash: { icon: 'zones/flash', label: 'FLASH' },
+  'split-second': { icon: 'zones/split-second', label: 'SPLIT SECOND' },
+  hand: { icon: 'zones/hand', label: 'HAND' },
+  library: { icon: 'zones/library', label: 'LIBRARY' },
+  graveyard: { icon: 'zones/graveyard', label: 'GRAVEYARD' },
+};
+
+/**
  * Mechanic → zone/timing symbol table (D12, Requirements 5.4.2). New mechanics
  * are added here. Keywords are Scryfall's names, matched case-insensitively.
  */

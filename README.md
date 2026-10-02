@@ -50,7 +50,7 @@ cache/      Downloaded Scryfall data and art (not committed)
 out/        Generated cards (not committed)
 ```
 
-Code in `src/render/`, `src/model/` and `web/` must not use Node-only APIs, because it also runs in the browser.
+Code in `src/render/`, `src/model/`, `src/config/` and `web/` must not use Node-only APIs, because it also runs in the browser.
 
 ## Legal
 

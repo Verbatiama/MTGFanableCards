@@ -17,6 +17,19 @@ import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { fetchArt, stats as artStats } from './art.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
+import {
+  CARD_TYPES,
+  FRAME,
+  INDICATOR,
+  LABELS,
+  LAND_FRAME as LAND,
+  LAND_TYPE_MANA,
+  STAT_ICONS,
+  SUBTYPE_ICONS,
+  SUPERTYPE_ICONS,
+  ZONE_SYMBOL_STYLE,
+  isPermanent,
+} from '../../src/config/index.js';
 
 const CARD = { width: 750, height: 1050 };
 const BAR = { width: 90, icon: 40, gap: 6 };
@@ -30,84 +43,9 @@ const FOOTER = { y: 966 };
 const FONT = (size) => `bold ${size}px "Beleren"`;
 const LABEL = (size) => `bold ${size}px "Beleren SmallCaps"`;
 
-// Frames as on real cards (current frame, D21 revised): a textured coloured
-// border, coloured pinlines around each panel, pale name/type bars and a pale
-// text box. Sampled from Scryfall scans: Pacifism (DVD), Divination (M15),
-// Murder (EMN), Shock (DDN), Giant Growth (EVG), Lightning Helix (DDN), Mind
-// Stone (C14), Thought-Knot Seer (OGW), Kitchen Finks (UMA), Complete
-// Disregard (BFZ).
-const FRAME = {
-  W: { border: '#cdbe9c', pin: '#e9ebe0', bar: '#ebe9df', text: '#f2f0e5' },
-  U: { border: '#669ecb', pin: '#1a78b6', bar: '#b6d0d8', text: '#d5e3e7' },
-  B: { border: '#232728', pin: '#333331', bar: '#c8c6c8', text: '#eff4f6' },
-  R: { border: '#c03c2b', pin: '#e4321e', bar: '#efbba3', text: '#efd3c6' },
-  G: { border: '#557054', pin: '#256a40', bar: '#b0bbae', text: '#cddcce' },
-  // Gold pinline from three-colour cards: Mantis Rider (KTK), Bant Charm (2X2).
-  gold: { border: '#d0b056', pin: '#e9d875', bar: '#d2b16e', text: '#f5f3e7' },
-  artifact: { border: '#95a3ae', pin: '#dfe0e2', bar: '#cfcfd3', text: '#d2d5d8' },
-  colourless: { border: '#89807a', pin: '#e2dfe6', bar: '#b2a8a7', text: '#d8d2c6' },
-  // Hybrid cards: grey bars, and a text box paler than either colour's.
-  hybridBar: '#d8d3d1',
-  hybridText: '#f4f4f2',
-  // Devoid: the art shows through a translucent border and text box.
-  devoid: { pin: '#e2e1c3', bar: '#a69c97', text: 'rgba(211, 209, 197, 0.88)' },
-};
-// Land frames as on real cards (current frame, D21 revised): every land has the
-// same stone frame; the colour is in the pinlines, the name/type bars and the
-// text box. Colours sampled from Scryfall scans of M19 basics, Wasteland (EMA),
-// Command Tower (CMR) and Breeding Pool (RNA).
-const LAND = {
-  stone: '#b49679',
-  colourless: { pin: '#9e8a7e', bar: '#d6ced2', text: '#d5cfd4' },
-  W: { pin: '#ebeae4', bar: '#f8f8f5', text: '#ebdbac' },
-  U: { pin: '#085f94', bar: '#b9d0e4', text: '#aac0e1' },
-  B: { pin: '#2a3a3a', bar: '#b8b1b2', text: '#a09b9b' },
-  R: { pin: '#c8310f', bar: '#eabeaa', text: '#e19774' },
-  G: { pin: '#05683a', bar: '#b7c9c3', text: '#aecdb6' },
-  gold: { pin: '#e8dc90', bar: '#e0ce8b', text: '#f8f3e6' },
-  // Two-colour lands keep grey bars; only pinlines and text box are split.
-  splitBar: '#d2cfd2',
-};
-const PIPS = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };
-const PERMANENT_TYPES = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Land', 'Planeswalker'];
 // Placeholder type icons until the real set arrives (D14). Full-size icon
 // height; two or three types shrink to fit one row.
 const TYPE_ROW = 44;
-const TYPE_ICONS = {
-  Kindred: 'KIN',
-  Artifact: 'ART',
-  Enchantment: 'ENC',
-  Land: 'LND',
-  Creature: 'CRE',
-  Planeswalker: 'PW',
-  Battle: 'BTL',
-  Instant: 'INS',
-  Sorcery: 'SOR',
-};
-// Labels for the zone and timing symbols (D12, 5.4.2).
-const ZONE_LABELS = {
-  flash: 'Flash',
-  'split-second': 'Split second',
-  hand: 'Hand',
-  library: 'Library',
-  graveyard: 'Graveyard',
-};
-// Supertypes that get an icon + label (D15, 5.5.4). Token, Ongoing and Elite
-// get none. Planeswalkers show Legendary too (5.5.3).
-const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
-// Attaching subtypes get an icon in the middle stack (D16, 5.5.8): placeholder
-// boxes until traced. Icon-only.
-const SUBTYPE_ICONS = { Aura: 'AUR', Equipment: 'EQP', Fortification: 'FRT' };
-// Basic land types show the mana symbol they tap for (D16 revised, 5.5.8), in
-// their own group centred on the text box, outside the middle stack.
-const LAND_TYPE_MANA = {
-  Plains: 'W',
-  Island: 'U',
-  Swamp: 'B',
-  Mountain: 'R',
-  Forest: 'G',
-  Wastes: 'C',
-};
 
 registerFont(path.join(FONT_DIR, 'Beleren2016-Bold.ttf'), { family: 'Beleren', weight: 'bold' });
 registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
@@ -124,11 +62,12 @@ const genericSymbol = await loadImage(path.join(SYMBOL_DIR, 'generic.svg'));
 // labelled boxes, so the preview shows what still needs an icon.
 const ICONS = new Map();
 for (const name of [
-  ...Object.keys(TYPE_ICONS).map((t) => `types/${t.toLowerCase()}`),
-  ...Object.keys(ZONE_LABELS).map((z) => `zones/${z}`),
-  ...SUPERTYPE_ICONS.map((t) => `supertypes/${t.toLowerCase()}`),
-  'stats/power',
-  'stats/toughness',
+  ...Object.values(CARD_TYPES).map((t) => t.icon),
+  ...Object.values(ZONE_SYMBOL_STYLE).map((z) => z.icon),
+  ...Object.values(SUPERTYPE_ICONS)
+    .filter((t) => t.icon)
+    .map((t) => t.icon),
+  ...Object.values(STAT_ICONS).map((t) => t.icon),
 ]) {
   try {
     ICONS.set(name, await loadImage(path.join(SYMBOL_DIR, `${name}.svg`)));
@@ -384,7 +323,7 @@ async function drawStatBar(ctx, model, layout) {
     const step = (Math.PI * 2) / colours.length;
     const start = -Math.PI / 2;
     colours.forEach((c, i) => {
-      ctx.fillStyle = PIPS[c];
+      ctx.fillStyle = INDICATOR[c];
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, start + i * step, start + (i + 1) * step);
@@ -430,17 +369,17 @@ async function drawStatBar(ctx, model, layout) {
   // Boxes stand in for missing icons; zone/timing boxes are gold.
   const middle = [];
   for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
-    middle.push({ abbr: SUBTYPE_ICONS[subtype] });
+    middle.push({ abbr: SUBTYPE_ICONS[subtype].placeholder });
   }
   // Snow reuses the {S} art.
-  for (const label of model.supertypes.filter((t) => SUPERTYPE_ICONS.includes(t))) {
-    const icon =
-      ICONS.get(`supertypes/${label.toLowerCase()}`) ??
-      (label === 'Snow' ? await symbol('S') : undefined);
-    middle.push({ label, icon });
+  for (const supertype of model.supertypes.filter((t) => SUPERTYPE_ICONS[t])) {
+    const style = SUPERTYPE_ICONS[supertype];
+    const icon = style.manaSymbol ? await symbol(style.manaSymbol) : ICONS.get(style.icon);
+    middle.push({ label: style.label, icon });
   }
   for (const z of model.zoneSymbols) {
-    middle.push({ label: ZONE_LABELS[z], zone: true, icon: ICONS.get(`zones/${z}`) });
+    const style = ZONE_SYMBOL_STYLE[z];
+    middle.push({ label: style.label, zone: true, icon: ICONS.get(style.icon) });
   }
   // Land mana symbols: one icon each in type-line order, centred on the text
   // box. The middle stack has priority: if it spills that far it pushes them
@@ -475,20 +414,34 @@ async function drawStatBar(ctx, model, layout) {
     // Vehicles and spacecraft: hollow stats, as they only apply once crewed
     // or stationed (5.7.7).
     const hollow = !model.types.includes('Creature');
-    drawStat(ctx, 'PWR', model.power, bottom - 120, ICONS.get('stats/power'), hollow);
+    drawStat(
+      ctx,
+      LABELS.power,
+      model.power,
+      bottom - 120,
+      ICONS.get(STAT_ICONS.power.icon),
+      hollow,
+    );
     if (hollow) {
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
       ctx.strokeRect(18.5, bottom - 63.5, BAR.width - 37, 1);
     } else ctx.fillRect(18, bottom - 64, BAR.width - 36, 2);
-    drawStat(ctx, 'TGH', model.toughness, bottom - 56, ICONS.get('stats/toughness'), hollow);
+    drawStat(
+      ctx,
+      LABELS.toughness,
+      model.toughness,
+      bottom - 56,
+      ICONS.get(STAT_ICONS.toughness.icon),
+      hollow,
+    );
   } else if (model.loyalty !== null) {
-    drawStat(ctx, 'LOYALTY', model.loyalty, bottom - 60);
+    drawStat(ctx, LABELS.loyalty, model.loyalty, bottom - 60);
   } else if (model.defense !== null) {
     drawDefenseBadge(ctx, model.defense);
-  } else if (!model.types.some((t) => PERMANENT_TYPES.includes(t))) {
+  } else if (!isPermanent(model.types)) {
     // Only non-permanents get a label; permanents leave the bottom empty (5.7.3).
-    const letters = [...'NON-PERMANENT'];
+    const letters = [...LABELS.nonPermanent];
     ctx.font = LABEL(18);
     ctx.textBaseline = 'bottom';
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
@@ -502,7 +455,7 @@ async function drawStatBar(ctx, model, layout) {
  * (Dungeon, Plane, ...; out of scope for v1) are skipped.
  */
 function drawTypeIcons(ctx, types, y) {
-  const shown = types.filter((t) => TYPE_ICONS[t]);
+  const shown = types.filter((t) => CARD_TYPES[t]);
   if (!shown.length) return;
   const gap = 3;
   const size = Math.min(
@@ -515,7 +468,7 @@ function drawTypeIcons(ctx, types, y) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const type of shown) {
-    const icon = ICONS.get(`types/${type.toLowerCase()}`);
+    const icon = ICONS.get(CARD_TYPES[type].icon);
     if (icon) {
       ctx.drawImage(icon, x, top, size, size);
       x += size + gap;
@@ -527,7 +480,7 @@ function drawTypeIcons(ctx, types, y) {
     ctx.roundRect(x, top, size, size, size / 5);
     ctx.stroke();
     ctx.fillStyle = '#fff';
-    const text = TYPE_ICONS[type];
+    const text = CARD_TYPES[type].placeholder;
     ctx.font = LABEL(fitSize(ctx, text, size - 4, Math.round(size / 2.6), LABEL, 6));
     ctx.fillText(text, x + size / 2, top + size / 2 + 1);
     x += size + gap;
@@ -549,7 +502,7 @@ function middleLimit(model, layout) {
   if (model.power !== null) return bottom - 120 - 8;
   if (model.loyalty !== null) return bottom - 60 - 8;
   if (model.defense !== null) return CARD.height - 78 - 8;
-  if (!model.types.some((t) => PERMANENT_TYPES.includes(t))) return bottom - 13 * 21 - 8;
+  if (!isPermanent(model.types)) return bottom - 13 * 21 - 8;
   return bottom;
 }
 

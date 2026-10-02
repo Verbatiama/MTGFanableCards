@@ -1,3 +1,5 @@
+import { MULTI_WORD_SUBTYPES } from '../config/subtypes.js';
+import { SUPERTYPES as SUPERTYPE_LIST } from '../config/supertypes.js';
 import { parseManaCost } from '../parse/mana-cost.js';
 import { detectZoneSymbols } from '../parse/zone-symbols.js';
 
@@ -13,9 +15,7 @@ import { detectZoneSymbols } from '../parse/zone-symbols.js';
 /** Layouts whose faces are separate card halves on one side (split, flip, adventure, ...). */
 const SAME_SIDE_LAYOUTS = new Set(['split', 'flip', 'adventure', 'room']);
 
-const SUPERTYPES = new Set(['Basic', 'Legendary', 'Snow', 'World', 'Ongoing', 'Elite', 'Host']);
-/** Subtypes whose names contain a space. */
-const MULTI_WORD_SUBTYPES = ['Time Lord'];
+const SUPERTYPES = new Set(SUPERTYPE_LIST);
 const COLORS = ['W', 'U', 'B', 'R', 'G'];
 
 /**

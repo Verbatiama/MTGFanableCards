@@ -638,7 +638,7 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 
 ## 9. Reference data the renderer needs
 
-The implementation should keep these as configuration tables rather than hard-coding them, so they can be extended:
+The implementation keeps these as configuration tables rather than hard-coding them, so they can be extended. They live in `src/config/` (T-A9), one module per row; labels drawn on cards are there too, so they can be translated later (10.4). The renderer uses a placeholder until each missing icon is made (T-B14):
 
 | Table                                 | Maps        | Status                                               |
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
