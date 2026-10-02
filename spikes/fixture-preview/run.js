@@ -2,7 +2,7 @@
  * Throwaway preview of the card-model fixtures (T-A2), so their data can be
  * checked by eye before the real renderer (T-B2 onwards) exists. Not the
  * renderer: no icons for types/stats, fixed dimensions. Art crops are
- * downloaded from Scryfall (see art.js); pass --no-art to skip them.
+ * downloaded from Scryfall by the art fetcher (src/art/, T-A10); pass --no-art to skip them.
  *
  *   node spikes/fixture-preview/run.js [--no-art] [slug ...]
  *
@@ -14,7 +14,7 @@ import { createCanvas, loadImage, registerFont } from 'canvas';
 import { FONT_DIR, OUT_DIR, SYMBOL_DIR } from '../../src/paths.js';
 import { extractSymbolSvg, listSymbolCodes } from '../rendering/symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
-import { fetchArt, stats as artStats } from './art.js';
+import { createArtFetcher } from '../../src/art/art-cache.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import {
@@ -280,7 +280,7 @@ async function drawSymbol(ctx, code, x, y, size) {
 
 async function loadArt(model) {
   if (noArt) return null;
-  const bytes = await fetchArt(model.artUrl);
+  const bytes = await artFetcher.fetchArt(model.artUrl);
   if (!bytes) return null;
   try {
     return await loadImage(bytes);
@@ -1049,6 +1049,7 @@ async function drawContactSheet(cards) {
   return canvas;
 }
 
+const artFetcher = createArtFetcher(); // T-A10, shares cache/art/ with the app
 const fixtures = loadCardFixtures();
 const args = process.argv.slice(2);
 const noArt = args.includes('--no-art');
@@ -1082,6 +1083,6 @@ console.log(
 );
 if (!noArt) {
   console.log(
-    `Art: ${artStats.downloaded} downloaded, ${artStats.cached} from cache, ${artStats.failed} failed`,
+    `Art: ${artFetcher.stats.downloaded} downloaded, ${artFetcher.stats.cached} from cache, ${artFetcher.stats.failed} failed`,
   );
 }
