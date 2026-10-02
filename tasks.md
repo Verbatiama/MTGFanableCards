@@ -49,7 +49,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | D21  | ✓ DECIDED: Hybrid = split frame; coloured artifacts = card colour; lands use the real land frame (stone frame, colour in pinlines/bars/text box, by card colour or produced mana; 2 = blend, 3+/any = gold); colourless = silver, devoid tinted by mana; tokens post-v1 | PO     | D1         | 6.6.2             |
 | D22  | ✓ DECIDED: Equal-height bands filling the text box, one font size, shrink to fit; then text box grows into the art (no ability limit); ±X like numbers; printed-card cost badges (+ up, − down, 0 flat) | PO     | —          | 7.2.6–7.2.7       |
 | D23  | ✓ DECIDED: No attribution needed (Osprey Dawn mockup is only a reference); follow the Fan Content Policy (free, non-commercial, notice in README and app); no marking on card images | PO     | —          | 1.4, 10.2         |
-| D24  | Accessibility, localisation and performance targets                                                                                                                                       | PO     | —          | 10.3–10.5         |
+| D24  | ✓ DECIDED: No formal accessibility target; English only for v1 (labels in config); no performance target, generation time measured and reported | PO     | —          | 10.3–10.5         |
 | T-S2 | Apply the corrections to README and the Components doc                                                                                                                                    | A or B | D12        | 12                |
 
 ## Phase 2: Core build (weeks 2–6)

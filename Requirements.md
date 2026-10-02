@@ -597,11 +597,11 @@ The implementation should keep these as configuration tables rather than hard-co
 - Generated card images carry no extra "unofficial" marking; the footer keeps the copyright line (6.5.2).
 - Design attribution: none needed (1.4). Symbol licensing: the symbol sheet is the project's own, traced icons are GPL-3.0 like the project, and set symbols come from Scryfall at runtime (9.1, `res/symbols/README.md`).
 
-  10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators. The colour indicator itself is decided by D17 (5.2.5): divider lines between wedges, no letters.
+  10.3 **Accessibility [Confirmed].** No formal accessibility target for v1, for card images or the frontend (D24). The decisions already made stand: mana symbols carry glyphs, zone/timing and supertype icons carry labels (D12, D15), and the colour indicator uses divider lines with no letters (D17, 5.2.5).
 
-  10.4 **Localisation [Open].** Whether non-English cards and non-English labels ("PERMANENT", "LEGENDARY", etc.) are in scope. The footer already shows a language code ("EN").
+  10.4 **Localisation [Confirmed].** English only for v1 (D24): English printings and English labels ("NON-PERMANENT", "LEGENDARY", "FLASH", …). The labels live in the configuration tables (section 9), so translations can be added later without code changes. The footer keeps its language code ("EN").
 
-  10.5 **Performance [Open].** Expected batch size, e.g. a 100-card Commander deck, and acceptable generation time, given art downloads and rate limits.
+  10.5 **Performance [Confirmed].** No hard target and no batch-size limit for v1 (D24). Generation time is measured and reported (e.g. for a 100-card Commander deck, with and without cached art), but there is no pass/fail threshold. Art downloads are bounded by the Scryfall rate limit (100ms per request, D10), so about 10 seconds per 100 uncached cards.
 
 ---
 
