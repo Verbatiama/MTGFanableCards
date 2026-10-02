@@ -1,0 +1,82 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { createCanvas } from 'canvas';
+import { unzipSync } from 'fflate';
+import { PDFDocument } from 'pdf-lib';
+import {
+  assignFileNames,
+  baseFileName,
+  pdfSheets,
+  writeImages,
+  zipImages,
+} from '../../src/output/index.js';
+
+/** A small solid-colour PNG standing in for a rendered card. */
+function png(colour) {
+  const canvas = createCanvas(75, 105);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = colour;
+  ctx.fillRect(0, 0, 75, 105);
+  return canvas.toBuffer('image/png');
+}
+
+test('file names follow the card name (3.5.2)', () => {
+  assert.equal(baseFileName('Lightning Bolt'), 'Lightning-Bolt');
+  assert.equal(baseFileName('Jace, the Mind Sculptor'), 'Jace-the-Mind-Sculptor');
+  assert.equal(baseFileName("Smuggler's Copter"), 'Smugglers-Copter');
+  assert.equal(baseFileName('Lim-Dûl the Necromancer'), 'Lim-Dul-the-Necromancer');
+  assert.equal(baseFileName('Borrowing 100,000 Arrows'), 'Borrowing-100000-Arrows');
+  assert.equal(baseFileName('???'), 'card');
+});
+
+test('copies get a counter; each face of a double-faced card gets its own file (3.2.3, 3.5.4)', () => {
+  assert.deepEqual(
+    assignFileNames([
+      'Lightning Bolt',
+      'Lightning Bolt',
+      'Lightning Bolt',
+      'Delver of Secrets',
+      'Insectile Aberration',
+      'lightning bolt',
+    ]),
+    [
+      'Lightning-Bolt.png',
+      'Lightning-Bolt-2.png',
+      'Lightning-Bolt-3.png',
+      'Delver-of-Secrets.png',
+      'Insectile-Aberration.png',
+      'lightning-bolt-4.png',
+    ],
+  );
+});
+
+const images = (count) =>
+  assignFileNames(Array.from({ length: count }, (_, i) => `Card ${i + 1}`)).map((fileName, i) => ({
+    fileName,
+    png: png(i % 2 ? '#c03c2b' : '#669ecb'),
+  }));
+
+test('the zip holds every image under its file name (3.5.1)', () => {
+  const input = images(3);
+  const files = unzipSync(zipImages(input));
+  assert.deepEqual(Object.keys(files), ['Card-1.png', 'Card-2.png', 'Card-3.png']);
+  assert.deepEqual(Buffer.from(files['Card-2.png']), input[1].png);
+});
+
+test('the PDF has A4 pages with up to 9 cards each (3.5.3)', async () => {
+  const pdf = await PDFDocument.load(await pdfSheets(images(10)));
+  assert.equal(pdf.getPageCount(), 2);
+  const { width, height } = pdf.getPage(0).getSize();
+  assert.equal(Math.round(width), 595); // 210 mm
+  assert.equal(Math.round(height), 842); // 297 mm
+});
+
+test('images can be written to a folder (scripts and the CLI, 3.5.6)', async (t) => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'fannable-out-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await writeImages(path.join(dir, 'cards'), images(2));
+  assert.deepEqual((await readdir(path.join(dir, 'cards'))).sort(), ['Card-1.png', 'Card-2.png']);
+});

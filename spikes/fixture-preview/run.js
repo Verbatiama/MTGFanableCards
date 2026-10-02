@@ -6,7 +6,8 @@
  *
  *   node spikes/fixture-preview/run.js [--no-art] [slug ...]
  *
- * Writes out/fixture-preview/<slug>.png and a contact sheet, _all.png.
+ * Writes out/fixture-preview/<slug>.png, a contact sheet (_all.png) and the
+ * previews as printable A4 sheets (_sheets.pdf).
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -15,6 +16,7 @@ import { FONT_DIR, OUT_DIR, SYMBOL_DIR } from '../../src/paths.js';
 import { extractSymbolSvg, listSymbolCodes } from '../rendering/symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
+import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import {
@@ -1074,7 +1076,14 @@ for (const [slug, model] of [...fixtures, ...stressModels(fixtures)]) {
   cards.push([slug, canvas]);
 }
 await writeFile(path.join(dir, '_all.png'), (await drawContactSheet(cards)).toBuffer('image/png'));
-console.log(`Wrote ${cards.length} previews and _all.png to ${dir}`);
+// The previews as printable A4 sheets, through the real output code (T-A11).
+await writeFile(
+  path.join(dir, '_sheets.pdf'),
+  await pdfSheets(
+    cards.map(([slug, canvas]) => ({ fileName: slug, png: canvas.toBuffer('image/png') })),
+  ),
+);
+console.log(`Wrote ${cards.length} previews, _all.png and _sheets.pdf to ${dir}`);
 console.log(
   `New: ${created.length ? created.map((f) => path.relative(process.cwd(), f)).join(' ') : 'none'}`,
 );

@@ -124,7 +124,7 @@ Each requirement is tagged:
 3.5.3 **[Confirmed]** Output options:
 
 - **Default:** Zip file with individual PNG images
-- **Optional:** PDF (A4 size) with 9 cards tiled per sheet for printing convenience
+- **Optional:** PDF (A4 size) with 9 cards tiled per sheet for printing convenience. Cards are placed at real card size, 63 × 88 mm (about 300 DPI), in a 3 × 3 grid centred on the page, so printed cards can be cut out and sleeved (T-A11).
 
   3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
 

@@ -78,7 +78,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-A8  | ✓ DONE: Zone/timing detection (src/parse/zone-symbols.js, table in src/config/zone-symbols.js): keywords counted only when the face has them, instants get Flash, self-in-zone phrases; wired into the mapper, matches every fixture; warp added (hand) | T-A6, D12            | 5.4          |
 | T-A9  | ✓ DONE: Configuration tables in src/config/ (card types, supertypes, subtypes and land mana, zone/timing styles and keywords, text and stat symbols, frame palettes, labels); mapper and preview spike use them (previews unchanged); a test pins the icons still to be made | S1, D7, D14–D16, D21 | 9            |
 | T-A10 | ✓ DONE: Art fetcher (src/art/art-cache.js): disk cache with a usage index, 100 ms request spacing, shared in-flight downloads, null on failure (black placeholder), least-used 25% evicted at ART_CACHE_MAX_GB; the preview spike uses it | T-A4, D10, T-S2, D29      | 3.4          |
-| T-A11 | Output: image writer, file naming, zip bundling, and the optional A4 PDF with 9 cards per sheet | D4, T-B2             | 3.5          |
+| T-A11 | ✓ DONE: Output (src/output/): file names from face names with counters for copies, PNG writer, cards.zip (fflate), A4 PDF with 9 cards per page at 63 × 88 mm (pdf-lib); the preview spike also writes _sheets.pdf | D4, T-B2             | 3.5          |
 | T-A12 | CLI entry point and error reporting (`npm run cli`, also run from the Docker image; D29)                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
 
 ### Dev B: renderer
