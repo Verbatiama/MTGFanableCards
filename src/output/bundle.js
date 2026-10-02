@@ -1,7 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { loadImage, createCanvas } from 'canvas';
 import { zipSync } from 'fflate';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, grayscale } from 'pdf-lib';
 
 /**
  * Output bundles (T-A11, D4, Requirements 3.5): the PNG files themselves,
@@ -21,6 +22,9 @@ const A4_W = 210 * MM;
 const A4_H = 297 * MM;
 const PER_ROW = 3;
 const PER_PAGE = 9;
+/** JPEG quality for PDF pages: about 5× smaller than PNG, no visible loss in print. */
+const JPEG_QUALITY = 0.92;
+const CUT_LINE = { thickness: 0.3, color: grayscale(0.55) };
 
 /** Writes each image to `dir` (scripts and the CLI write to out/, 3.5.6). */
 export async function writeImages(dir, images) {
@@ -43,7 +47,10 @@ export function zipImages(images) {
 
 /**
  * `cards.pdf` contents (3.5.3): A4 pages with up to 9 cards each, 3 × 3, at
- * real card size, centred on the page, in output order.
+ * real card size, centred on the page, in output order. Cards are embedded as
+ * JPEGs to keep the file small, and thin grey cut lines run the full width and
+ * height of the page along every card edge, so they show on the margins and
+ * on the cards' black borders.
  * @param {OutputImage[]} images
  * @returns {Promise<Uint8Array>}
  */
@@ -52,21 +59,53 @@ export async function pdfSheets(images) {
   pdf.setTitle('MTG Fannable Cards');
   pdf.setCreator('MTGFannableCards');
   const left = (A4_W - PER_ROW * CARD_W) / 2;
-  const top = (A4_H - PER_ROW * CARD_H) / 2;
+  const bottom = (A4_H - PER_ROW * CARD_H) / 2;
 
   let page;
   for (const [i, { png }] of images.entries()) {
-    if (i % PER_PAGE === 0) page = pdf.addPage([A4_W, A4_H]);
+    if (i % PER_PAGE === 0) {
+      page = pdf.addPage([A4_W, A4_H]);
+      drawCutLines(page, left, bottom, Math.min(PER_PAGE, images.length - i));
+    }
     const slot = i % PER_PAGE;
     const column = slot % PER_ROW;
     const row = Math.floor(slot / PER_ROW);
-    page.drawImage(await pdf.embedPng(png), {
+    page.drawImage(await pdf.embedJpg(await toJpeg(png)), {
       x: left + column * CARD_W,
       // PDF y runs upwards, so the first row is the highest.
-      y: A4_H - top - (row + 1) * CARD_H,
+      y: bottom + (PER_ROW - 1 - row) * CARD_H,
       width: CARD_W,
       height: CARD_H,
     });
   }
   return pdf.save();
+}
+
+/**
+ * Cut lines along the edges of the rows and columns in use: horizontal lines
+ * run the full page width; vertical lines run from the top of the page to the
+ * bottom of the last used row (to the bottom of the page when it's full), so a
+ * part-filled last page isn't covered in lines.
+ */
+function drawCutLines(page, left, bottom, cards) {
+  const rows = Math.ceil(cards / PER_ROW);
+  const columns = Math.min(cards, PER_ROW);
+  const top = bottom + PER_ROW * CARD_H;
+  const lowest = top - rows * CARD_H;
+  const end = cards === PER_PAGE ? 0 : lowest;
+  for (let i = 0; i <= rows; i++) {
+    const y = top - i * CARD_H;
+    page.drawLine({ start: { x: 0, y }, end: { x: A4_W, y }, ...CUT_LINE });
+  }
+  for (let i = 0; i <= columns; i++) {
+    const x = left + i * CARD_W;
+    page.drawLine({ start: { x, y: A4_H }, end: { x, y: end }, ...CUT_LINE });
+  }
+}
+
+async function toJpeg(png) {
+  const image = await loadImage(Buffer.from(png));
+  const canvas = createCanvas(image.width, image.height);
+  canvas.getContext('2d').drawImage(image, 0, 0);
+  return canvas.toBuffer('image/jpeg', { quality: JPEG_QUALITY });
 }

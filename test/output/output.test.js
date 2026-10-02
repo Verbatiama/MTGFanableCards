@@ -74,6 +74,11 @@ test('the PDF has A4 pages with up to 9 cards each (3.5.3)', async () => {
   assert.equal(Math.round(height), 842); // 297 mm
 });
 
+test('PDF cards are embedded as JPEGs, to keep the file small', async () => {
+  const bytes = Buffer.from(await pdfSheets(images(2)));
+  assert.match(bytes.toString('latin1'), /\/DCTDecode/);
+});
+
 test('images can be written to a folder (scripts and the CLI, 3.5.6)', async (t) => {
   const dir = await mkdtemp(path.join(tmpdir(), 'fannable-out-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
