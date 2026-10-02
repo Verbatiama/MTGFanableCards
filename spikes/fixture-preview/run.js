@@ -910,7 +910,15 @@ async function drawLines(ctx, layout, x, y, width, size) {
         const s = Math.round(size * 0.95);
         await drawSymbol(ctx, token.symbol, lx + 1, y + line.y - s * 0.82, s);
       } else {
-        ctx.fillText(token.text, lx, y + line.y);
+        ctx.font = FONT(line.flavor ? size - 2 : size);
+        if (token.italic) {
+          // Slant around the baseline (no italic cut in Beleren).
+          ctx.save();
+          ctx.translate(lx, y + line.y);
+          ctx.transform(1, 0, -0.2, 1, 0, 0);
+          ctx.fillText(token.text, 0, 0);
+          ctx.restore();
+        } else ctx.fillText(token.text, lx, y + line.y);
       }
       lx += token.width;
     }
@@ -929,6 +937,16 @@ function layoutText(ctx, paragraphs, width, size) {
     ctx.font = FONT(p.flavor ? size - 2 : size);
     if (pi > 0) cursor += Math.round(size * (p.flavor ? 0.7 : 0.35));
     const icon = { width: Math.round(size * 0.95) + 2 };
+    const textSize = p.flavor ? size - 2 : size;
+    // Flavour text (6.4.1) and reminder text, anything inside parentheses
+    // (6.4.2), are italic.
+    let depth = 0;
+    const plain = (part) => {
+      const italic = p.flavor || depth > 0 || part.startsWith('(');
+      depth += (part.match(/\(/g) ?? []).length - (part.match(/\)/g) ?? []).length;
+      ctx.font = FONT(textSize);
+      return { text: part, width: ctx.measureText(part).width, italic };
+    };
     const tokens = p.t
       .split(/(\{[^}]+\}|\s+)/)
       .filter(Boolean)
@@ -940,7 +958,7 @@ function layoutText(ctx, paragraphs, width, size) {
         const counter = /^counters?\b/.test(parts[i + 2] ?? '');
         const pt = !p.flavor && !counter && /^([+\-−]\d+)\/([+\-−]\d+)(.*)$/.exec(part);
         if (pt) {
-          const text = (t) => ({ text: t, width: ctx.measureText(t).width });
+          const text = plain;
           return [
             { ...text(`${pt[1]} `), joined: true },
             { pt: 'power', ...icon, joined: true },
@@ -949,7 +967,7 @@ function layoutText(ctx, paragraphs, width, size) {
             ...(pt[3] ? [text(pt[3])] : []),
           ];
         }
-        return [{ text: part, width: ctx.measureText(part).width, space: /^\s+$/.test(part) }];
+        return [{ ...plain(part), space: /^\s+$/.test(part) }];
       });
     let line = { tokens: [], flavor: p.flavor, rule: p.flavor && !lines.some((l) => l.flavor) };
     let lineWidth = 0;
@@ -986,7 +1004,7 @@ function layoutText(ctx, paragraphs, width, size) {
 
 /**
  * Scales the image to cover the box and crops the overflow evenly from both
- * sides. Cropping is still open (3.4.2); this is the simplest choice.
+ * sides (3.4.2).
  */
 function drawCover(ctx, img, box) {
   const scale = Math.max(box.w / img.width, box.h / img.height);

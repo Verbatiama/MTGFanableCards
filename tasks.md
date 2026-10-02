@@ -50,7 +50,7 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | D22  | ✓ DECIDED: Equal-height bands filling the text box, one font size, shrink to fit; then text box grows into the art (no ability limit); ±X like numbers; printed-card cost badges (+ up, − down, 0 flat) | PO     | —          | 7.2.6–7.2.7       |
 | D23  | ✓ DECIDED: No attribution needed (Osprey Dawn mockup is only a reference); follow the Fan Content Policy (free, non-commercial, notice in README and app); no marking on card images | PO     | —          | 1.4, 10.2         |
 | D24  | ✓ DECIDED: No formal accessibility target; English only for v1 (labels in config); no performance target, generation time measured and reported | PO     | —          | 10.3–10.5         |
-| T-S2 | Apply the corrections to README and the Components doc                                                                                                                                    | A or B | D12        | 12                |
+| T-S2 | ✓ DONE: Reviewed every decision (D1–D24) against Requirements: all questions answered and recorded except 8.1/8.3 (deferred to D25); answered the gaps (name matching, printing selection, art crop, output location, README goals) | A or B | D12        | 12                |
 
 ## Phase 2: Core build (weeks 2–6)
 
@@ -59,13 +59,13 @@ These can be settled while building starts. Each one blocks only the tasks liste
 | ID    | Task                                                                                                                                                           | Depends on           | Req          |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
 | T-A3  | Card data loader: load and index the JSON, look up by name                                                                                                     | T-A1, D2             | 3.3          |
-| T-A4  | Input parser and printing selection                                                                                                                            | T-A3, D3             | 3.2, 3.3.3   |
+| T-A4  | Input parser and printing selection                                                                                                                            | T-A3, D3, T-S2       | 3.2, 3.3.3   |
 | T-A5  | Mana cost parser: group symbols with counts, apply ordering                                                                                                    | S1, D11              | 5.3          |
 | T-A6  | Card-model mapper: JSON → card model (types, supertypes, subtypes, stats, loyalty, colour indicator, footer)                                                   | T-A3, T-A5, S1       | 3.3.1        |
 | T-A7  | Oracle text tokenizer: inline symbols, P/T modifiers, reminder and flavour text, loyalty ability split                                                         | S1, D11, D20         | 6.4          |
 | T-A8  | Zone/timing detection                                                                                                                                          | T-A6, D12            | 5.4          |
 | T-A9  | Configuration tables: type, supertype, subtype, mechanic, text symbol and frame colour mappings. Build the structure early and fill contents as decisions land | S1, D7, D14–D16, D21 | 9            |
-| T-A10 | Art fetcher with cache, rate limiting and placeholder                                                                                                          | T-A4, D10            | 3.4          |
+| T-A10 | Art fetcher with cache, rate limiting and placeholder                                                                                                          | T-A4, D10, T-S2      | 3.4          |
 | T-A11 | Output: image writer, file naming, zip bundling                                                                                                                | D4, T-B2             | 3.5          |
 | T-A12 | CLI entry point and error reporting                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
 

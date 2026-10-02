@@ -16,7 +16,7 @@ Each requirement is tagged:
 
 1.2 **[Inferred]** "Fannable" means the card is readable when held fanned in hand. A black **stat bar** runs the full height of the card's left edge, and it carries the information a player needs while only that strip is visible: card type, mana cost, colour indicator, timing/zone symbols, supertype, subtype, permanence, and stats or loyalty.
 
-1.3 **[Open]** Whether a mirrored (right-edge bar) variant is needed for players who fan the other way.
+1.3 **[Confirmed]** No mirrored (right-edge bar) variant for v1 (D8, 4.3).
 
 1.4 **[Confirmed]** The composite mockup carries an "OSPREYDAWN" watermark: Osprey Dawn made that mockup, and the project uses it only as a reference example. The project does not reuse their work, so no permission or attribution is needed (D23).
 
@@ -24,7 +24,7 @@ Each requirement is tagged:
 
 ## 2. Scope and priorities
 
-2.1 The README lists these goals. It does not say whether the numbering is a priority order, a milestone plan, or just a list **[Open]**:
+2.1 The README lists these goals. **[Confirmed]** They are a feature list, not a priority order or milestone plan; ordering and phases come from `tasks.md` (T-S2 review):
 
 1. Generate a normal card with a black bar on the left
 2. Mana symbols on the left
@@ -72,13 +72,13 @@ Each requirement is tagged:
 
 3.2.3 **[Confirmed]** Quantities: `4 Lightning Bolt` produces **four separate images** (one per copy).
 
-3.2.4 **[Open]** Name matching: exact, case-insensitive, or fuzzy.
+3.2.4 **[Confirmed]** Name matching is case-insensitive exact (T-S2 review): case, repeated spaces and curly vs straight apostrophes are ignored, otherwise the name must match. A name that doesn't match is reported as unmatched (3.2.6), with up to three close suggestions in the warning; it is never replaced automatically.
 
 3.2.5 **[Confirmed]** Double-faced card names: accept **both** the full name with `//` (e.g., `Delver of Secrets // Insectile Aberration`) **and** either face name alone (e.g., `Delver of Secrets` or `Insectile Aberration`).
 
 3.2.6 **[Confirmed]** Unmatched names (typos, card doesn't exist): **Frontend displays a warning; API returns a success/failure report** along with the generated files. Cards that match are processed; unmatched cards are reported but do not block the batch.
 
-3.2.7 **[Open]** Non-English card names and non-English output (see 10.4).
+3.2.7 **[Confirmed]** English only for v1: English card names and English output (10.4, D24).
 
 ### 3.3 Card data source
 
@@ -86,14 +86,14 @@ Each requirement is tagged:
 
 3.3.2 **[Confirmed]** Files are downloaded daily. The app fetches updated data on startup (or on demand) and caches locally.
 
-3.3.3 **[Open]** Printing selection. One card name matches many printings, and art, set symbol, collector number, rarity, artist and release year all vary by printing. The app needs:
+3.3.3 **[Confirmed]** Printing selection (T-S2 review). One card name matches many printings, and art, set symbol, collector number and rarity all vary by printing.
 
-- a way for the user to specify a printing, e.g. `Lightning Bolt (M10) 146`
-- a defined default when none is given (e.g. latest printing, or first printing)
+- The user can name a printing after the card: `4 Lightning Bolt (M10)` (set code) or `4 Lightning Bolt (M10) 146` (set code and collector number), the format Arena and MTGO exports use.
+- Without one, the card's first printing is used.
 
   3.3.4 **[Confirmed]** The type line shows the card's real type line from the JSON. Subtypes invented in the mockups ("Sorcery - Wrath", "Artifact - Sword", "Enchantment - Beast", "Planeswalker - Jace Beleren") are to be ignored.
 
-  3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
+  3.3.5 **[Confirmed]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
 
   3.3.6 **[Confirmed]** Card-model schema for v1: each card is represented as a single object containing identity fields (`name`, `types`, `supertypes`, `subtypes`, `layout`), mana info (`manaCost` with grouped symbol counts), power/toughness or loyalty fields, colour indicator information, oracle text kept in the same formatting as Scryfall, and footer metadata (`collectorNumber`, `rarity`, `setCode`, `artist`). There is no `copyright` field: the renderer builds the copyright line itself (6.5.2, D20). This structure is sufficient for rendering, and additional fields can be added later only if a concrete need appears.
 
@@ -107,7 +107,7 @@ Each requirement is tagged:
 - **Rate limiting:** Requests are spaced 100ms apart to respect Scryfall API limits
 - **Fallback behavior:** If art is unavailable (failed request, network error, or no image URL in data), render a **solid black placeholder** in the art box. The card still generates successfully.
 
-  3.4.2 **[Open]** How art is cropped and scaled to fit the art box, which is narrower than a standard card because of the stat bar.
+  3.4.2 **[Confirmed]** Art is scaled to cover the art box, which is narrower than a standard card because of the stat bar, and the overflow is trimmed evenly from both sides (centre crop). No distortion and no empty space (T-S2 review).
 
 ### 3.5 Output
 
@@ -122,7 +122,7 @@ Each requirement is tagged:
 
   3.5.4 **[Confirmed]** Double-faced cards: **Two separate images** (front and back). Each face gets its own PNG file (e.g., `Delver-of-Secrets.png` and `Insectile-Aberration.png`, or with face labels if needed).
 
-  3.5.6 **[Open]** Zip file name and output location.
+  3.5.6 **[Confirmed]** The zip is named `cards` (`cards.zip`, or `cards.pdf` for the PDF option; D4). The frontend downloads it in the browser and API calls return it in the response; nothing is kept on the server afterwards. Script and command-line runs write to `out/` (T-S2 review).
 
 ---
 
@@ -153,7 +153,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 4.1 **[Confirmed]** The stat bar is black on every card, regardless of card colour.
 
-4.2 **[Inferred]** The stat bar has three sections:
+4.2 **[Confirmed]** The stat bar has three sections (D16–D19):
 
 - **Top**, anchored to the top: card type icon, colour indicator, mana cost.
 - **Middle**, anchored at the type line: attaching subtypes, supertypes, zone/timing symbols (5.6.1). Below it, beside the text box, the land mana symbols (5.5.8).
@@ -202,7 +202,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.2.1 **[Confirmed]** For cards that have a colour indicator, it is placed directly under the card type icon.
 
-5.2.2 **[Inferred]** Cards that need it are mainly back faces of double-faced cards, plus cards such as Ancestral Vision and Dryad Arbor. It should be driven by the JSON colour indicator field.
+5.2.2 **[Confirmed]** Cards that need it are mainly back faces of double-faced cards, plus cards such as Ancestral Vision and Dryad Arbor. It should be driven by the JSON colour indicator field.
 
 5.2.3 **[Confirmed]** Appearance (D17): a single circle, as on printed cards. A one-colour indicator is a solid circle; a multi-colour indicator is the same circle split into equal wedges, one per colour, in WUBRG order clockwise from the top (Nicol Bolas, the Arisen: blue, black, red). It is never more than one circle, however many colours.
 
@@ -290,7 +290,7 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 5.5.1 **[Confirmed]** Legendary is shown as a crown icon with the label "LEGENDARY" (Niv-Mizzet).
 
-5.5.2 **[Inferred]** Basic is shown with a labelled icon (Forest, composite image).
+5.5.2 **[Confirmed]** Basic is shown with a labelled icon, BASIC (Forest, composite image; D15).
 
 5.5.3 **[Confirmed]** Planeswalkers are not exempt: every legendary card, planeswalkers included, shows the crown + LEGENDARY (D15, revised). The Jace mockup's missing LEGENDARY icon is treated as an omission.
 
@@ -400,11 +400,11 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.4.1 **[Confirmed]** Contains rules text, with flavour text below in italics (Feral Invocation, Lightning Strike).
 
-6.4.2 **[Inferred]** Reminder text is shown in italics in parentheses (Fiendslayer Paladin).
+6.4.2 **[Confirmed]** Reminder text is shown in italics in parentheses (Fiendslayer Paladin).
 
-6.4.3 **[Inferred]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Confirmed]** Which watermark a card has comes from Scryfall's `watermark` field (e.g. `izzet`); the images are custom SVGs in `res/symbols/` (D7, D20).
+6.4.3 **[Confirmed]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Confirmed]** Which watermark a card has comes from Scryfall's `watermark` field (e.g. `izzet`); the images are custom SVGs in `res/symbols/` (D7, D20).
 
-6.4.4 **[Inferred]** Basic lands show a large mana symbol in the text box instead of text (Forest).
+6.4.4 **[Confirmed]** Basic lands show a large mana symbol in the text box instead of text (Forest).
 
 6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Confirmed]** Only numeric modifiers with a sign on both numbers use it: +N/+N and -N/-N (Dismember's -5/-5), and mixed signs such as +1/-1 (D20). Everything else stays as text: X modifiers (+X/+X), counters ("a +1/+1 counter" is drawn as text too, since the counter name is not a modifier) and plain stats such as "a 1/1 Goblin token" or "X/X". Flavour text is never converted.
 
@@ -533,9 +533,9 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 - Modal (front)
 - Modal (back)
 
-  8.1 **[Open]** What each marker means and when it applies. Sun/Moon, Spark and Emrakul are transform markers, Day/Night is a mechanic (daybound), and Modal is MDFC.
+  8.1 **[Open, deferred to D25]** What each marker means and when it applies. Sun/Moon, Spark and Emrakul are transform markers, Day/Night is a mechanic (daybound), and Modal is MDFC.
 
-  8.2 **[Open]** Each of the following layouts needs a mockup or an explicit "out of scope for v1":
+  8.2 **[Confirmed]** These layouts are out of scope for v1 (D1); their mockups and rules are D25 (Phase 4). Battles and vehicles are rendered as single faces in v1 (5.7.7):
 
 - transform double-faced cards (front and back)
 - modal double-faced cards
@@ -557,7 +557,7 @@ The Components doc lists these "Flip" markers, which mix different concepts:
 - omen
 - tokens and emblems
 
-  8.3 **[Open]** How double-faced cards map to output images (see 3.5.5), and how the back face is identified in the stat bar.
+  8.3 Double-faced cards produce one image per face (3.5.4, D1, D4) **[Confirmed]**. How the back face is identified in the stat bar is **[Open, deferred to D25]**.
 
 ---
 
@@ -607,75 +607,75 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-Grouped by area, so the project owner can answer them in batches. Numbers in brackets refer to the sections above.
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question has now been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review).
 
 ### Product and scope
 
-1. Is a mirrored right-edge bar needed? [1.3]
-2. Who owns the layout design, and is permission or attribution needed? [1.4]
-3. Are the README goals in priority order? What are the acceptance criteria? [2.1, 2.4]
-4. Which layouts are in scope for v1? [2.5, 8.2]
+1. Is a mirrored right-edge bar needed? [1.3] — **Answered:** no, not for v1 (D8).
+2. Who owns the layout design, and is permission or attribution needed? [1.4] — **Answered:** Osprey Dawn's mockup is only a reference; no permission or attribution needed (D23).
+3. Are the README goals in priority order? What are the acceptance criteria? [2.1, 2.4] — **Answered:** no, `tasks.md` is the plan (T-S2 review); acceptance criteria are set per phase (2.4).
+4. Which layouts are in scope for v1? [2.5, 8.2] — **Answered:** all card types as single faces, double-faced cards as two images, special layouts after v1 (D1).
 
 ### Architecture, input and output
 
-5. CLI only, or also a server/UI? [3.1.2]
-6. What is the input format, and how are quantities handled? [3.2.2, 3.2.3]
-7. What name-matching rules apply, including DFC names? [3.2.4, 3.2.5]
-8. What happens to unmatched names? [3.2.6]
-9. Which JSON source (MTGJSON or Scryfall), and is it bundled or downloaded? [3.3.1, 3.3.2]
-10. How is a printing chosen, and what is the default? [3.3.3]
-11. Where does art come from? What are the caching, rate-limit and offline rules? [3.4.1]
-12. What are the image format, dimensions, DPI and bleed? [3.5.2, 3.5.3]
-13. How are files named inside the zip? [3.5.4, 3.5.6]
-14. Do double-faced cards produce one image or two? [3.5.5]
+5. CLI only, or also a server/UI? [3.1.2] — **Answered:** backend API and frontend UI (D9).
+6. What is the input format, and how are quantities handled? [3.2.2, 3.2.3] — **Answered:** decklist with quantities, one image per copy (D3).
+7. What name-matching rules apply, including DFC names? [3.2.4, 3.2.5] — **Answered:** case-insensitive exact with suggestions (T-S2 review); either face name or the full `//` name (D3).
+8. What happens to unmatched names? [3.2.6] — **Answered:** reported, the batch continues (D3).
+9. Which JSON source (MTGJSON or Scryfall), and is it bundled or downloaded? [3.3.1, 3.3.2] — **Answered:** Scryfall bulk data, downloaded daily (D2).
+10. How is a printing chosen, and what is the default? [3.3.3] — **Answered:** optional `(SET) number` after the name, otherwise the first printing (T-S2 review).
+11. Where does art come from? What are the caching, rate-limit and offline rules? [3.4.1] — **Answered:** Scryfall at runtime, cached, 100ms apart, black placeholder (D10). Cropping: cover and centre crop (3.4.2, T-S2 review).
+12. What are the image format, dimensions, DPI and bleed? [3.5.1, 3.5.3] — **Answered:** PNG 750×1050 at 300 DPI with a black border, zip or A4 PDF (D4).
+13. How are files named inside the zip, and where does output go? [3.5.2, 3.5.6] — **Answered:** `card-name.png` with a counter for duplicates (D4); the zip downloads in the UI or returns from the API, scripts write to `out/` (T-S2 review).
+14. Do double-faced cards produce one image or two? [3.5.4] — **Answered:** two (D1, D4).
 
 ### Layout
 
-15. What are the exact dimensions and spacing? [4.3]
-16. What are the overflow and collision rules for the stat bar? [4.4, 5.3.9, 5.6.3]
+15. What are the exact dimensions and spacing? [4.3] — **Answered:** from the mockups, configurable (D8).
+16. What are the overflow and collision rules for the stat bar? [4.4, 5.3.9, 5.6.3] — **Answered:** D19.
 
 ### Stat bar
 
-17. Which icons are needed for Battle, Kindred and the other types, and in what order for multi-type cards? [5.1.3, 5.1.4]
-18. What does the colour indicator look like, and does the mana block reflow? [5.2.3, 5.2.4]
-19. How are colourless, XX, hybrid, mono-hybrid, Phyrexian, snow and {0} drawn? [5.3.6, 5.3.8]
-20. What is the full mana symbol order? [5.3.7]
-21. What is the complete mechanic → zone/timing symbol mapping? [5.4.2]
-22. How are mechanics detected (keywords field, text parsing, or mapping table)? [5.4.3]
-23. Do triggered abilities that work from a zone count? [5.4.4]
-24. Should the flash label be "INSTANT" or "FLASH"? Do instants also get the bolt? [5.4.5, 5.4.6]
-25. What is the maximum number and order of zone symbols? [5.4.7]
-26. What does the "NORMAL" icon mean, and when does it appear? [5.4.8]
-27. Why is there no LEGENDARY icon on Jace? [5.5.3]
-28. Which icons are needed for the other supertypes? [5.5.4]
-29. Is the subtype list exhaustive? Which icon wins when a card has several subtypes? [5.5.8, 5.5.9]
-30. Which icons carry text labels? [5.5.10]
-31. Is the permanence label shown only when the bottom is free? Do lands get it? [5.7.3, 5.7.4]
-32. How are special P/T values, vehicles, battles and spacecraft handled? [5.7.6, 5.7.7]
+17. Which icons are needed for Battle, Kindred and the other types, and in what order for multi-type cards? [5.1.3, 5.1.4] — **Answered:** D14.
+18. What does the colour indicator look like, and does the mana block reflow? [5.2.3, 5.2.4] — **Answered:** D17.
+19. How are colourless, XX, hybrid, mono-hybrid, Phyrexian, snow and {0} drawn? [5.3.6, 5.3.8] — **Answered:** D11.
+20. What is the full mana symbol order? [5.3.7] — **Answered:** D11.
+21. What is the complete mechanic → zone/timing symbol mapping? [5.4.2] — **Answered:** D12.
+22. How are mechanics detected (keywords field, text parsing, or mapping table)? [5.4.3] — **Answered:** D12.
+23. Do triggered abilities that work from a zone count? [5.4.4] — **Answered:** yes (D12).
+24. Should the flash label be "INSTANT" or "FLASH"? Do instants also get the bolt? [5.4.5, 5.4.6] — **Answered:** FLASH, and yes (D12).
+25. What is the maximum number and order of zone symbols? [5.4.7] — **Answered:** no maximum, fixed order (D12).
+26. What does the "NORMAL" icon mean, and when does it appear? [5.4.8] — **Answered:** it isn't used (D13).
+27. Why is there no LEGENDARY icon on Jace? [5.5.3] — **Answered:** an omission; planeswalkers show it (D15).
+28. Which icons are needed for the other supertypes? [5.5.4] — **Answered:** Snow and World; Token is out of scope (D15).
+29. Is the subtype list exhaustive? Which icon wins when a card has several subtypes? [5.5.8, 5.5.9] — **Answered:** D16.
+30. Which icons carry text labels? [5.5.10] — **Answered:** zone/timing and supertype icons; subtype icons don't (D16).
+31. Is the permanence label shown only when the bottom is free? Do lands get it? [5.7.3, 5.7.4] — **Answered:** only NON-PERMANENT is shown; lands get none (D18).
+32. How are special P/T values, vehicles, battles and spacecraft handled? [5.7.6, 5.7.7] — **Answered:** D18.
 
 ### Card box
 
-33. Where do set symbols and watermarks come from? [6.3.3, 6.4.3]
-34. Does the sword/shield notation apply to all P/T text? [6.4.5]
-35. Is the symbol + count pill used for all mana in rules text? [6.4.6]
-36. Which additional text symbols are needed? [6.4.7]
-37. What are the text-fitting rules? [6.4.8]
-38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3]
-39. What do the frames for hybrid, coloured artifacts, devoid and other unshown cases look like? [6.6.2]
-40. How are long, many or ±X planeswalker abilities handled? [7.2.6, 7.2.7]
+33. Where do set symbols and watermarks come from? [6.3.3, 6.4.3] — **Answered:** D7, D20.
+34. Does the sword/shield notation apply to all P/T text? [6.4.5] — **Answered:** only numeric ±N/±N modifiers (D20).
+35. Is the symbol + count pill used for all mana in rules text? [6.4.6] — **Answered:** no, rules text shows symbols as printed (D11).
+36. Which additional text symbols are needed? [6.4.7] — **Answered:** all of them (D20).
+37. What are the text-fitting rules? [6.4.8] — **Answered:** drop flavour text, then shrink (D20).
+38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3] — **Answered:** the year the image is generated; no holo stamp (D20).
+39. What do the frames for hybrid, coloured artifacts, devoid and other unshown cases look like? [6.6.2] — **Answered:** D21.
+40. How are long, many or ±X planeswalker abilities handled? [7.2.6, 7.2.7] — **Answered:** D22.
 
 ### Special layouts
 
-41. What do the flip markers mean (including "Ignite")? [8.1]
-42. How is the back face identified? [8.3]
+41. What do the flip markers mean (including "Ignite")? [8.1] — **Deferred** to D25 (Phase 4).
+42. How is the back face identified? [8.3] — **Deferred** to D25 (Phase 4).
 
 ### Non-functional
 
-43. Which fonts, and under what licensing? [10.1]
-44. What is the Fan Content Policy position? [10.2]
-45. What are the accessibility requirements? [10.3]
-46. Is localisation in scope? [10.4]
-47. What are the expected batch sizes and performance targets? [10.5]
+43. Which fonts, and under what licensing? [10.1] — **Answered:** Beleren, free to use (D6).
+44. What is the Fan Content Policy position? [10.2] — **Answered:** follow it (D23).
+45. What are the accessibility requirements? [10.3] — **Answered:** no formal target (D24).
+46. Is localisation in scope? [10.4] — **Answered:** English only for v1 (D24).
+47. What are the expected batch sizes and performance targets? [10.5] — **Answered:** no hard target; measured and reported (D24).
 
 ---
 
@@ -685,8 +685,8 @@ Grouped by area, so the project owner can answer them in batches. Numbers in bra
 - **Components doc, Special → "Instant"** should read "Flash" (it is the timing symbol, not the card type).
 - **Components doc, Special → "Keywords"** should be replaced by "Zone and timing symbols".
 - **Components doc, Special → "Active in grave"** is covered by the graveyard zone symbol.
-- **Components doc, Other → "Non-permeant"** is a typo for "Non-permanent". It is the vertical permanence label (5.7.2), and "Permanent" should be listed alongside it.
-- **Components doc, Stats → "Creature only"** conflicts with Vehicles, which have P/T without being creatures.
+- **Components doc, Other → "Non-permeant"** is a typo for "Non-permanent". It is the vertical permanence label (5.7.2). Only NON-PERMANENT is used; there is no PERMANENT label (D18).
+- **Components doc, Stats → "Creature only"** conflicts with Vehicles, which have P/T without being creatures. Vehicles and spacecraft show hollow stats (D18, 5.7.7).
 - **Components doc, Card box → Text box → Symbols** lists "Energy" twice.
 - **Components doc, Card types** is missing Battle and Kindred, and a Supertypes section (Legendary, Basic, Snow, World).
 - **Components doc, Card box** is missing the set symbol, flavour text, watermark and the footer fields.
