@@ -105,6 +105,7 @@ Each requirement is tagged:
 - **Timing:** Downloaded at runtime during card generation
 - **Caching:** Downloaded images are cached locally to avoid re-downloading
 - **Rate limiting:** Requests are spaced 100ms apart to respect Scryfall API limits
+- **Cache size:** capped; the least-used 25% of art is deleted when the cap is reached (3.6.4, D29).
 - **Fallback behavior:** If art is unavailable (failed request, network error, or no image URL in data), render a **solid black placeholder** in the art box. The card still generates successfully.
 
   3.4.2 **[Confirmed]** Art is scaled to cover the art box, which is narrower than a standard card because of the stat bar, and the overflow is trimmed evenly from both sides (centre crop). No distortion and no empty space (T-S2 review).
@@ -161,7 +162,25 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 - **Storage:** the Scryfall bulk data (3.3) and the art cache (3.4) live on the VPS disk, in a Docker volume so they survive redeploys.
 - **Domain and TLS:** `fannable.verbatiam.dev`, a subdomain of the owner's domain, pointed at the VPS by a DNS record. A Caddy reverse proxy on the VPS terminates TLS with automatic Let's Encrypt certificates (T-S10, T-S11).
 
-3.6.4 **[Open]** Self-hosting (D29): how others run their own copy (a Docker image and Compose file, or `npm start` on Linux with Node.js 22), configuration through environment variables (port, data and cache directories), minimum disk and memory, and using the CLI on its own without the server.
+3.6.4 **[Confirmed]** Self-hosting (D29):
+
+- **Distribution:** a Docker image published to GitHub Container Registry for each release, plus a `docker-compose.yml`. The Compose file always runs the app, with a data volume; a Caddy service behind a Compose profile adds HTTPS on a domain, the same setup as the public instance (3.6.3). Running from a clone with `npm start` (Linux, Node.js 22) stays documented as the developer route.
+- **CLI:** the same image and repository: `docker compose run app cli decklist.txt`, or `npm run cli -- decklist.txt` from a clone. Output goes to the mounted `out/` folder. No separate npm package.
+- **Configuration**, by environment variables:
+
+| Variable              | Default     | Purpose                                                  |
+| --------------------- | ----------- | -------------------------------------------------------- |
+| `PORT`                | `3000`      | HTTP port                                                |
+| `DATA_DIR`            | `/data`     | Scryfall bulk data (3.3)                                 |
+| `ART_CACHE_DIR`       | `/data/art` | Art cache (3.4)                                          |
+| `ART_CACHE_MAX_GB`    | `10`        | Art cache cap (below)                                    |
+| `MAX_BODY_KB`         | `64`        | Decklist request size (3.6.1)                            |
+| `MAX_CARDS_PER_JOB`   | `250`       | Cards per job (3.6.1); `0` for no limit                  |
+| `MAX_RUNNING_JOBS`    | `2`         | Jobs rendering at once; others queue (3.6.1)             |
+| `JOB_TTL_MINUTES`     | `60`        | How long finished files are kept (3.6.1)                 |
+
+- **Art cache cap:** the cache records how often each art is used. When it reaches `ART_CACHE_MAX_GB`, the least-used 25% of cached art is deleted (ties broken by least recent use).
+- **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM, and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
 
 3.6.5 **[Open]** Operations (D30): the deployment pipeline (GitHub Actions to the chosen host), the scheduled daily Scryfall refresh (3.3.2), logging and monitoring, and abuse protection for a public instance, such as rate limits and a per-request batch size (10.5 sets no limit for the tool itself).
 ---
@@ -649,7 +668,7 @@ The implementation should keep these as configuration tables rather than hard-co
 
 ## 11. Consolidated open questions
 
-The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Questions 51–52, on hosting, are open (D29–D30).
+The questions raised while writing these requirements, grouped by area. Numbers in brackets refer to the sections above. Every question up to 47 has been answered, except the two special-layout questions deferred to D25 (Phase 4); each one says where its answer is recorded (T-S2 review). Question 52, on operations, is open (D30).
 
 ### Product and scope
 
@@ -724,7 +743,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 48. Which backend framework, and what does the API look like? [3.6.1] — **Answered:** Fastify, JSON REST with background jobs and polling, configurable limits (D26).
 49. Which frontend stack, and are cards rendered in the browser or on the server? [3.6.2] — **Answered:** React with Vite; batches on the server, live single-card previews in the browser (D27).
 50. Where is the public instance hosted, and who pays? [3.6.3] — **Answered:** a DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) at `fannable.verbatiam.dev` (D28).
-51. How do people self-host it? [3.6.4] — **Open** (D29).
+51. How do people self-host it? [3.6.4] — **Answered:** Docker image and Compose file (optional Caddy for HTTPS), environment-variable settings, capped art cache, CLI in the same image (D29).
 52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Open** (D30).
 
 ---

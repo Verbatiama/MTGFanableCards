@@ -63,7 +63,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | D26 | ✓ DECIDED: Fastify; JSON REST under /api with background jobs + polling (POST /api/jobs, GET status, download); OpenAPI from route schemas; configurable limits (64 KB, 250 cards, 2 concurrent jobs, files kept 1 h) | PO + A | D9           | 3.6.1 |
 | D27 | ✓ DECIDED: React + Vite (JS, source in web/, served by Fastify); batches rendered on the server, live single-card previews in the browser with src/render/; no thumbnail gallery | PO + B | D5, D9       | 3.6.2 |
 | D28 | ✓ DECIDED: DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) running the self-hosting Docker setup; data and art cache on a Docker volume; fannable.verbatiam.dev with Caddy and automatic TLS | PO     | D2, D10, D23 | 3.6.3 |
-| D29 | Self-hosting: how others run their own copy (Docker image and Compose file, or plain `npm start`), configuration (environment variables for port, data and cache directories), minimum requirements, CLI-only use without the server | PO + A | D5, D26      | 3.6.4 |
+| D29 | ✓ DECIDED: Docker image (GHCR) + Compose file with optional Caddy profile; env-var settings; art cache capped (10 GB default, drop least-used 25% at the cap); CLI via the same image or npm run cli; Linux x86-64, 2 GB RAM, ~15 GB disk | PO + A | D5, D26      | 3.6.4 |
 | D30 | Operations: deployment pipeline (GitHub Actions to the chosen host), scheduled Scryfall bulk-data refresh (daily, D2), logging and monitoring, abuse protection for a public instance (rate limits, per-request batch size; D24 sets no limit) | PO + A | D26, D28     | 3.6.5 |
 
 ### Dev A: data pipeline
@@ -77,9 +77,9 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-A7  | Oracle text tokenizer: inline symbols, P/T modifiers, reminder and flavour text, loyalty ability split                                                         | S1, D11, D20         | 6.4          |
 | T-A8  | Zone/timing detection                                                                                                                                          | T-A6, D12            | 5.4          |
 | T-A9  | Configuration tables: type, supertype, subtype, mechanic, text symbol and frame colour mappings. Build the structure early and fill contents as decisions land | S1, D7, D14–D16, D21 | 9            |
-| T-A10 | Art fetcher with cache, rate limiting and placeholder                                                                                                          | T-A4, D10, T-S2      | 3.4          |
+| T-A10 | Art fetcher with cache, rate limiting and placeholder, usage-counted cache with the 25% eviction at the cap (D29)                                                                                                          | T-A4, D10, T-S2, D29      | 3.4          |
 | T-A11 | Output: image writer, file naming, zip bundling, and the optional A4 PDF with 9 cards per sheet | D4, T-B2             | 3.5          |
-| T-A12 | CLI entry point and error reporting                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
+| T-A12 | CLI entry point and error reporting (`npm run cli`, also run from the Docker image; D29)                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
 
 ### Dev B: renderer
 
@@ -115,7 +115,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
 | T-S7 | Accessibility and localisation work, as scoped by D24                          | B     | D24, T-S3         | 10.3–10.4 |
 | T-S8 | User documentation: README usage, input format, licensing notes                | A     | T-S3, D23         | —         |
-| T-S9 | Deployment: container image, deployment pipeline to the VPS, self-hosting guide | A     | T-S3, D26–D30, T-S11     | 3.6       |
+| T-S9 | Deployment: Docker image published to GHCR, `docker-compose.yml` with the optional Caddy profile, deployment pipeline to the VPS, self-hosting guide (D29) | A     | T-S3, D26–D30, T-S11     | 3.6       |
 | T-S10 | Provision the VPS (D28): DigitalOcean droplet in Sydney, 2 GB; firewall (SSH, HTTP, HTTPS only), Docker, Caddy reverse proxy | PO + A | D28, D29 | 3.6.3 |
 | T-S11 | Set up the subdomain: DNS record for `fannable.verbatiam.dev` pointing at the VPS, Caddy site with automatic Let's Encrypt TLS, check HTTPS works | PO | T-S10 | 3.6.3 |
 
