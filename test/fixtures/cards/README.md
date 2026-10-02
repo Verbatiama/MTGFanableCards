@@ -4,6 +4,8 @@ Hand-written card models, one JSON file per card face, following the S1 schema d
 
 Load them with `loadCardFixtures()` / `loadCardFixture(slug)` from `test/fixtures/cards.js`. `test/fixtures.test.js` checks every file against the schema.
 
+`test/fixtures/scryfall/printings.json` holds the real Scryfall printing of each fixture card, as the card database stores it (T-A3). `test/model/from-scryfall.test.js` maps those printings (T-A6) and checks the result matches these files, so the fixtures double as the mapper's expected output.
+
 ## Conventions
 
 - **File name:** the face name in lower case, punctuation dropped, words joined by `-` (`Smuggler's Copter` → `smugglers-copter.json`).

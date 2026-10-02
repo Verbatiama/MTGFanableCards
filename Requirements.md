@@ -51,6 +51,7 @@ Each requirement is tagged:
 - **Included:** All card types (creatures, instants, sorceries, artifacts, enchantments, planeswalkers, lands, battles, etc.) rendered as single faces
 - **Multi-face handling:** Double-faced cards (transform, modal/MDFC) render as two separate images
 - **Excluded from v1:** Special layouts (split, adventure, saga, flip, meld, leveler, class, case, etc.) move to Phase 4 (post-v1)
+- **Unsupported layouts in a decklist** (T-A6): split, flip and adventure cards, whose halves share one side, can't be mapped in v1. They are reported for that line, like unmatched names (3.2.6), and the rest of the batch continues. Other special layouts with a single face (saga, class, leveler and so on) are drawn as normal cards until Phase 4.
 
 ---
 

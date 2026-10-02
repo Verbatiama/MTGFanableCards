@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateCardModel } from '../src/model/card-model.js';
-import { loadCardFixture } from './fixtures/cards.js';
+import { validateCardModel } from '../../src/model/card-model.js';
+import { loadCardFixture } from '../fixtures/cards.js';
 
 const valid = () => loadCardFixture('niv-mizzet-the-firemind');
 
