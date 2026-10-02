@@ -51,3 +51,9 @@ out/        Generated cards (not committed)
 ```
 
 Code in `src/render/`, `src/model/` and `public/` must not use Node-only APIs, because it also runs in the browser.
+
+## Legal
+
+MTGFannableCards is unofficial Fan Content permitted under the [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy). Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+
+The project is free and non-commercial. Generated cards are for personal use and playtesting; don't sell them. The code is licensed under GPL-3.0 (see `LICENSE`).

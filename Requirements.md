@@ -18,7 +18,7 @@ Each requirement is tagged:
 
 1.3 **[Open]** Whether a mirrored (right-edge bar) variant is needed for players who fan the other way.
 
-1.4 **[Open]** Who owns the layout design. The composite mockup carries an "OSPREYDAWN" watermark; confirm permission to implement it and whether attribution is required.
+1.4 **[Confirmed]** The composite mockup carries an "OSPREYDAWN" watermark: Osprey Dawn made that mockup, and the project uses it only as a reference example. The project does not reuse their work, so no permission or attribution is needed (D23).
 
 ---
 
@@ -590,10 +590,12 @@ The implementation should keep these as configuration tables rather than hard-co
 
 10.1 **Fonts [Confirmed].** Use the Beleren fonts (free to use, located in `res/fonts/`). These provide the authentic Magic card aesthetic.
 
-10.2 **Legal [Open].**
+10.2 **Legal [Confirmed]** (D23).
 
-- The output is effectively a set of proxies using Wizards of the Coast card art, text and symbols. State the project's position relative to the Wizards Fan Content Policy.
-- Resolve design attribution (1.4) and symbol licensing (9.1).
+- The output is effectively a set of proxies using Wizards of the Coast card art, text and symbols. The project follows the Wizards Fan Content Policy: it is free and non-commercial (no selling cards, images or access, no paywalls or sponsorships), and generated images are for personal use and playtesting.
+- Wizards' unofficial Fan Content notice appears in the README and must appear in the app's UI when it is built (T-S8, frontend).
+- Generated card images carry no extra "unofficial" marking; the footer keeps the copyright line (6.5.2).
+- Design attribution: none needed (1.4). Symbol licensing: the symbol sheet is the project's own, traced icons are GPL-3.0 like the project, and set symbols come from Scryfall at runtime (9.1, `res/symbols/README.md`).
 
   10.3 **Accessibility [Open].** Colour indicators, frame colours and mana symbols should remain distinguishable for colour-blind players. This matters especially in the fanned view, which relies heavily on colour. The mockups already pair icons with text labels in the middle section; consider the same for colour indicators. The colour indicator itself is decided by D17 (5.2.5): divider lines between wedges, no letters.
 
