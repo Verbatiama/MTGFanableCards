@@ -29,17 +29,27 @@ const FOOTER = { y: 966 };
 const FONT = (size) => `bold ${size}px "Beleren"`;
 const LABEL = (size) => `bold ${size}px "Beleren SmallCaps"`;
 
-const FRAMES = {
-  W: '#f2ecd2',
-  U: '#a9cbe8',
-  B: '#9e9893',
-  R: '#eba98d',
-  G: '#a9cba0',
-  gold: '#e3c873',
-  colourless: '#c9ced2',
+// Frames as on real cards (current frame, D21 revised): a textured coloured
+// border, coloured pinlines around each panel, pale name/type bars and a pale
+// text box. Sampled from Scryfall scans: Pacifism (DVD), Divination (M15),
+// Murder (EMN), Shock (DDN), Giant Growth (EVG), Lightning Helix (DDN), Mind
+// Stone (C14), Thought-Knot Seer (OGW), Kitchen Finks (UMA), Complete
+// Disregard (BFZ).
+const FRAME = {
+  W: { border: '#cdbe9c', pin: '#e9ebe0', bar: '#ebe9df', text: '#f2f0e5' },
+  U: { border: '#669ecb', pin: '#1a78b6', bar: '#b6d0d8', text: '#d5e3e7' },
+  B: { border: '#232728', pin: '#333331', bar: '#c8c6c8', text: '#eff4f6' },
+  R: { border: '#c03c2b', pin: '#e4321e', bar: '#efbba3', text: '#efd3c6' },
+  G: { border: '#557054', pin: '#256a40', bar: '#b0bbae', text: '#cddcce' },
+  gold: { border: '#d0b056', pin: '#d9b75a', bar: '#d2b16e', text: '#f5f3e7' },
+  artifact: { border: '#95a3ae', pin: '#dfe0e2', bar: '#cfcfd3', text: '#d2d5d8' },
+  colourless: { border: '#89807a', pin: '#e2dfe6', bar: '#b2a8a7', text: '#d8d2c6' },
+  // Hybrid cards: grey bars, and a text box paler than either colour's.
+  hybridBar: '#d8d3d1',
+  hybridText: '#f4f4f2',
+  // Devoid: the art shows through a translucent border and text box.
+  devoid: { pin: '#e2e1c3', bar: '#a69c97', text: 'rgba(211, 209, 197, 0.88)' },
 };
-// How strongly a devoid card's silver frame is tinted (D21).
-const TINT = 0.4;
 // Land frames as on real cards (current frame, D21 revised): every land has the
 // same stone frame; the colour is in the pinlines, the name/type bars and the
 // text box. Colours sampled from Scryfall scans of M19 basics, Wasteland (EMA),
@@ -145,34 +155,6 @@ function sheetCode(code) {
 }
 
 /**
- * Frame colours (6.6, D21) as a list: one colour, or two for a split frame
- * (left | right). Coloured cards use their colour, gold when multicoloured,
- * except two-colour hybrid cards, which are split. Colourless lands are tan and
- * colourless non-lands silver, tinted by the mana a land produces or a devoid
- * card's mana cost uses: one colour tints, two split, three or more go gold.
- */
-function frameColours(model) {
-  const { colors } = model;
-  if (colors.length === 1) return [FRAMES[colors[0]]];
-  if (colors.length === 2) {
-    // Two-colour hybrid, Phyrexian hybrid ({G/W/P}) included.
-    const hybrid = (model.manaCost ?? []).find((m) => /^[WUBRG]\/[WUBRG](\/P)?$/.test(m.symbol));
-    return hybrid
-      ? hybrid.symbol
-          .split('/')
-          .slice(0, 2)
-          .map((c) => FRAMES[c])
-      : [FRAMES.gold];
-  }
-  if (colors.length > 2) return [FRAMES.gold];
-  const base = FRAMES.colourless;
-  const tints = manaColours(model);
-  if (!tints.length) return [base];
-  if (tints.length > 2) return [mix(base, FRAMES.gold, TINT)];
-  return tints.map((c) => mix(base, FRAMES[c], TINT));
-}
-
-/**
  * Land palettes (D21 revised): the card's colours if it has any, otherwise the
  * colours it taps for. None → colourless grey, one → that colour, two → split,
  * three or more (or "any color") → gold.
@@ -193,14 +175,12 @@ function acrossBox(ctx, colours) {
   return gradient;
 }
 
-let stoneTexture;
-/** Seeded speckled stone, standing in for the land frame's texture. */
-function stonePattern(ctx) {
-  if (!stoneTexture) {
-    stoneTexture = createCanvas(240, 240);
-    const t = stoneTexture.getContext('2d');
-    t.fillStyle = LAND.stone;
-    t.fillRect(0, 0, 240, 240);
+let speckles;
+/** Seeded transparent speckles laid over every border, for its texture. */
+function texture(ctx) {
+  if (!speckles) {
+    speckles = createCanvas(240, 240);
+    const t = speckles.getContext('2d');
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 900; i++) {
@@ -218,15 +198,23 @@ function stonePattern(ctx) {
       t.fill();
     }
   }
-  return ctx.createPattern(stoneTexture, 'repeat');
+  return ctx.createPattern(speckles, 'repeat');
 }
 
-/** Frame, bar and text-box fills and the pinline colour for a card (6.6). */
+/**
+ * Border, pinline, bar and text-box styles for a card (6.6, D21), matching
+ * real cards. Lands: stone border, colour from card colour or produced mana.
+ * One colour: that frame. Two-colour hybrid: split border, pinlines and text
+ * box with grey bars. Other multicolour: gold, with pinlines in the card's two
+ * colours (gold pinlines for three or more). Colourless: artifact frame for
+ * artifacts, colourless (Eldrazi) frame otherwise; devoid shows its art
+ * through the border, tinted by its mana colours.
+ */
 function framePaint(ctx, model) {
   if (model.types.includes('Land')) {
     const p = landPalettes(model);
     return {
-      frame: stonePattern(ctx),
+      border: LAND.stone,
       bar: p.length === 2 ? LAND.splitBar : p[0].bar,
       text: acrossBox(
         ctx,
@@ -238,16 +226,66 @@ function framePaint(ctx, model) {
       ),
     };
   }
-  const frame = frameColours(model);
-  return {
-    frame: frameFill(ctx, frame, 1),
-    bar: frameFill(ctx, frame, 1.12),
-    text: frameFill(ctx, frame, 1.22),
-    pin: null,
-  };
+  const { colors } = model;
+  const printed = manaColours(model).filter((c) => colors.includes(c));
+  const pair = printed.length === 2 ? printed : colors;
+  if (colors.length === 1) return paletteOf(FRAME[colors[0]]);
+  if (colors.length === 2) {
+    // Two-colour hybrid, Phyrexian hybrid ({G/W/P}) included.
+    const hybrid = (model.manaCost ?? []).find((m) => /^[WUBRG]\/[WUBRG](\/P)?$/.test(m.symbol));
+    if (hybrid) {
+      const sides = hybrid.symbol
+        .split('/')
+        .slice(0, 2)
+        .map((c) => FRAME[c]);
+      return {
+        border: acrossBox(
+          ctx,
+          sides.map((x) => x.border),
+        ),
+        pin: acrossBox(
+          ctx,
+          sides.map((x) => x.pin),
+        ),
+        bar: FRAME.hybridBar,
+        text: acrossBox(
+          ctx,
+          sides.map((x) => mix(x.text, FRAME.hybridText, 0.5)),
+        ),
+      };
+    }
+    return {
+      ...FRAME.gold,
+      pin: acrossBox(
+        ctx,
+        pair.map((c) => FRAME[c].pin),
+      ),
+    };
+  }
+  if (colors.length > 2) return paletteOf(FRAME.gold);
+  const tints = manaColours(model);
+  if (tints.length) {
+    const tint = tints.length > 2 ? FRAME.gold.border : FRAME[tints[0]].border;
+    return {
+      ...FRAME.devoid,
+      border: hexAlpha(mix('#c8c0a8', tint, 0.3), 0.5),
+      devoid: true,
+    };
+  }
+  return paletteOf(model.types.includes('Artifact') ? FRAME.artifact : FRAME.colourless);
 }
 
-/** Coloured pinline around a frame panel (land frames). */
+function paletteOf({ border, pin, bar, text }) {
+  return { border, pin, bar, text };
+}
+
+/** '#rrggbb' at the given opacity. */
+function hexAlpha(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/** Coloured pinline around a frame panel. */
 function pinline(ctx, pin, x, y, w, h, r) {
   if (!pin) return;
   ctx.strokeStyle = pin;
@@ -276,15 +314,6 @@ function producedColours(model) {
   const landTypes = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
   found.push(...model.subtypes.map((t) => landTypes[t]).filter(Boolean));
   return [...new Set(found)];
-}
-
-/** Fill for a frame part: a colour, or a left/right split blended in the middle. */
-function frameFill(ctx, colours, factor) {
-  if (colours.length === 1) return shade(colours[0], factor);
-  const gradient = ctx.createLinearGradient(BOX.x, 0, BOX.right, 0);
-  gradient.addColorStop(0.45, shade(colours[0], factor));
-  gradient.addColorStop(0.55, shade(colours[1], factor));
-  return gradient;
 }
 
 /** Grey circle with text, for symbols the sheet doesn't have (e.g. G/U/P). */
@@ -695,8 +724,13 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
   const paint = framePaint(ctx, model);
   const width = BOX.right - BOX.x;
 
-  ctx.fillStyle = paint.frame;
-  ctx.fillRect(BOX.x - 4, 4, width + 8, CARD.height - 8 - 80);
+  // Border: colour (or the art showing through, for devoid) plus texture.
+  const frameBox = { x: BOX.x - 4, y: 4, w: width + 8, h: CARD.height - 8 - 80 };
+  if (paint.devoid && art) drawCover(ctx, art, frameBox);
+  ctx.fillStyle = paint.border;
+  ctx.fillRect(frameBox.x, frameBox.y, frameBox.w, frameBox.h);
+  ctx.fillStyle = texture(ctx);
+  ctx.fillRect(frameBox.x, frameBox.y, frameBox.w, frameBox.h);
 
   // Name bar.
   ctx.fillStyle = paint.bar;
@@ -1046,12 +1080,6 @@ function mix(a, b, amount) {
   const channel = (shift) =>
     Math.round(((x >> shift) & 255) * (1 - amount) + ((y >> shift) & 255) * amount);
   return `#${[16, 8, 0].map((sh) => channel(sh).toString(16).padStart(2, '0')).join('')}`;
-}
-
-function shade(hex, factor) {
-  const n = parseInt(hex.slice(1), 16);
-  const channel = (shift) => Math.min(255, Math.round(((n >> shift) & 255) * factor));
-  return `rgb(${channel(16)}, ${channel(8)}, ${channel(0)})`;
 }
 
 async function drawContactSheet(cards) {

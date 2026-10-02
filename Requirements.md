@@ -439,24 +439,26 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 6.6 Frame colour
 
-6.6.1 **[Confirmed]** The name bar, type line and text box are coloured by card colour:
+6.6.1 **[Confirmed]** Frames match real Magic cards in the current frame, with the same colours and saturation (D21, revised). Each frame has a textured border, coloured pinlines around the name bar, art, type line and text box, pale name and type bars, and a pale text box. The colours are sampled from Scryfall scans and kept in the preview spike (`FRAME` and `LAND` in `spikes/fixture-preview/run.js`):
 
-| Card                                        | Frame       |
-| ------------------------------------------- | ----------- |
-| Black (Damnation)                           | Black/grey  |
-| Blue (Jace)                                 | Blue        |
-| Green (Feral Invocation)                    | Green       |
-| Multicolour (Niv-Mizzet)                    | Gold        |
-| Colourless artifact (Sword of Fire and Ice) | Silver/grey |
-| Land (Forest, Wasteland)                    | Real land frame (6.6.2): stone frame, colour in pinlines, bars and text box (D21) |
+| Card                                        | Frame (reference scan)                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------- |
+| White                                       | Cream border, off-white bars and text box (Pacifism, DVD)                       |
+| Blue (Jace)                                 | Blue border and pinlines, pale blue bars and text box (Divination, M15)         |
+| Black (Damnation)                           | Near-black border, grey bars, pale grey-white text box (Murder, EMN)            |
+| Red                                         | Red border, peach bars, pale pink text box (Shock, DDN)                         |
+| Green (Feral Invocation)                    | Green border, grey-green bars, pale green text box (Giant Growth, EVG)          |
+| Multicolour (Niv-Mizzet)                    | Gold border and bars, cream text box; pinlines in the card's two colours, or gold for three or more (Lightning Helix, DDN) |
+| Colourless artifact (Sword of Fire and Ice) | Blue-grey border, light grey bars and text box (Mind Stone, C14)                |
+| Land (Forest, Wasteland)                    | Land frame (6.6.2)                                                              |
 
 6.6.2 **[Confirmed]** Frames not shown in the mockups (D21):
 
-- **Two-colour hybrid** (Kitchen Finks {G/W}; Phyrexian hybrid such as Ajani's {G/W/P} too): a split frame, left half the first colour of the hybrid symbol, right half the second, blended in the middle. Other two-colour cards stay gold.
-- **Coloured artifacts** (Reaper King): the card's colour, by the same rule as any card (mono colour, gold, or split). Only colourless artifacts are silver.
+- **Two-colour hybrid** (Kitchen Finks {G/W}; Phyrexian hybrid such as Ajani's {G/W/P} too): the border, pinlines and text box are split, left the first colour of the hybrid symbol and right the second, blended in the middle; the bars are grey and the text box is paler than either colour's (Kitchen Finks, UMA). Other two-colour cards are gold.
+- **Coloured artifacts** (Reaper King): the card's colour, by the same rule as any card (mono colour, gold, or split). Only colourless artifacts use the artifact frame.
 - **Lands** use the land frame of real cards (current frame), with the same colours and saturation (D21, revised). Every land has the same textured stone frame; the colour is in the pinlines around each panel, the name and type bars, and the text box. The palette comes from the card's colour if it has one (Dryad Arbor green), otherwise from the colours it taps for (its "Add …" text and basic land types). No colour: grey panels with a grey-brown pinline (Wasteland). One colour: that colour's land palette (Forest green). Two colours: grey bars, with the pinlines and the text box blending from the first colour to the second (Breeding Pool green → blue). Three or more, or "any color": gold pinlines and bars with a cream text box (City of Brass). The colours are sampled from Scryfall scans: the M19 basics, Wasteland (EMA), Command Tower (CMR) and Breeding Pool (RNA); the values are in the preview spike (`LAND` in `spikes/fixture-preview/run.js`).
-- **Colourless non-artifact cards** (Ugin, Thought-Knot Seer): silver, like colourless artifacts.
-- **Devoid** (Complete Disregard): silver, tinted by the colours in its mana cost, with the same one / two / three-or-more rule as lands.
+- **Colourless non-artifact cards** (Ugin, Thought-Knot Seer): the colourless frame, a grey-brown border with greyish bars and a pale stone text box (Thought-Knot Seer, OGW).
+- **Devoid** (Complete Disregard): as on real devoid cards, the art shows through a translucent border (lightly tinted by the first colour in its mana cost, or gold for three or more) and a translucent text box, with grey bars (Complete Disregard, BFZ).
 - **Tokens**: out of scope for v1 (D15, section 8).
 
 ---
