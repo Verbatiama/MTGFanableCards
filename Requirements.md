@@ -292,9 +292,20 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 5.5.2 **[Inferred]** Basic is shown with a labelled icon (Forest, composite image).
 
-5.5.3 **[Open]** Jace is legendary but shows no LEGENDARY icon. Are planeswalkers exempt (they are always legendary), or was it an omission?
+5.5.3 **[Confirmed]** Planeswalkers are exempt: they never show the LEGENDARY icon, because every planeswalker is legendary and the bar is already taken up by loyalty costs (Jace, D15). Their other supertypes, if any, still show. Every other legendary card shows the crown + LEGENDARY.
 
-5.5.4 **[Open]** Icons for other supertypes: Snow, World, and Token if tokens are in scope.
+5.5.4 **[Confirmed]** Snow and World get an icon with a label, like Legendary and Basic (D15):
+
+| Supertype | Icon                                     | Label     |
+| --------- | ---------------------------------------- | --------- |
+| Legendary | Crown                                    | LEGENDARY |
+| Basic     | Basic icon                               | BASIC     |
+| Snow      | Snowflake (the same art as the {S} mana symbol) | SNOW      |
+| World     | Globe                                    | WORLD     |
+
+Token is out of scope for v1 and gets no icon; tokens are decided with the other special layouts (section 8). Ongoing and Elite only appear on out-of-scope card kinds (5.1.4) and get no icon.
+
+**[Confirmed]** A card with several supertypes shows one icon per supertype, stacked in type-line order (D15): Dark Depths shows LEGENDARY then SNOW; Snow-Covered Forest shows BASIC then SNOW. Overflow is handled by D19.
 
 5.5.5 **[Confirmed]** Subtype icons appear in the middle section with a text label below: EQUIPMENT (Sword of Fire and Ice), AURA (Feral Invocation).
 
@@ -454,7 +465,7 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 7.2.4 **[Confirmed]** Static abilities get a band with no cost in the bar (Components doc: "blank space").
 
-7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8), and no LEGENDARY icon (see 5.5.3).
+7.2.5 **[Inferred]** No permanence label; the bottom is occupied by loyalty. The Jace mockup shows a NORMAL icon, which is not used (5.4.8). **[Confirmed]** No LEGENDARY icon on planeswalkers (5.5.3, D15).
 
 7.2.6 **[Open]** Band heights drive the vertical positions in the bar, so text layout must be calculated before the bar can be drawn. Rules are needed for long abilities, text shrinking, and more than four abilities.
 
@@ -539,7 +550,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | Table                                 | Maps        | Status                                               |
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
 | Card type → icon                      | 5.1         | Defined (D14); Battle and Kindred icons to be made   |
-| Supertype → icon + label              | 5.5.1–5.5.4 | Legendary and Basic defined; others open             |
+| Supertype → icon + label              | 5.5.1–5.5.4 | Defined (D15); icons to be made                      |
 | Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
 | Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |

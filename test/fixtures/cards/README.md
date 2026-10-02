@@ -46,6 +46,9 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `dismember`                                    | Phyrexian `{B/P}{B/P}`, `-5/-5` in text                                             |
 | `ajani-sleeper-agent`                          | Phyrexian hybrid `{G/W/P}`, planeswalker with a static ability before loyalty ones  |
 | `icehide-golem`                                | Snow supertype, snow mana `{S}` in the cost, multi-type                             |
+| `dark-depths`                                  | Two supertypes, Legendary Snow (D15): one icon each, type-line order                 |
+| `snow-covered-forest`                          | Basic Snow land (D15): BASIC then SNOW, large mana symbol in the text box            |
+| `concordant-crossroads`                        | World supertype (D15)                                                                |
 | `thought-knot-seer`                            | Colourless mana `{C}` in the cost, distinct from generic                            |
 | `ornithopter`                                  | `{0}` cost (must differ from no cost), 0 power                                      |
 | `gelatinous-genesis`                           | `{X}{X}{G}` (X count 2), `X/X` in text                                              |

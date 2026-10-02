@@ -1,0 +1,32 @@
+{
+  "name": "Concordant Crossroads",
+  "layout": "normal",
+  "faceIndex": 0,
+  "typeLine": "World Enchantment",
+  "supertypes": ["World"],
+  "types": ["Enchantment"],
+  "subtypes": [],
+  "colors": ["G"],
+  "colorIndicator": null,
+  "manaCost": [
+    {
+      "symbol": "G",
+      "count": 1
+    }
+  ],
+  "zoneSymbols": [],
+  "power": null,
+  "toughness": null,
+  "loyalty": null,
+  "defense": null,
+  "oracleText": "All creatures have haste.",
+  "flavorText": "The wolf closed in. But then a strange wind whispered through the leaves, and with a burst of speed, the deer surged forward out of reach.",
+  "watermark": null,
+  "artUrl": "https://cards.scryfall.io/art_crop/front/c/9/c9a26f51-5bff-4f06-abaa-6fbb56a8b5b6.jpg?1783921872",
+  "artist": "Alayna Danner",
+  "collectorNumber": "141",
+  "rarity": "mythic",
+  "setCode": "2X2",
+  "lang": "en",
+  "copyright": "™ & © 2022 Wizards of the Coast"
+}

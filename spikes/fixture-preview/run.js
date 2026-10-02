@@ -62,6 +62,9 @@ const ZONE_LABELS = {
   library: 'Library',
   graveyard: 'Graveyard',
 };
+// Supertypes that get an icon + label (D15, 5.5.4). Token, Ongoing and Elite
+// get none. Planeswalkers never show Legendary (5.5.3).
+const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
 // Subtypes of these types don't get icons (5.5.6), so the preview skips them.
 const NO_SUBTYPE_ICON = ['Creature', 'Planeswalker', 'Kindred'];
 
@@ -82,6 +85,7 @@ const ICONS = new Map();
 for (const name of [
   ...Object.keys(TYPE_ICONS).map((t) => `types/${t.toLowerCase()}`),
   ...Object.keys(ZONE_LABELS).map((z) => `zones/${z}`),
+  ...SUPERTYPE_ICONS.map((t) => `supertypes/${t.toLowerCase()}`),
   'stats/power',
   'stats/toughness',
 ]) {
@@ -209,7 +213,13 @@ async function drawStatBar(ctx, model) {
     zone: true,
     icon: ICONS.get(`zones/${z}`),
   }));
-  middle.push(...model.supertypes.map((label) => ({ label })));
+  // One icon per supertype in type-line order (D15). Snow reuses the {S} art.
+  for (const label of supertypeIcons(model)) {
+    const icon =
+      ICONS.get(`supertypes/${label.toLowerCase()}`) ??
+      (label === 'Snow' ? await symbol('S') : undefined);
+    middle.push({ label, icon });
+  }
   if (!model.types.some((t) => NO_SUBTYPE_ICON.includes(t))) {
     middle.push(...model.subtypes.map((label) => ({ label })));
   }
@@ -255,6 +265,14 @@ async function drawStatBar(ctx, model) {
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
   }
   ctx.textAlign = 'left';
+}
+
+/** Supertypes that get a middle-section icon (D15, 5.5.3–5.5.4). */
+function supertypeIcons(model) {
+  return model.supertypes.filter(
+    (t) =>
+      SUPERTYPE_ICONS.includes(t) && !(t === 'Legendary' && model.types.includes('Planeswalker')),
+  );
 }
 
 /**
