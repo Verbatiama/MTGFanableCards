@@ -1,7 +1,7 @@
 /**
- * Synthetic stat-bar stress cases for the overflow rules (D19, 4.4 / 5.6.3).
- * No real fixture collides, so these take a real card and pile on supertypes,
- * zone symbols and mana rows. Preview only: they are not card-model fixtures,
+ * Synthetic stress cases for the overflow rules: stat bar (D19, 4.4 / 5.6.3)
+ * and text box (D20, 6.4.8). No real fixture overflows, so these take a real
+ * card and pile on supertypes, zone symbols, mana rows or text. Preview only: they are not card-model fixtures,
  * and each name says it is a stress case.
  */
 const STRESS = {
@@ -11,6 +11,15 @@ const STRESS = {
     {
       supertypes: ['Legendary', 'Snow'],
       zoneSymbols: ['flash', 'hand', 'graveyard'],
+    },
+  ],
+  // Long rules text plus flavour text: the flavour text is dropped first, then
+  // the rules text shrinks (D20, 6.4.8).
+  'stress-drop-flavour': [
+    'atraxa-grand-unifier',
+    {
+      flavorText:
+        'Synthetic flavour text for the D20 stress case. It should never be drawn, because the rules text alone already fills the text box.',
     },
   ],
   // Land with a basic land type whose middle stack spills below the type line
@@ -67,6 +76,6 @@ const STRESS = {
 export function stressModels(fixtures) {
   return Object.entries(STRESS).map(([slug, [base, changes]]) => {
     const model = { ...fixtures.get(base), ...changes };
-    return [slug, { ...model, name: `${model.name} (D19 stress)` }];
+    return [slug, { ...model, name: `${model.name} (stress)` }];
   });
 }

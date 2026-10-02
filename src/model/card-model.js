@@ -47,7 +47,6 @@
  * @property {'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus'} rarity
  * @property {string} setCode Upper case, as printed in the footer (e.g. 'GPT').
  * @property {string} lang Scryfall language code, e.g. 'en'.
- * @property {string} copyright Footer copyright line.
  */
 
 const COLORS = ['W', 'U', 'B', 'R', 'G'];
@@ -66,7 +65,6 @@ const STRING_FIELDS = [
   'collectorNumber',
   'setCode',
   'lang',
-  'copyright',
 ];
 const NULLABLE_STRING_FIELDS = [
   'power',

@@ -590,8 +590,9 @@ async function drawCardBox(ctx, model, art) {
   ctx.fillText(`${model.setCode} - ${model.lang.toUpperCase()}`, BOX.x, FOOTER.y + 28);
   ctx.textAlign = 'right';
   ctx.fillText(model.artist.toUpperCase(), BOX.right, FOOTER.y + 6);
+  // Copyright year is the year the image is generated; no holo stamp (D20).
   ctx.font = FONT(13);
-  ctx.fillText(model.copyright, BOX.right, FOOTER.y + 30);
+  ctx.fillText(`™ & © ${new Date().getFullYear()} Wizards of the Coast`, BOX.right, FOOTER.y + 30);
   ctx.textAlign = 'left';
   if (model.faceIndex > 0) {
     ctx.font = LABEL(14);
@@ -600,18 +601,21 @@ async function drawCardBox(ctx, model, art) {
 }
 
 /**
- * Wraps oracle and flavour text with inline symbols, shrinking the font until
- * it fits (a stand-in for the real text fitting, 6.4.8).
+ * Wraps oracle and flavour text with inline symbols (6.4.8, D20): if the text
+ * doesn't fit at full size, flavour text is dropped first, then the rules text
+ * shrinks to the minimum.
  */
 async function drawTextBox(ctx, model, x, y, width, height) {
-  const paragraphs = model.oracleText ? model.oracleText.split('\n').map((t) => ({ t })) : [];
-  if (model.flavorText) paragraphs.push({ t: model.flavorText, flavor: true });
+  const rules = model.oracleText ? model.oracleText.split('\n').map((t) => ({ t })) : [];
+  const flavor = model.flavorText ? [{ t: model.flavorText, flavor: true }] : [];
 
   let size = 26;
-  let layout;
-  for (; size >= 12; size -= 1) {
-    layout = layoutText(ctx, paragraphs, width, size);
-    if (layout.height <= height) break;
+  let layout = layoutText(ctx, [...rules, ...flavor], width, size);
+  if (layout.height > height) {
+    for (; size >= 12; size -= 1) {
+      layout = layoutText(ctx, rules, width, size);
+      if (layout.height <= height) break;
+    }
   }
 
   for (const line of layout.lines) {
@@ -620,7 +624,21 @@ async function drawTextBox(ctx, model, x, y, width, height) {
     ctx.textBaseline = 'alphabetic';
     let lx = x;
     for (const token of line.tokens) {
-      if (token.symbol) {
+      if (token.pt) {
+        // Sword / shield after each number of a +N/+N or -N/-N modifier (6.4.5).
+        const s = Math.round(size * 0.95);
+        const icon = ICONS.get(`stats/${token.pt}`);
+        if (icon) ctx.drawImage(icon, lx + 1, y + line.y - s * 0.82, s, s);
+        else
+          drawFallbackSymbol(
+            ctx,
+            token.pt === 'power' ? 'P' : 'T',
+            lx + 1,
+            y + line.y - s * 0.82,
+            s,
+          );
+        ctx.fillStyle = line.flavor ? '#3a3a3a' : '#111';
+      } else if (token.symbol) {
         const s = Math.round(size * 0.95);
         await drawSymbol(ctx, token.symbol, lx + 1, y + line.y - s * 0.82, s);
       } else {
@@ -642,13 +660,27 @@ function layoutText(ctx, paragraphs, width, size) {
   paragraphs.forEach((p, pi) => {
     ctx.font = FONT(p.flavor ? size - 2 : size);
     if (pi > 0) cursor += Math.round(size * (p.flavor ? 0.7 : 0.35));
+    const icon = { width: Math.round(size * 0.95) + 2 };
     const tokens = p.t
       .split(/(\{[^}]+\}|\s+)/)
       .filter(Boolean)
-      .map((part) => {
+      .flatMap((part) => {
         const sym = /^\{(.+)\}$/.exec(part);
-        if (sym) return { symbol: sym[1], width: Math.round(size * 0.95) + 2 };
-        return { text: part, width: ctx.measureText(part).width, space: /^\s+$/.test(part) };
+        if (sym) return [{ symbol: sym[1], ...icon }];
+        // Only numeric +N/+N and -N/-N get sword/shield; X/X, 1/1 tokens and
+        // the like stay as text (6.4.5, D20). Rules text only.
+        const pt = !p.flavor && /^([+\-−]\d+)\/([+\-−]\d+)(.*)$/.exec(part);
+        if (pt) {
+          const text = (t) => ({ text: t, width: ctx.measureText(t).width });
+          return [
+            { ...text(`${pt[1]} `), joined: true },
+            { pt: 'power', ...icon, joined: true },
+            { ...text(` ${pt[2]} `), joined: true },
+            { pt: 'toughness', ...icon, joined: !!pt[3] },
+            ...(pt[3] ? [text(pt[3])] : []),
+          ];
+        }
+        return [{ text: part, width: ctx.measureText(part).width, space: /^\s+$/.test(part) }];
       });
     let line = { tokens: [], flavor: p.flavor, rule: p.flavor && !lines.some((l) => l.flavor) };
     let lineWidth = 0;
@@ -660,8 +692,20 @@ function layoutText(ctx, paragraphs, width, size) {
       line = { tokens: [], flavor: p.flavor };
       lineWidth = 0;
     };
-    for (const token of tokens) {
-      if (lineWidth + token.width > width && line.tokens.length && !token.space) push();
+    for (const [i, token] of tokens.entries()) {
+      // Wrap before a modifier group as a whole, never inside it.
+      const groupWidth =
+        token.joined && !tokens[i - 1]?.joined
+          ? tokens
+              .slice(i)
+              .reduce((w, t, j, rest) => (j && !rest[j - 1].joined ? w : w + t.width), 0)
+          : token.width;
+      if (tokens[i - 1]?.joined) {
+        line.tokens.push(token);
+        lineWidth += token.width;
+        continue;
+      }
+      if (lineWidth + groupWidth > width && line.tokens.length && !token.space) push();
       if (token.space && !line.tokens.length) continue;
       line.tokens.push(token);
       lineWidth += token.width;

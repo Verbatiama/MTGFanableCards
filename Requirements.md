@@ -95,7 +95,7 @@ Each requirement is tagged:
 
   3.3.5 **[Inferred]** Rules text comes from Oracle text in the JSON. The mockup text contains typos ("it's owner's", "hhis") and is not authoritative.
 
-  3.3.6 **[Confirmed]** Card-model schema for v1: each card is represented as a single object containing identity fields (`name`, `types`, `supertypes`, `subtypes`, `layout`), mana info (`manaCost` with grouped symbol counts), power/toughness or loyalty fields, colour indicator information, oracle text kept in the same formatting as Scryfall, and footer metadata (`collectorNumber`, `rarity`, `setCode`, `artist`, `copyright`). This structure is sufficient for rendering, and additional fields can be added later only if a concrete need appears.
+  3.3.6 **[Confirmed]** Card-model schema for v1: each card is represented as a single object containing identity fields (`name`, `types`, `supertypes`, `subtypes`, `layout`), mana info (`manaCost` with grouped symbol counts), power/toughness or loyalty fields, colour indicator information, oracle text kept in the same formatting as Scryfall, and footer metadata (`collectorNumber`, `rarity`, `setCode`, `artist`). There is no `copyright` field: the renderer builds the copyright line itself (6.5.2, D20). This structure is sufficient for rendering, and additional fields can be added later only if a concrete need appears.
 
 ### 3.4 Card art
 
@@ -394,7 +394,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.3.2 **[Confirmed]** The set symbol is at the right end of the type line.
 
-6.3.3 **[Open]** Set symbol source (e.g. the Keyrune font or Scryfall SVGs), and whether it is coloured by rarity.
+6.3.3 **[Confirmed]** The set symbol comes from Scryfall's set SVGs (D7) and is drawn plain black for every rarity (D20). Rarity is shown only by the letter in the footer (6.5.1).
 
 ### 6.4 Text box
 
@@ -402,15 +402,15 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.4.2 **[Inferred]** Reminder text is shown in italics in parentheses (Fiendslayer Paladin).
 
-6.4.3 **[Inferred]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Open]** Where watermark data and images come from.
+6.4.3 **[Inferred]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Confirmed]** Which watermark a card has comes from Scryfall's `watermark` field (e.g. `izzet`); the images are custom SVGs in `res/symbols/` (D7, D20).
 
 6.4.4 **[Inferred]** Basic lands show a large mana symbol in the text box instead of text (Forest).
 
-6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Open]** Whether this applies to all P/T references in text, including "-1/-1", "X/X" tokens, and counters.
+6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Confirmed]** Only numeric modifiers with a sign on both numbers use it: +N/+N and -N/-N (Dismember's -5/-5), and mixed signs such as +1/-1 (D20). Everything else stays as text: X modifiers (+X/+X), counters ("a +1/+1 counter" is drawn as text too, since the counter name is not a modifier) and plain stats such as "a 1/1 Goblin token" or "X/X". Flavour text is never converted.
 
 6.4.6 **[Confirmed]** Mana symbols in rules text are drawn as printed, one symbol each, with no grouping or counts (D11): "Equip {2}" uses the 2 symbol, "Add {C}{C}" shows two diamonds, and "{2}{U}: Draw a card" shows the 2 and U symbols. The grouped symbol + count display and the generic mana symbol are used only in the stat bar.
 
-6.4.7 Symbols to support in rules text. The Components doc lists tap, untap, energy (listed twice) and mana symbols. Additional symbols to decide on **[Open]**:
+6.4.7 Symbols to support in rules text. The Components doc lists tap, untap, energy (listed twice) and mana symbols. **[Confirmed]** All of the following are supported too (D20); {Q}, {S}, {X} and {C} are already in `symbols.svg`, and the rest need new icons. A symbol with no icon falls back to its text code:
 
 - {Q} (untap, as distinct from the untap arrow)
 - {S} (snow)
@@ -421,7 +421,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 - loyalty cost symbols inside text
 - the planeswalker symbol
 
-  6.4.8 **[Open]** Text fitting: font shrinking rules, minimum font size, and behaviour when Oracle text is too long.
+  6.4.8 **[Confirmed]** Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
 
 ### 6.5 Footer
 
@@ -431,11 +431,11 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 - set code and language (e.g. "PLC - EN")
 - artist credit with the paintbrush icon
 - copyright line
-- the holo stamp in the centre
+- ~~the holo stamp in the centre~~: no holo stamp is drawn (6.5.3)
 
-  6.5.2 **[Open]** Copyright year: every mockup shows "© 2014". Should it be the printing's release year or a fixed string?
+  6.5.2 **[Confirmed]** Copyright line: "™ & © <year> Wizards of the Coast", where the year is the year the image is generated (D20). The mockups' fixed "© 2014" is not used, and the card model has no copyright field (3.3.6).
 
-  6.5.3 **[Open]** Whether the holo stamp always appears, or only on certain rarities.
+  6.5.3 **[Confirmed]** No holo stamp on any card (D20); the centre of the footer is left empty.
 
 ### 6.6 Frame colour
 
@@ -569,7 +569,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | Subtype → icon                        | 5.5.7–5.5.9 | Defined (D16); Aura/Equipment/Fortification icons to be made |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
 | Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |
-| Text symbol → icon                    | 6.4.7       | Partial                                              |
+| Text symbol → icon                    | 6.4.7       | Defined (D20); chaos, {TK}, planeswalker and loyalty icons missing |
 | Colour(s) → frame style               | 6.6         | Mono, gold, colourless and land defined; others open |
 | Layout → marker / rendering rules     | 8           | Open                                                 |
 
