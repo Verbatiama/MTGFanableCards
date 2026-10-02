@@ -156,7 +156,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 4.2 **[Inferred]** The stat bar has three sections:
 
 - **Top**, anchored to the top: card type icon, colour indicator, mana cost.
-- **Middle**, anchored at the type line: zone/timing symbols, supertype, subtype.
+- **Middle**, anchored at the type line: subtype, supertype, zone/timing symbols (5.6.1).
 - **Bottom**, anchored to the bottom: stats, loyalty, defense, or the NON-PERMANENT label (5.7.3).
 
   4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
@@ -170,7 +170,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
   - All dimensions are configurable and can be fine-tuned during development.
   - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
-    4.4 **[Open]** Collision and overflow rules for when the sections don't fit (see 5.6).
+    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3.
 
 ---
 
@@ -244,7 +244,7 @@ The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **onl
 
 5.3.8 **[Confirmed]** A {0} cost is drawn as the generic mana symbol with the count 0 (D11). A card with no mana cost (lands, Ancestral Vision, back faces) has no mana section at all (5.3.5), so the two stay visibly different.
 
-5.3.9 **[Open]** Maximum rows before the mana block collides with the middle section. Five-colour costs, and large costs such as Emrakul's {15} or Draco's {16} (which is one row but a two-digit count), need testing.
+5.3.9 **[Confirmed]** No maximum and no special rule (D19). Real costs have at most about six rows, which always fit, and a two-digit count such as Emrakul's {15} or Draco's {16} is one row with a slightly smaller number. The mana block never shrinks or wraps; when it meets the middle stack, the middle stack gives way (5.6.3).
 
 ### 5.4 Zone and timing symbols (middle)
 
@@ -341,11 +341,17 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 5.6 Middle-section layout
 
-5.6.1 **[Inferred]** Stack order, top to bottom (Feral Invocation): zone/timing symbol → subtype. Feral Invocation's mockup shows PERMANENT below that, which D18 removes (5.7.3). Niv-Mizzet shows the supertype in the same region.
+5.6.1 **[Confirmed]** Stack order, top to bottom (D19): subtype icons → supertype icons → zone/timing symbols, so zone/timing sits nearest the type line. Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
 
-5.6.2 **[Inferred]** The stack is anchored at the type line and grows upward into the space beside the art.
+5.6.2 **[Confirmed]** The stack is anchored at the type line and grows upward into the space beside the art, unless it would meet the mana block (5.6.3).
 
-5.6.3 **[Open]** The full order when supertype, subtype and several zone symbols all apply, and the collision rule when the stack meets the mana block. For example, a legendary five-colour creature with flash and flashback.
+5.6.3 **[Confirmed]** Collision rule (D19). When the stack would meet the mana block, these steps apply in order, stopping at the first that fits:
+
+1. **Continue below the type line.** The stack starts just under the mana block and runs down past the type line into the empty bar beside the text box, keeping its order. It may go down to the top of the bottom section (stats, defense badge, NON-PERMANENT). Planeswalkers skip this step, as their loyalty costs use the bar beside the text box (7.2.1).
+2. **Drop the labels** under supertype and zone/timing icons.
+3. **Shrink the icons**, all together, down to a minimum of half size.
+
+Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, real cards rarely reach step 1: a legendary five-colour creature with flash and flashback still fits above the type line. The preview spike has synthetic stress cases for each step (`spikes/fixture-preview/stress.js`).
 
 ### 5.7 Bottom section
 

@@ -15,6 +15,7 @@ import { FONT_DIR, OUT_DIR, SYMBOL_DIR } from '../../src/paths.js';
 import { extractSymbolSvg, listSymbolCodes } from '../rendering/symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { fetchArt, stats as artStats } from './art.js';
+import { stressModels } from './stress.js';
 
 const CARD = { width: 750, height: 1050 };
 const BAR = { width: 90, icon: 40, gap: 6 };
@@ -237,65 +238,29 @@ async function drawStatBar(ctx, model) {
     y += BAR.icon + BAR.gap;
   }
 
-  // Middle: anchored at the type line, growing upward. Top to bottom: zone and
-  // timing symbols (D12), supertypes, subtypes (5.6.1). Boxes stand in for icons;
-  // zone/timing boxes are gold so they stand out from type boxes.
-  const middle = model.zoneSymbols.map((z) => ({
-    label: ZONE_LABELS[z],
-    zone: true,
-    icon: ICONS.get(`zones/${z}`),
-  }));
-  // One icon per supertype in type-line order (D15). Snow reuses the {S} art.
+  // Middle (D19, 5.6): top to bottom, subtypes (icon-only, D16), supertypes
+  // (D15), zone/timing symbols (D12), so zone/timing sits nearest the type line.
+  // Boxes stand in for missing icons; zone/timing boxes are gold.
+  const middle = [];
+  for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
+    const entry = SUBTYPE_ICONS[subtype];
+    middle.push(entry.mana ? { icon: await symbol(entry.mana) } : { abbr: entry });
+  }
+  // Snow reuses the {S} art.
   for (const label of model.supertypes.filter((t) => SUPERTYPE_ICONS.includes(t))) {
     const icon =
       ICONS.get(`supertypes/${label.toLowerCase()}`) ??
       (label === 'Snow' ? await symbol('S') : undefined);
     middle.push({ label, icon });
   }
-  // Subtypes with icons, one each in type-line order, no label (D16).
-  for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
-    const entry = SUBTYPE_ICONS[subtype];
-    middle.push(entry.mana ? { icon: await symbol(entry.mana) } : { abbr: entry });
+  for (const z of model.zoneSymbols) {
+    middle.push({ label: ZONE_LABELS[z], zone: true, icon: ICONS.get(`zones/${z}`) });
   }
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  let my = TYPE.y + TYPE.h - 4;
-  for (const { label, zone, icon, abbr } of middle.reverse()) {
-    if (!label) {
-      // Icon-only subtype (D16).
-      if (icon) ctx.drawImage(icon, cx - 20, my - 40, 40, 40);
-      else {
-        ctx.strokeStyle = '#777';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(cx - 18, my - 38, 36, 34);
-        ctx.fillStyle = '#fff';
-        ctx.font = LABEL(12);
-        ctx.fillText(abbr, cx, my - 14);
-      }
-      my -= 46;
-      continue;
-    }
-    const text = label.toUpperCase();
-    ctx.fillStyle = '#fff';
-    ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));
-    ctx.fillText(text, cx, my);
-    if (icon) {
-      ctx.drawImage(icon, cx - 20, my - 58, 40, 40);
-    } else {
-      ctx.strokeStyle = zone ? '#d9a441' : '#777';
-      ctx.lineWidth = zone ? 2 : 1;
-      ctx.strokeRect(cx - 18, my - 54, 36, 34);
-    }
-    my -= 62;
-  }
-  if (my < y) {
-    // Flag stat-bar collisions (4.4 / D19) rather than hiding them.
-    ctx.fillStyle = '#e33';
-    ctx.fillRect(0, my, 4, y - my);
-  }
+  drawMiddle(ctx, middle, y + 4, middleLimit(model));
 
   // Bottom: stats, loyalty, defense badge, or NON-PERMANENT (D18, 5.7).
   ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
   const bottom = CARD.height - 14;
   if (model.power !== null) {
     // Vehicles and spacecraft: hollow stats, as they only apply once crewed
@@ -362,6 +327,85 @@ function drawTypeIcons(ctx, types, y) {
 }
 
 /** Value with its icon below (5.7.1), or a text label when there is no icon. */
+const MIDDLE = { icon: 40, label: 16, gap: 6, minScale: 0.5 };
+
+/**
+ * Lowest y the middle stack may reach when it spills below the type line: the
+ * top of the bottom section. Planeswalker loyalty costs use the bar beside the
+ * text box (7.2.1), so their stack must stay above the type line.
+ */
+function middleLimit(model) {
+  const bottom = CARD.height - 14;
+  if (model.types.includes('Planeswalker')) return TYPE.y + TYPE.h - 4;
+  if (model.power !== null) return bottom - 120 - 8;
+  if (model.loyalty !== null) return bottom - 60 - 8;
+  if (model.defense !== null) return CARD.height - 78 - 8;
+  if (!model.types.some((t) => PERMANENT_TYPES.includes(t))) return bottom - 13 * 21 - 8;
+  return bottom;
+}
+
+/**
+ * Lay out the middle stack (D19, 4.4 / 5.6.3). It is anchored at the type line
+ * and grows upward. If it would meet the mana block (`floor`), it starts just
+ * under the mana block and continues below the type line, down to `limit`. If
+ * it still doesn't fit, labels are dropped; then icons shrink. Nothing is hidden.
+ */
+function drawMiddle(ctx, items, floor, limit) {
+  if (!items.length) return;
+  const anchor = TYPE.y + TYPE.h - 4;
+  const height = (labels, scale = 1) =>
+    items.reduce(
+      (h, it) => h + (MIDDLE.icon + (labels && it.label ? MIDDLE.label : 0) + MIDDLE.gap) * scale,
+      0,
+    );
+  let labels = true;
+  let scale = 1;
+  if (height(true) > limit - floor) {
+    labels = false;
+    if (height(false) > limit - floor) {
+      scale = Math.max(MIDDLE.minScale, (limit - floor) / height(false));
+    }
+  }
+  const total = height(labels, scale);
+  let top = total <= anchor - floor ? anchor - total : floor;
+  for (const item of items) top += drawMiddleItem(ctx, item, top, labels, scale);
+  if (top > limit + 0.5) {
+    // Still overflowing at the minimum size: flag it rather than hide anything.
+    ctx.fillStyle = '#e33';
+    ctx.fillRect(0, limit, 4, top - limit);
+  }
+}
+
+/** One middle icon (and its label, if shown) at `top`; returns the height used. */
+function drawMiddleItem(ctx, { label, zone, icon, abbr }, top, labels, scale) {
+  const cx = BAR.width / 2;
+  const size = MIDDLE.icon * scale;
+  if (icon) ctx.drawImage(icon, cx - size / 2, top, size, size);
+  else {
+    ctx.strokeStyle = zone ? '#d9a441' : '#777';
+    ctx.lineWidth = zone ? 2 : 1;
+    ctx.strokeRect(cx - size / 2 + 2, top + 3, size - 4, size - 6);
+    if (abbr) {
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = LABEL(Math.round(12 * scale));
+      ctx.fillText(abbr, cx, top + size / 2);
+    }
+  }
+  let used = size + MIDDLE.gap * scale;
+  if (labels && label) {
+    const text = label.toUpperCase();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));
+    used += MIDDLE.label * scale;
+    ctx.fillText(text, cx, top + size + MIDDLE.label * scale);
+  }
+  return used;
+}
+
 /**
  * Placeholder defense badge (D18, 5.7.7): a shield outline at the bottom of the
  * bar, like the planeswalker loyalty badge (7.2.3), until the icon exists.
@@ -688,7 +732,7 @@ await mkdir(dir, { recursive: true });
 const created = [];
 const changed = [];
 const cards = [];
-for (const [slug, model] of fixtures) {
+for (const [slug, model] of [...fixtures, ...stressModels(fixtures)]) {
   if (wanted.length && !wanted.includes(slug)) continue;
   const canvas = await drawCard(model);
   const file = path.join(dir, `${slug}.png`);
