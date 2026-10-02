@@ -65,8 +65,19 @@ const ZONE_LABELS = {
 // Supertypes that get an icon + label (D15, 5.5.4). Token, Ongoing and Elite
 // get none. Planeswalkers never show Legendary (5.5.3).
 const SUPERTYPE_ICONS = ['Legendary', 'Basic', 'Snow', 'World'];
-// Subtypes of these types don't get icons (5.5.6), so the preview skips them.
-const NO_SUBTYPE_ICON = ['Creature', 'Planeswalker', 'Kindred'];
+// The only subtypes with icons (D16, 5.5.8): attaching subtypes (placeholder
+// boxes until traced) and basic land types (their mana symbol). Icon-only.
+const SUBTYPE_ICONS = {
+  Aura: 'AUR',
+  Equipment: 'EQP',
+  Fortification: 'FRT',
+  Plains: { mana: 'W' },
+  Island: { mana: 'U' },
+  Swamp: { mana: 'B' },
+  Mountain: { mana: 'R' },
+  Forest: { mana: 'G' },
+  Wastes: { mana: 'C' },
+};
 
 registerFont(path.join(FONT_DIR, 'Beleren2016-Bold.ttf'), { family: 'Beleren', weight: 'bold' });
 registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
@@ -220,13 +231,29 @@ async function drawStatBar(ctx, model) {
       (label === 'Snow' ? await symbol('S') : undefined);
     middle.push({ label, icon });
   }
-  if (!model.types.some((t) => NO_SUBTYPE_ICON.includes(t))) {
-    middle.push(...model.subtypes.map((label) => ({ label })));
+  // Subtypes with icons, one each in type-line order, no label (D16).
+  for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
+    const entry = SUBTYPE_ICONS[subtype];
+    middle.push(entry.mana ? { icon: await symbol(entry.mana) } : { abbr: entry });
   }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   let my = TYPE.y + TYPE.h - 4;
-  for (const { label, zone, icon } of middle.reverse()) {
+  for (const { label, zone, icon, abbr } of middle.reverse()) {
+    if (!label) {
+      // Icon-only subtype (D16).
+      if (icon) ctx.drawImage(icon, cx - 20, my - 40, 40, 40);
+      else {
+        ctx.strokeStyle = '#777';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - 18, my - 38, 36, 34);
+        ctx.fillStyle = '#fff';
+        ctx.font = LABEL(12);
+        ctx.fillText(abbr, cx, my - 14);
+      }
+      my -= 46;
+      continue;
+    }
     const text = label.toUpperCase();
     ctx.fillStyle = '#fff';
     ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));

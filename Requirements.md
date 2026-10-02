@@ -307,7 +307,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 
 **[Confirmed]** A card with several supertypes shows one icon per supertype, stacked in type-line order (D15): Dark Depths shows LEGENDARY then SNOW; Snow-Covered Forest shows BASIC then SNOW. Overflow is handled by D19.
 
-5.5.5 **[Confirmed]** Subtype icons appear in the middle section with a text label below: EQUIPMENT (Sword of Fire and Ice), AURA (Feral Invocation).
+5.5.5 **[Confirmed]** Subtype icons appear in the middle section with no text label (D16). The mockups label them EQUIPMENT (Sword of Fire and Ice) and AURA (Feral Invocation); D16 drops those labels. Zone/timing and supertype icons keep their labels (5.4, 5.5.1–5.5.4).
 
 5.5.6 **[Confirmed]** Creature subtypes and token subtypes do not get icons (README goal 9).
 
@@ -320,18 +320,24 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 | Land            | Desert, Gate, Lair, Locus, Urza's |
 | Instant/Sorcery | Adventure, Arcane, Lesson, Trap   |
 
-5.5.8 **[Open]** Whether this list is exhaustive or a starting set. Real subtypes not in it include:
+5.5.8 **[Confirmed]** Neither: the list is replaced (D16). Only two groups of subtypes get an icon:
+
+| Subtypes                                    | Icon                                                     |
+| ------------------------------------------- | -------------------------------------------------------- |
+| Aura, Equipment, Fortification              | New icons (cards that attach to another card)            |
+| Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
+| Wastes                                      | The colourless mana symbol ({C})                         |
+
+Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc: Real subtypes not in it include:
 
 - **Artifact:** Clue, Treasure, Blood, Map, Powerstone, Incubator, Gold, Contraption, Fortification, Attraction
 - **Enchantment:** Class, Room, Case, Role, Shrine, Cartouche, Background, Shard
 - **Land:** Cave, Sphere, Town, Mine, Power-Plant, Tower, Planet, and the basic land types (Plains, Island, Swamp, Mountain, Forest, Wastes)
 - **Instant/Sorcery:** Omen
 
-Also define how new subtypes get added (e.g. a config table mapping subtype to icon).
+5.5.9 **[Confirmed]** A card with several subtypes that have icons shows one icon each, in type-line order, like supertypes (D15, D16): Breeding Pool (Land — Forest Island) shows {G} then {U}. Subtypes without icons are skipped, so an Aura Curse shows only the Aura icon. Overflow is handled by D19.
 
-5.5.9 **[Open]** Which icon appears when a card has several subtypes with icons, e.g. Equipment + Vehicle, or Food + Equipment.
-
-5.5.10 **[Open]** Rule for which icons carry a text label and which are icon-only. So far, every middle-section icon in the mockups has a label.
+5.5.10 **[Confirmed]** Subtype icons are icon-only; zone/timing and supertype icons carry a text label (D16).
 
 ### 5.6 Middle-section layout
 
@@ -479,17 +485,17 @@ Also define how new subtypes get added (e.g. a config table mapping subtype to i
 
 ### 7.4 Artifact (including Equipment)
 
-- Stat bar: artifact icon, mana, subtype icon (e.g. EQUIPMENT), "PERMANENT" at the bottom.
+- Stat bar: artifact icon, mana, Equipment subtype icon (no label, D16), "PERMANENT" at the bottom.
 - Reference: Sword of Fire and Ice.
 
 ### 7.5 Enchantment (including Aura)
 
-- Stat bar: enchantment icon, mana, zone/timing icons (flash), subtype icon (AURA), "PERMANENT" at the bottom.
+- Stat bar: enchantment icon, mana, zone/timing icons (flash), Aura subtype icon (no label, D16), "PERMANENT" at the bottom.
 - Reference: Feral Invocation.
 
 ### 7.6 Land
 
-- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable.
+- Stat bar: land icon, no mana section, supertype icon (Basic) where applicable, and the mana symbol of each basic land type it has, icon-only (Forest; dual lands show two, D16).
 - Basic lands show a large mana symbol in the text box.
 - References: Forest, Wasteland.
 - See 5.7.4 on the permanence label.
@@ -551,7 +557,7 @@ The implementation should keep these as configuration tables rather than hard-co
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
 | Card type → icon                      | 5.1         | Defined (D14); Battle and Kindred icons to be made   |
 | Supertype → icon + label              | 5.5.1–5.5.4 | Defined (D15); icons to be made                      |
-| Subtype → icon + label                | 5.5.7–5.5.9 | Partial list                                         |
+| Subtype → icon                        | 5.5.7–5.5.9 | Defined (D16); Aura/Equipment/Fortification icons to be made |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
 | Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |
 | Text symbol → icon                    | 6.4.7       | Partial                                              |

@@ -28,7 +28,7 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `lightning-strike`        | Instant (gets the FLASH symbol, D12), NON-PERMANENT label, flavour text |
 | `fiendslayer-paladin`     | Creature with reminder text in parentheses                                    |
 | `wurmcoil-engine`         | Multi-type (Artifact Creature), colourless, Phyrexian watermark              |
-| `forest`                  | Basic land: Basic supertype, no mana cost, large mana symbol in text box      |
+| `forest`                  | Basic land: Basic supertype, Forest subtype as a {G} icon (D16), no mana cost, large mana symbol in text box |
 | `wasteland`               | Non-basic colourless land, no mana cost, `{C}` in text                        |
 
 ## Edge cases
@@ -49,6 +49,8 @@ These are the ten cards in the reference mockups (`MOCKUP_FIXTURES`), used for v
 | `dark-depths`                                  | Two supertypes, Legendary Snow (D15): one icon each, type-line order                 |
 | `snow-covered-forest`                          | Basic Snow land (D15): BASIC then SNOW, large mana symbol in the text box            |
 | `concordant-crossroads`                        | World supertype (D15)                                                                |
+| `breeding-pool`                                | Two basic land types (D16): {G} then {U} subtype icons, no labels                     |
+| `curse-of-deaths-hold`                         | Aura Curse (D16): only the Aura subtype gets an icon                                 |
 | `thought-knot-seer`                            | Colourless mana `{C}` in the cost, distinct from generic                            |
 | `ornithopter`                                  | `{0}` cost (must differ from no cost), 0 power                                      |
 | `gelatinous-genesis`                           | `{X}{X}{G}` (X count 2), `X/X` in text                                              |
