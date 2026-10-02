@@ -21,14 +21,19 @@ import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import {
   CARD_TYPES,
+  DEFENSE_BADGE,
   FRAME,
   INDICATOR,
   LABELS,
   LAND_FRAME as LAND,
   LAND_TYPE_MANA,
+  LOYALTY_BADGES,
+  MANA_SYMBOL_IMAGES,
   STAT_ICONS,
   SUBTYPE_ICONS,
   SUPERTYPE_ICONS,
+  TEXT_SYMBOLS,
+  WATERMARKS,
   ZONE_SYMBOL_STYLE,
   isPermanent,
 } from '../../src/config/index.js';
@@ -60,8 +65,8 @@ const sheetCodes = new Set(listSymbolCodes(sheet));
 const symbolCache = new Map();
 const genericSymbol = await loadImage(path.join(SYMBOL_DIR, 'generic.svg'));
 
-// Traced icons from res/symbols/ (see its README). Missing ones fall back to
-// labelled boxes, so the preview shows what still needs an icon.
+// Icons from res/symbols/ (see its README). Any that fail to load fall back to
+// labelled boxes.
 const ICONS = new Map();
 for (const name of [
   ...Object.values(CARD_TYPES).map((t) => t.icon),
@@ -70,22 +75,80 @@ for (const name of [
     .filter((t) => t.icon)
     .map((t) => t.icon),
   ...Object.values(STAT_ICONS).map((t) => t.icon),
+  ...Object.values(SUBTYPE_ICONS).map((t) => t.icon),
+  ...Object.values(TEXT_SYMBOLS).map((t) => t.icon),
+  ...Object.values(WATERMARKS).map((t) => t.icon),
+  ...Object.values(LOYALTY_BADGES).map((t) => t.icon),
+  DEFENSE_BADGE.icon,
 ]) {
   try {
     ICONS.set(name, await loadImage(path.join(SYMBOL_DIR, `${name}.svg`)));
   } catch {
-    // Not traced yet.
+    // Missing icon.
   }
 }
 
 /** Scryfall symbol ('U', 'W/U', 'B/P', 'T', 'S', '12') → loaded sheet image, or null. */
 async function symbol(code) {
   const key = sheetCode(code);
-  if (!key) return null;
+  if (!key) return extraSymbol(code);
   if (!symbolCache.has(key)) {
     symbolCache.set(key, await loadImage(Buffer.from(extractSymbolSvg(sheet, key, 160))));
   }
   return symbolCache.get(key);
+}
+
+/**
+ * Symbols missing from the sheet (T-B14): composed mana symbol images, and the
+ * white text-box icons (chaos, ticket, planeswalker) tinted dark for the pale
+ * text box. Null when there is none, for the text fallback.
+ */
+async function extraSymbol(code) {
+  const upper = code.toUpperCase();
+  if (!symbolCache.has(upper)) {
+    let image = null;
+    if (MANA_SYMBOL_IMAGES[upper]) {
+      image = await loadImage(path.join(SYMBOL_DIR, MANA_SYMBOL_IMAGES[upper]));
+    } else if (TEXT_SYMBOLS[upper] && ICONS.get(TEXT_SYMBOLS[upper].icon)) {
+      image = tinted(ICONS.get(TEXT_SYMBOLS[upper].icon), '#111');
+    }
+    symbolCache.set(upper, image);
+  }
+  return symbolCache.get(upper);
+}
+
+/** A white icon recoloured, at 200×200. */
+function tinted(icon, colour, size = 200) {
+  const canvas = createCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(icon, 0, 0, size, size);
+  ctx.globalCompositeOperation = 'source-in';
+  ctx.fillStyle = colour;
+  ctx.fillRect(0, 0, size, size);
+  return canvas;
+}
+
+/**
+ * A badge shape (loyalty, defense) filled with `colour` and a white outline,
+ * centred on (cx, cy) in a `size` square, with `text` on it.
+ */
+function drawBadge(ctx, icon, colour, cx, cy, size, text) {
+  const inset = Math.max(2, size * 0.06);
+  ctx.drawImage(tinted(icon, '#fff'), cx - size / 2, cy - size / 2, size, size);
+  ctx.drawImage(
+    tinted(icon, colour),
+    cx - size / 2 + inset,
+    cy - size / 2 + inset,
+    size - inset * 2,
+    size - inset * 2,
+  );
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = FONT(fitSize(ctx, text, size * 0.62, Math.round(size * 0.42), FONT, 10));
+  ctx.fillText(text, cx, cy + size * 0.03);
+  ctx.restore();
 }
 
 function sheetCode(code) {
@@ -371,7 +434,8 @@ async function drawStatBar(ctx, model, layout) {
   // Boxes stand in for missing icons; zone/timing boxes are gold.
   const middle = [];
   for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
-    middle.push({ abbr: SUBTYPE_ICONS[subtype].placeholder });
+    const style = SUBTYPE_ICONS[subtype];
+    middle.push({ icon: ICONS.get(style.icon), abbr: style.placeholder });
   }
   // Snow reuses the {S} art.
   for (const supertype of model.supertypes.filter((t) => SUPERTYPE_ICONS[t])) {
@@ -438,7 +502,16 @@ async function drawStatBar(ctx, model, layout) {
       hollow,
     );
   } else if (model.loyalty !== null) {
-    drawStat(ctx, LABELS.loyalty, model.loyalty, bottom - 60);
+    // Starting loyalty badge at the bottom of the bar (7.2.3).
+    drawBadge(
+      ctx,
+      ICONS.get(LOYALTY_BADGES.start.icon),
+      '#3a3a3a',
+      cx,
+      bottom - 34,
+      76,
+      model.loyalty,
+    );
   } else if (model.defense !== null) {
     drawDefenseBadge(ctx, model.defense);
   } else if (!isPermanent(model.types)) {
@@ -571,33 +644,17 @@ function drawMiddleItem(ctx, { label, zone, icon, abbr }, top, labels, scale) {
   return used;
 }
 
-/**
- * Placeholder defense badge (D18, 5.7.7): a shield outline at the bottom of the
- * bar, like the planeswalker loyalty badge (7.2.3), until the icon exists.
- */
+/** Defense badge at the bottom of the bar (D18, 5.7.7). */
 function drawDefenseBadge(ctx, defense) {
-  const cx = BAR.width / 2;
-  const w = 56;
-  const top = CARD.height - 78;
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(cx - w / 2, top);
-  ctx.lineTo(cx + w / 2, top);
-  ctx.lineTo(cx + w / 2, top + 36);
-  ctx.quadraticCurveTo(cx + w / 2, top + 58, cx, top + 70);
-  ctx.quadraticCurveTo(cx - w / 2, top + 58, cx - w / 2, top + 36);
-  ctx.closePath();
-  ctx.fillStyle = '#7a1f1f';
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = FONT(fitSize(ctx, defense, w - 12, 32, FONT, 14));
-  ctx.fillText(defense, cx, top + 30);
-  ctx.restore();
+  drawBadge(
+    ctx,
+    ICONS.get(DEFENSE_BADGE.icon),
+    '#7a1f1f',
+    BAR.width / 2,
+    CARD.height - 48,
+    70,
+    defense,
+  );
 }
 
 /**
@@ -725,7 +782,21 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
   pinline(ctx, paint.pin, BOX.x + 6, TEXT.y, width - 12, TEXT.h, 0);
   ctx.fillStyle = paint.text;
   ctx.fillRect(BOX.x + 6, TEXT.y, width - 12, TEXT.h);
-  if (model.watermark) {
+  const watermark = ICONS.get(WATERMARKS[model.watermark]?.icon);
+  if (watermark) {
+    // Watermark icon, faint behind the text (6.4.3).
+    const size = Math.min(TEXT.h - 40, 300);
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.drawImage(
+      tinted(watermark, '#000', 400),
+      BOX.x + width / 2 - size / 2,
+      TEXT.y + TEXT.h / 2 - size / 2,
+      size,
+      size,
+    );
+    ctx.restore();
+  } else if (model.watermark) {
     ctx.fillStyle = 'rgba(0,0,0,0.08)';
     ctx.font = LABEL(60);
     ctx.textAlign = 'center';
@@ -810,46 +881,14 @@ async function drawAbilityBands(ctx, pw, x, width) {
 }
 
 /**
- * Loyalty cost marker in the bar (D22), shaped like printed cards: + points
- * up, − points down, 0 is flat. ±X is drawn like a number. Scales down to
- * fit short bands, so markers never touch.
+ * Loyalty cost in the bar (D22): the printed-card badge shapes from the Mana
+ * font, + pointing up, − down, 0 flat. ±X is drawn like a number. Scales down
+ * to fit short bands.
  */
 function drawLoyaltyCost(ctx, cost, cy, bandH) {
-  const cx = BAR.width / 2;
-  const scale = Math.min(1, (bandH - 6) / 52);
-  const w = 66 * scale;
-  const h = 34 * scale;
-  const tip = 9 * scale;
-  const [l, r, t, b] = [cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2];
-  ctx.save();
-  ctx.beginPath();
-  if (cost.startsWith('+')) {
-    ctx.moveTo(l, b);
-    ctx.lineTo(l, t + tip);
-    ctx.lineTo(cx, t - tip);
-    ctx.lineTo(r, t + tip);
-    ctx.lineTo(r, b);
-  } else if (cost.startsWith('−')) {
-    ctx.moveTo(l, t);
-    ctx.lineTo(r, t);
-    ctx.lineTo(r, b - tip);
-    ctx.lineTo(cx, b + tip);
-    ctx.lineTo(l, b - tip);
-  } else {
-    ctx.rect(l, t, w, h);
-  }
-  ctx.closePath();
-  ctx.fillStyle = '#3a3a3a';
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = FONT(fitSize(ctx, cost, w - 10, Math.round(24 * scale), FONT, 10));
-  ctx.fillText(cost, cx, cy + 1);
-  ctx.restore();
+  const badge = cost.startsWith('+') ? 'up' : cost.startsWith('−') ? 'down' : 'zero';
+  const size = Math.min(70, bandH - 4);
+  drawBadge(ctx, ICONS.get(LOYALTY_BADGES[badge].icon), '#3a3a3a', BAR.width / 2, cy, size, cost);
 }
 
 /**
@@ -885,8 +924,9 @@ async function drawLines(ctx, layout, x, y, width, size) {
       if (token.pt) {
         // Sword / shield after each number of a +N/+N or -N/-N modifier (6.4.5).
         const s = Math.round(size * 0.95);
-        const icon = ICONS.get(`stats/${token.pt}`);
-        if (icon) ctx.drawImage(icon, lx + 1, y + line.y - s * 0.82, s, s);
+        // The icons are white for the bar; tint them dark for the text box.
+        const icon = ICONS.get(STAT_ICONS[token.pt].icon);
+        if (icon) ctx.drawImage(tinted(icon, '#111'), lx + 1, y + line.y - s * 0.82, s, s);
         else
           drawFallbackSymbol(
             ctx,

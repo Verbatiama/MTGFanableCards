@@ -96,7 +96,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-B10 | Stat-bar overflow and collision handling                                                            | T-B7–T-B9, D19                | 4.4          |
 | T-B11 | Planeswalker layout: shaded bands, loyalty costs aligned with abilities, loyalty badge              | T-B5, T-B9, D22               | 7.2          |
 | T-B12 | Basic land: large mana symbol in the text box                                                       | T-B5                          | 6.4.4        |
-| T-B14 | Make the missing icons listed in `res/symbols/README.md`: Battle, Kindred, supertypes, Aura/Equipment/Fortification, split second, power (crossed swords), loyalty and defense badges, text-box symbols (chaos, {TK}, planeswalker, loyalty costs), watermarks, artist paintbrush, and the missing mana symbols (Y, Z, Phyrexian and colourless hybrid) | D7, D14–D16, D18, D20 | 9.1 |
+| T-B14 | ✓ DONE: Missing icons (`npm run symbols:build`): power, text symbols, loyalty badges, 30 watermarks and artist brush from the Mana font (SIL OFL); Battle, Kindred, split second, supertypes, subtypes and defense badge drawn; Y, Z and 15 extra hybrids composed; all in src/config; the preview spike uses them | D7, D14–D16, D18, D20 | 9.1 |
 
 ### Application: API and frontend
 

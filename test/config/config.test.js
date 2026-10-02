@@ -4,15 +4,20 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
   CARD_TYPES,
+  DEFENSE_BADGE,
+  FOOTER_ICONS,
   FRAME,
   INDICATOR,
   LAND_FRAME,
   LAND_TYPE_MANA,
+  LOYALTY_BADGES,
+  MANA_SYMBOL_IMAGES,
   STAT_ICONS,
   SUBTYPE_ICONS,
   SUPERTYPE_ICONS,
   SUPERTYPES,
   TEXT_SYMBOLS,
+  WATERMARKS,
   ZONE_KEYWORDS,
   ZONE_SYMBOL_STYLE,
   isPermanent,
@@ -28,6 +33,10 @@ const allIcons = [
   ...Object.values(SUBTYPE_ICONS),
   ...Object.values(TEXT_SYMBOLS),
   ...Object.values(STAT_ICONS),
+  ...Object.values(LOYALTY_BADGES),
+  DEFENSE_BADGE,
+  ...Object.values(FOOTER_ICONS),
+  ...Object.values(WATERMARKS),
 ]
   .map((entry) => entry.icon)
   .filter(Boolean);
@@ -83,7 +92,17 @@ test('frame palettes have every colour and every part', () => {
 });
 
 test('every icon file in res/symbols is used by the config', () => {
-  for (const dir of ['types', 'zones', 'stats', 'supertypes', 'subtypes', 'text']) {
+  for (const dir of [
+    'types',
+    'zones',
+    'stats',
+    'supertypes',
+    'subtypes',
+    'text',
+    'badges',
+    'footer',
+    'watermarks',
+  ]) {
     const full = path.join(SYMBOL_DIR, dir);
     if (!existsSync(full)) continue;
     for (const file of readdirSync(full).filter((f) => f.endsWith('.svg'))) {
@@ -95,21 +114,17 @@ test('every icon file in res/symbols is used by the config', () => {
   }
 });
 
-test('icons still to be made (T-B14): update this list as they are added', () => {
+test('every icon the config names exists (T-B14)', () => {
   const missing = allIcons.filter((icon) => !existsSync(path.join(SYMBOL_DIR, `${icon}.svg`)));
-  assert.deepEqual(missing.sort(), [
-    'stats/power',
-    'subtypes/aura',
-    'subtypes/equipment',
-    'subtypes/fortification',
-    'supertypes/basic',
-    'supertypes/legendary',
-    'supertypes/world',
-    'text/chaos',
-    'text/planeswalker',
-    'text/ticket',
-    'types/battle',
-    'types/kindred',
-    'zones/split-second',
-  ]);
+  assert.deepEqual(missing, []);
+});
+
+test('every composed mana symbol image exists and is used', () => {
+  for (const file of Object.values(MANA_SYMBOL_IMAGES)) {
+    assert.ok(existsSync(path.join(SYMBOL_DIR, file)), file);
+  }
+  const used = new Set(Object.values(MANA_SYMBOL_IMAGES));
+  for (const file of readdirSync(path.join(SYMBOL_DIR, 'mana'))) {
+    assert.ok(used.has(`mana/${file}`), `mana/${file} is not in the config`);
+  }
 });

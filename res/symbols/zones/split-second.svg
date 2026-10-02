@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Drawn for MTGFannableCards by scripts/build-icons.js (GPL-3.0) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g fill="#FFFFFF"><rect x="43" y="4" width="14" height="9" rx="2"/><path d="M50 14A42 42 0 1 1 49.9 14Z M50 22A34 34 0 1 0 50.1 22Z" fill-rule="evenodd"/><path d="M56 30L36 60H49L43 84L66 50H53Z"/></g>
+</svg>

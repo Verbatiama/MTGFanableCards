@@ -642,12 +642,12 @@ The implementation keeps these as configuration tables rather than hard-coding t
 
 | Table                                 | Maps        | Status                                               |
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
-| Card type → icon                      | 5.1         | Defined (D14); Battle and Kindred icons to be made   |
-| Supertype → icon + label              | 5.5.1–5.5.4 | Defined (D15); icons to be made                      |
-| Subtype → icon                        | 5.5.7–5.5.9 | Defined (D16); Aura/Equipment/Fortification icons to be made |
-| Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and some hybrid icons missing    |
-| Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); split second icon missing             |
-| Text symbol → icon                    | 6.4.7       | Defined (D20); chaos, {TK}, planeswalker and loyalty icons missing |
+| Card type → icon                      | 5.1         | Defined (D14); all icons made (T-B14)                |
+| Supertype → icon + label              | 5.5.1–5.5.4 | Defined (D15); all icons made (T-B14)                |
+| Subtype → icon                        | 5.5.7–5.5.9 | Defined (D16); all icons made (T-B14)                |
+| Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and the extra hybrids composed (T-B14) |
+| Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); all icons made (T-B14)                |
+| Text symbol → icon                    | 6.4.7       | Defined (D20); all icons made (T-B14)                |
 | Colour(s) → frame style               | 6.6         | Defined (D21)                                        |
 | Layout → marker / rendering rules     | 8           | Open                                                 |
 
@@ -656,6 +656,7 @@ The implementation keeps these as configuration tables rather than hard-coding t
 - **Mana symbols (custom):** Use the generic mana symbol style from `res/symbols/symbols.svg` (includes 0-20, WUBRG, X, hybrids, etc.). Replaces standard rounded mana cost symbols with a stylized design.
 - **Set symbols, creature/spell types, zone/timing icons:** Source from Scryfall SVG library (GPL-3.0 compatible) or create custom SVGs.
 - **Watermarks (guild symbols, etc.):** Create custom SVGs or source from Scryfall as needed.
+- **Mana font icons (T-B14):** power, text symbols, loyalty badges, watermarks and the artist brush come from the [Mana font](https://github.com/andrewgioia/mana) by Andrew Gioia (SIL OFL 1.1). Icons it doesn't have (Battle, Kindred, split second, supertypes, subtypes, defense badge) were drawn for this project, and the missing mana symbols composed from the sheet; see `scripts/build-icons.js`.
 - **Traced icons:** card type, zone and toughness icons are traced from [magarena](https://github.com/magarena/magarena) PNGs (GPL-3.0, compatible with this project) by `scripts/trace-symbol.js`.
 - All symbol assets are stored in `res/symbols/`. `res/symbols/README.md` lists every required symbol, its source, and which are still missing.
 

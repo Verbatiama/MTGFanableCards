@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Drawn for MTGFannableCards by scripts/build-icons.js (GPL-3.0) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g fill="#FFFFFF"><rect x="8" y="64" width="40" height="24" rx="2"/><rect x="52" y="64" width="40" height="24" rx="2"/><rect x="28" y="38" width="44" height="22" rx="2"/><rect x="39" y="14" width="22" height="20" rx="2"/></g>
+</svg>
