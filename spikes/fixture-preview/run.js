@@ -19,8 +19,17 @@ import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
+import { textFont, labelFont } from '../../src/render/fonts.js';
 import {
+  ART,
+  BAR,
+  BOX,
+  CARD,
   CARD_TYPES,
+  FOOTER,
+  NAME,
+  TEXT,
+  TYPE,
   DEFENSE_BADGE,
   FRAME,
   INDICATOR,
@@ -38,17 +47,9 @@ import {
   isPermanent,
 } from '../../src/config/index.js';
 
-const CARD = { width: 750, height: 1050 };
-const BAR = { width: 90, icon: 40, gap: 6 };
-const BOX = { x: BAR.width + 10, right: CARD.width - 12 };
-const NAME = { y: 12, h: 58 };
-const ART = { y: 76, h: 440 };
-const TYPE = { y: 522, h: 50 };
-const TEXT = { y: 578, h: 380 };
-const FOOTER = { y: 966 };
-
-const FONT = (size) => `bold ${size}px "Beleren"`;
-const LABEL = (size) => `bold ${size}px "Beleren SmallCaps"`;
+// Card dimensions and fonts come from the real renderer's config (T-B2).
+const FONT = textFont;
+const LABEL = labelFont;
 
 // Placeholder type icons until the real set arrives (D14). Full-size icon
 // height; two or three types shrink to fit one row.

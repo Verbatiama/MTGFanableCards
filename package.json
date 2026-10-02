@@ -23,7 +23,8 @@
     "spike:preview": "node spikes/fixture-preview/run.js",
     "symbols:trace": "node scripts/trace-symbol.js",
     "data:download": "node scripts/download-bulk-data.js",
-    "symbols:build": "node scripts/build-icons.js"
+    "symbols:build": "node scripts/build-icons.js",
+    "render:fixtures": "node scripts/render-fixtures.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

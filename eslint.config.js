@@ -27,5 +27,12 @@ export default [
       globals: globals.browser,
     },
   },
+  {
+    // The server side of the renderer, the one Node-only file in src/render/.
+    files: ['src/render/node.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   prettier,
 ];
