@@ -86,7 +86,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | ID    | Task                                                                                                | Depends on                    | Req          |
 | ----- | --------------------------------------------------------------------------------------------------- | ----------------------------- | ------------ |
 | T-B2  | ✓ DONE: Render foundation: layout and font config (src/config/layout.js), renderCard(ctx, model, { env, art }) for node-canvas and the browser (src/render/render-card.js), Node side with Beleren fonts and PNG output (src/render/node.js), `npm run render:fixtures` into out/render/ | D5, D6, D8, S1                | 4            |
-| T-B3  | Asset loader for symbols and icons, with placeholder icons until the final set arrives              | T-B2, D7                      | 9.1          |
+| T-B3  | ✓ DONE: Asset loader (src/render/assets.js): sheet symbols by Scryfall code, generic and composed mana symbols, icons by config path, cached tinting, placeholders for icons that fail to load; environment-neutral (Node env in src/render/node.js); sheet cutter moved to src/render/symbol-sheet.js; the spike uses it (previews unchanged) | T-B2, D7                      | 9.1          |
 | T-B4  | Card-box frame: name bar, art box and cropping, type line, set symbol, frame colours                | T-B2, D20, D21                | 6.1–6.3, 6.6 |
 | T-B5  | Text box: inline symbols, italics, sword/shield P/T notation, watermark, text fitting               | T-B2, T-A7 (or fixtures), D20 | 6.4          |
 | T-B6  | Footer                                                                                              | T-B2, D20                     | 6.5          |

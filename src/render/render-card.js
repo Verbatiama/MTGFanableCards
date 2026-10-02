@@ -16,6 +16,7 @@ import { fitFont, textFont } from './fonts.js';
  *
  * @typedef {object} RenderOptions
  * @property {RenderEnv} env
+ * @property {ReturnType<typeof import('./assets.js').createAssets>} assets Shared asset loader (T-B3).
  * @property {any} [art] Loaded art image, or null for the black placeholder (3.4.1).
  *
  * @param {CanvasRenderingContext2D} ctx

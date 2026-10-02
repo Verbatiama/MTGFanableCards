@@ -1,7 +1,9 @@
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 import { CARD, FONTS } from '../config/layout.js';
-import { FONT_DIR } from '../paths.js';
+import { FONT_DIR, SYMBOL_DIR } from '../paths.js';
+import { createAssets } from './assets.js';
 import { renderCard } from './render-card.js';
 
 /**
@@ -9,8 +11,17 @@ import { renderCard } from './render-card.js';
  * Runs on Linux; node-canvas can't load the fonts on native Windows (T-B1).
  */
 
-/** Environment for renderCard: canvases and images from node-canvas. */
-export const nodeEnv = { createCanvas, loadImage };
+/** Environment for renderCard and the asset loader: node-canvas and res/symbols/ on disk. */
+export const nodeEnv = {
+  createCanvas,
+  loadImage: (bytes) => loadImage(Buffer.from(bytes)),
+  loadAsset: (file) => loadImage(path.join(SYMBOL_DIR, file)),
+  readAsset: (file) => readFile(path.join(SYMBOL_DIR, file), 'utf8'),
+  loadSvg: (svg) => loadImage(Buffer.from(svg)),
+};
+
+/** Assets shared by every card rendered in this process (T-B3). */
+export const nodeAssets = createAssets(nodeEnv);
 
 let fontsRegistered = false;
 /** Registers the Beleren fonts; must happen before the first canvas is created. */
@@ -38,7 +49,11 @@ export async function renderCardCanvas(model, { art = null } = {}) {
       image = null; // undecodable art: black placeholder (3.4.1)
     }
   }
-  await renderCard(canvas.getContext('2d'), model, { env: nodeEnv, art: image });
+  await renderCard(canvas.getContext('2d'), model, {
+    env: nodeEnv,
+    assets: nodeAssets,
+    art: image,
+  });
   return canvas;
 }
 

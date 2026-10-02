@@ -12,8 +12,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
-import { FONT_DIR, OUT_DIR, SYMBOL_DIR } from '../../src/paths.js';
-import { extractSymbolSvg, listSymbolCodes } from '../rendering/symbols.js';
+import { FONT_DIR, OUT_DIR } from '../../src/paths.js';
+import { nodeAssets as assets } from '../../src/render/node.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
@@ -37,7 +37,6 @@ import {
   LAND_FRAME as LAND,
   LAND_TYPE_MANA,
   LOYALTY_BADGES,
-  MANA_SYMBOL_IMAGES,
   STAT_ICONS,
   SUBTYPE_ICONS,
   SUPERTYPE_ICONS,
@@ -61,10 +60,8 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
   weight: 'bold',
 });
 
-const sheet = await readFile(path.join(SYMBOL_DIR, 'symbols.svg'), 'utf8');
-const sheetCodes = new Set(listSymbolCodes(sheet));
-const symbolCache = new Map();
-const genericSymbol = await loadImage(path.join(SYMBOL_DIR, 'generic.svg'));
+// Symbols and icons come from the real asset loader (T-B3).
+const genericSymbol = await assets.symbol('generic');
 
 // Icons from res/symbols/ (see its README). Any that fail to load fall back to
 // labelled boxes.
@@ -83,7 +80,8 @@ for (const name of [
   DEFENSE_BADGE.icon,
 ]) {
   try {
-    ICONS.set(name, await loadImage(path.join(SYMBOL_DIR, `${name}.svg`)));
+    const icon = await assets.icon(name);
+    if (icon) ICONS.set(name, icon);
   } catch {
     // Missing icon.
   }
@@ -91,42 +89,14 @@ for (const name of [
 
 /** Scryfall symbol ('U', 'W/U', 'B/P', 'T', 'S', '12') → loaded sheet image, or null. */
 async function symbol(code) {
-  const key = sheetCode(code);
-  if (!key) return extraSymbol(code);
-  if (!symbolCache.has(key)) {
-    symbolCache.set(key, await loadImage(Buffer.from(extractSymbolSvg(sheet, key, 160))));
-  }
-  return symbolCache.get(key);
+  const image = await assets.symbol(code);
+  // Text-box icons (chaos, ticket, planeswalker) are white; tint them dark.
+  return image && TEXT_SYMBOLS[code.toUpperCase()] ? assets.tinted(image, '#111') : image;
 }
 
-/**
- * Symbols missing from the sheet (T-B14): composed mana symbol images, and the
- * white text-box icons (chaos, ticket, planeswalker) tinted dark for the pale
- * text box. Null when there is none, for the text fallback.
- */
-async function extraSymbol(code) {
-  const upper = code.toUpperCase();
-  if (!symbolCache.has(upper)) {
-    let image = null;
-    if (MANA_SYMBOL_IMAGES[upper]) {
-      image = await loadImage(path.join(SYMBOL_DIR, MANA_SYMBOL_IMAGES[upper]));
-    } else if (TEXT_SYMBOLS[upper] && ICONS.get(TEXT_SYMBOLS[upper].icon)) {
-      image = tinted(ICONS.get(TEXT_SYMBOLS[upper].icon), '#111');
-    }
-    symbolCache.set(upper, image);
-  }
-  return symbolCache.get(upper);
-}
-
-/** A white icon recoloured, at 200×200. */
+/** A white icon recoloured, at 200×200 (cached by the asset loader). */
 function tinted(icon, colour, size = 200) {
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(icon, 0, 0, size, size);
-  ctx.globalCompositeOperation = 'source-in';
-  ctx.fillStyle = colour;
-  ctx.fillRect(0, 0, size, size);
-  return canvas;
+  return assets.tinted(icon, colour, size);
 }
 
 /**
@@ -150,15 +120,6 @@ function drawBadge(ctx, icon, colour, cx, cy, size, text) {
   ctx.font = FONT(fitSize(ctx, text, size * 0.62, Math.round(size * 0.42), FONT, 10));
   ctx.fillText(text, cx, cy + size * 0.03);
   ctx.restore();
-}
-
-function sheetCode(code) {
-  const c = code.toLowerCase();
-  if (c === 's') return 'snow';
-  // The sheet labels Phyrexian as 'pb', hybrids as 'wu', mono-hybrids as '2w'.
-  const phyrexian = /^([wubrg])\/p$/.exec(c);
-  const key = phyrexian ? `p${phyrexian[1]}` : c.replace('/', '');
-  return sheetCodes.has(key) ? key : null;
 }
 
 /**

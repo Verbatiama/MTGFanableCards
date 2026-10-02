@@ -15,7 +15,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage } from 'canvas';
 import { SYMBOL_DIR } from '../src/paths.js';
-import { extractSymbolSvg } from '../spikes/rendering/symbols.js';
+import { extractSymbolSvg } from '../src/render/symbol-sheet.js';
 
 const MANA_SVG = 'https://raw.githubusercontent.com/andrewgioia/mana/master/svg';
 const HEADERS = { 'User-Agent': 'MTGFannableCards/0.1' };

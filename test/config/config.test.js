@@ -24,7 +24,7 @@ import {
 } from '../../src/config/index.js';
 import { ZONE_SYMBOLS } from '../../src/model/card-model.js';
 import { SYMBOL_DIR } from '../../src/paths.js';
-import { listSymbolCodes } from '../../spikes/rendering/symbols.js';
+import { listSymbolCodes } from '../../src/render/symbol-sheet.js';
 
 const allIcons = [
   ...Object.values(CARD_TYPES),
