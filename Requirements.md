@@ -171,6 +171,7 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 
 - **Distribution:** a Docker image published to GitHub Container Registry for each release, plus a `docker-compose.yml`. The Compose file always runs the app, with a data volume; a Caddy service behind a Compose profile adds HTTPS on a domain, the same setup as the public instance (3.6.3). Running from a clone with `npm start` (Linux, Node.js 22) stays documented as the developer route.
 - **CLI:** the same image and repository: `docker compose run app cli decklist.txt`, or `npm run cli -- decklist.txt` from a clone. Output goes to the mounted `out/` folder. No separate npm package.
+  - **[Confirmed]** Output and errors (T-A12): `cards.zip` in `out/` by default; `--pdf` writes `cards.pdf` and `--png` the loose PNGs in `out/cards/` instead (`--zip` adds the zip back; `--out <dir>` changes the folder; `-` reads the decklist from stdin). Problems are printed on stderr by decklist line (unreadable lines, unmatched names with suggestions, printing fallbacks, skipped cards such as split layouts) plus any render warnings, and never stop the batch (3.2.6). The CLI exits 0 when anything was generated, 1 when nothing was or the decklist can't be read, and 2 for bad arguments; `--strict` also exits 1 when the decklist had any problem. Generation time and art cache use are printed at the end (10.5).
 - **Configuration**, by environment variables:
 
 | Variable              | Default     | Purpose                                                  |

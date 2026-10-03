@@ -61,18 +61,24 @@ export const decodeSetSymbol = (bytes) => decode(bytes && sizedSvg(bytes));
 /**
  * Renders a card model to a canvas.
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null }} [options]
+ * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null,
+ *   onWarning?: (message: string) => void }} [options]
  *   Art bytes (T-A10) and set symbol SVG bytes (T-B4); null for the fallbacks.
+ *   `onWarning` receives each of renderCard's warnings (T-B10).
  */
-export async function renderCardCanvas(model, { art = null, setSymbol = null } = {}) {
+export async function renderCardCanvas(
+  model,
+  { art = null, setSymbol = null, onWarning = () => {} } = {},
+) {
   registerFonts();
   const canvas = createCanvas(CARD.width, CARD.height);
-  await renderCard(canvas.getContext('2d'), model, {
+  const { warnings } = await renderCard(canvas.getContext('2d'), model, {
     env: nodeEnv,
     assets: nodeAssets,
     art: await decode(art),
     setSymbol: await decodeSetSymbol(setSymbol),
   });
+  warnings.forEach(onWarning);
   return canvas;
 }
 /** Renders a card model to PNG bytes (3.5.1). */

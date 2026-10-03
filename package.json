@@ -24,7 +24,8 @@
     "symbols:trace": "node scripts/trace-symbol.js",
     "data:download": "node scripts/download-bulk-data.js",
     "symbols:build": "node scripts/build-icons.js",
-    "render:fixtures": "node scripts/render-fixtures.js"
+    "render:fixtures": "node scripts/render-fixtures.js",
+    "cli": "node src/cli.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 
 /**
  * Backend API (D9). Only a health check for now; card generation routes are
- * added in T-A12 / T-S3.
+ * added in T-C1.
  */
 export function createServer() {
   return http.createServer((req, res) => {
