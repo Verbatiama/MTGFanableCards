@@ -23,3 +23,6 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Frontend build (T-C2)
+web/dist/

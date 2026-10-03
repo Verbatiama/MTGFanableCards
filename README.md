@@ -26,6 +26,8 @@ npm install
 npm run check         # lint + format check + tests (what CI runs)
 npm test              # tests only (node:test)
 npm start             # backend API on http://localhost:3000 (OpenAPI at /api/docs)
+npm run web:build     # Build the frontend into web/dist/, served by npm start at http://localhost:3000
+npm run web:dev       # Frontend with hot reload on http://localhost:5173 (needs npm start running)
 npm run spike:preview # Generate preview images from development spikes
 npm run data:download # Download the Scryfall bulk data into cache/scryfall/ (or DATA_DIR)
 npm run render:fixtures # Render every fixture with the real renderer into out/render/

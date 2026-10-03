@@ -25,15 +25,20 @@
     "data:download": "node scripts/download-bulk-data.js",
     "symbols:build": "node scripts/build-icons.js",
     "render:fixtures": "node scripts/render-fixtures.js",
-    "cli": "node src/cli.js"
+    "cli": "node src/cli.js",
+    "web:dev": "vite --config web/vite.config.js",
+    "web:build": "vite build --config web/vite.config.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@napi-rs/canvas": "^1.0.9",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "vite": "^8.3.2"
   },
   "allowScripts": {
     "canvas@3.2.3": true
@@ -45,6 +50,8 @@
     "canvas": "^3.2.3",
     "fastify": "^5.12.5",
     "fflate": "^0.8.3",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

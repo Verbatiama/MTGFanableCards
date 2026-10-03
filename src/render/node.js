@@ -5,6 +5,7 @@ import { CARD, FONTS } from '../config/layout.js';
 import { FONT_DIR, SYMBOL_DIR } from '../paths.js';
 import { createAssets } from './assets.js';
 import { renderCard } from './render-card.js';
+import { sizeSvg } from './svg.js';
 
 /**
  * The renderer on the server (D5): node-canvas with the Beleren fonts.
@@ -43,20 +44,9 @@ export async function decode(bytes) {
   }
 }
 
-/**
- * Scryfall's set SVGs have only a viewBox; give them a large pixel size so
- * node-canvas rasterises them sharply rather than at their tiny default size.
- */
-function sizedSvg(bytes, height = 120) {
-  const svg = Buffer.from(bytes).toString('utf8');
-  const box = /viewBox="[\d.-]+ [\d.-]+ ([\d.]+) ([\d.]+)"/.exec(svg);
-  if (!box) return bytes;
-  const width = Math.round((height * Number(box[1])) / Number(box[2]));
-  return Buffer.from(svg.replace('<svg ', `<svg width="${width}" height="${height}" `));
-}
-
 /** Decodes set symbol SVG bytes at a sharp size (T-B4). */
-export const decodeSetSymbol = (bytes) => decode(bytes && sizedSvg(bytes));
+export const decodeSetSymbol = (bytes) =>
+  decode(bytes && Buffer.from(sizeSvg(Buffer.from(bytes).toString('utf8'))));
 
 /**
  * Renders a card model to a canvas.

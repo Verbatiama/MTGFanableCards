@@ -1,0 +1,225 @@
+:root {
+  --bg: #f4f2ee;
+  --panel: #ffffff;
+  --text: #1d1b19;
+  --muted: #6b665f;
+  --border: #d9d4cc;
+  --accent: #8a5a00;
+  --accent-text: #ffffff;
+  --problem: #a8321e;
+  --problem-bg: #fbeee9;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151412;
+    --panel: #1f1d1a;
+    --text: #ece8e1;
+    --muted: #a39d93;
+    --border: #3a3631;
+    --accent: #e0a63a;
+    --accent-text: #1a1408;
+    --problem: #f08a73;
+    --problem-bg: #3a1f19;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 800px) {
+  main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+section > label,
+h2 {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.hint,
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hint {
+  margin: 0 0 8px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.6 ui-monospace,
+    monospace;
+}
+
+fieldset {
+  border: 0;
+  margin: 12px 0;
+  padding: 0;
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+fieldset label {
+  display: block;
+}
+
+button,
+.button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.primary {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.problem {
+  color: var(--problem);
+}
+
+div.problem,
+.report {
+  background: var(--problem-bg);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+div.problem p {
+  margin: 4px 0;
+}
+
+.job {
+  margin-top: 12px;
+}
+
+progress {
+  width: 100%;
+}
+
+.report h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--problem);
+}
+
+.report ul {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+figure {
+  margin: 0;
+  flex: 1 1 240px;
+  max-width: 375px;
+}
+
+canvas.card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 750 / 1050;
+  border-radius: 12px;
+  background: #000;
+}
+
+.faces.stale {
+  opacity: 0.6;
+}
+
+footer {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
