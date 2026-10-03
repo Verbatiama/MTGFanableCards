@@ -9,6 +9,13 @@ export const CARD = { width: 750, height: 1050 };
 /** The stat bar (4.1–4.2): its width, mana symbol size and gap between rows. */
 export const BAR = { width: 90, icon: 40, gap: 6 };
 
+/**
+ * Top of the stat bar (5.1–5.3): where it starts, the type icon row (full-size
+ * icon height and gap between several icons), the colour indicator's radius,
+ * and the gap after each row. Mana rows are BAR.icon high, BAR.gap apart.
+ */
+export const BAR_TOP = { y: 14, typeRow: 44, typeGap: 3, indicator: 14, rowGap: 8 };
+
 /** The card box: its left edge (after the bar and a gap) and right edge. */
 export const BOX = { x: BAR.width + 10, right: CARD.width - 12 };
 

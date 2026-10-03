@@ -24,6 +24,7 @@ import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawSymbol as drawSymbolWith, textSymbolImage } from '../../src/render/symbols.js';
 import { drawFooter } from '../../src/render/footer.js';
+import { drawStatBarTop } from '../../src/render/stat-bar.js';
 import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
 import {
   ART,
@@ -35,7 +36,6 @@ import {
   TEXT,
   TYPE,
   DEFENSE_BADGE,
-  INDICATOR,
   LABELS,
   LAND_TYPE_MANA,
   LOYALTY_BADGES,
@@ -50,10 +50,6 @@ import {
 const FONT = textFont;
 const LABEL = labelFont;
 
-// Placeholder type icons until the real set arrives (D14). Full-size icon
-// height; two or three types shrink to fit one row.
-const TYPE_ROW = 44;
-
 registerFont(path.join(FONT_DIR, 'Beleren2016-Bold.ttf'), { family: 'Beleren', weight: 'bold' });
 registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
   family: 'Beleren SmallCaps',
@@ -61,8 +57,6 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
 });
 
 // Symbols and icons come from the real asset loader (T-B3).
-const genericSymbol = await assets.symbol('generic');
-
 // Icons from res/symbols/ (see its README). Any that fail to load fall back to
 // labelled boxes.
 const ICONS = new Map();
@@ -144,63 +138,11 @@ async function drawCard(model) {
 
 async function drawStatBar(ctx, model, layout) {
   const cx = BAR.width / 2;
-  let y = 14;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  // Top: card type icons, colour indicator, mana.
-  drawTypeIcons(ctx, model.types, y);
-  y += TYPE_ROW + 8;
-
-  // Colour indicator (D17): one circle, a wedge per colour in WUBRG order
-  // clockwise from the top, divider lines between wedges. Only takes a row
-  // when present, pushing the mana block down.
-  if (model.colorIndicator) {
-    const r = 14;
-    const cy = y + r;
-    const colours = model.colorIndicator;
-    const step = (Math.PI * 2) / colours.length;
-    const start = -Math.PI / 2;
-    colours.forEach((c, i) => {
-      ctx.fillStyle = INDICATOR[c];
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, start + i * step, start + (i + 1) * step);
-      ctx.closePath();
-      ctx.fill();
-    });
-    if (colours.length > 1) {
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      colours.forEach((_, i) => {
-        const a = start + i * step;
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-      });
-      ctx.stroke();
-    }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    y += r * 2 + 8;
-  }
-
-  for (const { symbol: code, count } of model.manaCost ?? []) {
-    const x = 8;
-    // The generic symbol is only for the bar; rules text keeps number symbols (D11).
-    if (code === 'generic') ctx.drawImage(genericSymbol, x, y, BAR.icon, BAR.icon);
-    else await drawSymbol(ctx, code, x, y, BAR.icon);
-    // Every symbol shows its count, X and {0} included (D11).
-    ctx.fillStyle = '#fff';
-    ctx.font = FONT(count > 9 ? 20 : 24);
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(String(count), x + BAR.icon + 4, y + BAR.icon / 2 + 1);
-    y += BAR.icon + BAR.gap;
-  }
+  // Top: card type icons, colour indicator, mana, from the real renderer (T-B7).
+  const y = await drawStatBarTop(ctx, model, { assets });
 
   // Middle (D19, 5.6): top to bottom, attaching subtypes (icon-only, D16),
   // supertypes (D15), zone/timing symbols (D12), so zone/timing sits nearest
@@ -296,45 +238,6 @@ async function drawStatBar(ctx, model, layout) {
     letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
   }
   ctx.textAlign = 'left';
-}
-
-/**
- * One row of type icons in type-line order, shrunk to fit the bar (D14, 5.1.3).
- * Boxes with abbreviations stand in for the icons. Types without an icon
- * (Dungeon, Plane, ...; out of scope for v1) are skipped.
- */
-function drawTypeIcons(ctx, types, y) {
-  const shown = types.filter((t) => CARD_TYPES[t]);
-  if (!shown.length) return;
-  const gap = 3;
-  const size = Math.min(
-    TYPE_ROW,
-    Math.floor((BAR.width - 4 - gap * (shown.length - 1)) / shown.length),
-  );
-  let x = (BAR.width - (size * shown.length + gap * (shown.length - 1))) / 2;
-  const top = y + (TYPE_ROW - size) / 2;
-  ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (const type of shown) {
-    const icon = ICONS.get(CARD_TYPES[type].icon);
-    if (icon) {
-      ctx.drawImage(icon, x, top, size, size);
-      x += size + gap;
-      continue;
-    }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(x, top, size, size, size / 5);
-    ctx.stroke();
-    ctx.fillStyle = '#fff';
-    const text = CARD_TYPES[type].placeholder;
-    ctx.font = LABEL(fitSize(ctx, text, size - 4, Math.round(size / 2.6), LABEL, 6));
-    ctx.fillText(text, x + size / 2, top + size / 2 + 1);
-    x += size + gap;
-  }
-  ctx.restore();
 }
 
 /** Value with its icon below (5.7.1), or a text label when there is no icon. */
