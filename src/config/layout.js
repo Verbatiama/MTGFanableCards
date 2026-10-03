@@ -22,6 +22,23 @@ export const BAR_TOP = { y: 14, typeRow: 44, typeGap: 3, indicator: 14, rowGap: 
  */
 export const BAR_MIDDLE = { icon: 40, label: 16, labelSize: 13, gap: 6, minScale: 0.5 };
 
+/**
+ * Bottom of the stat bar (5.7), measured up from its bottom edge, `edge`
+ * pixels above the card's bottom. `gap` keeps the middle stack clear of it.
+ *
+ * - `stats`: power value top, divider, toughness value top; value size (and
+ *   smallest when shrunk to fit), and the sword/shield under each value.
+ * - `badge`: the loyalty and defense badges' centre and size.
+ * - `label`: NON-PERMANENT, one letter per line: text size and line step.
+ */
+export const BAR_BOTTOM = {
+  edge: 14,
+  gap: 8,
+  stats: { power: 120, divider: 64, toughness: 56, value: 36, minValue: 14, icon: 20 },
+  badge: { centre: 34, loyalty: 76, defense: 70 },
+  label: { size: 18, step: 21 },
+};
+
 /** The card box: its left edge (after the bar and a gap) and right edge. */
 export const BOX = { x: BAR.width + 10, right: CARD.width - 12 };
 

@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { INDICATOR } from '../../src/config/frames.js';
-import { BAR, BAR_MIDDLE, BAR_TOP, TEXT, TYPE } from '../../src/config/layout.js';
+import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../../src/config/layout.js';
 import { renderCardCanvas } from '../../src/render/node.js';
 import {
   bottomSectionTop,
   middleItems,
+  statBarBottom,
   statBarMiddle,
   statBarTop,
 } from '../../src/render/stat-bar.js';
@@ -203,4 +204,99 @@ test('the middle stack is drawn beside the type line', async () => {
   const [legendary] = statBarMiddle(model, { from: statBarTop(model).bottom }).stack;
   const data = canvas.getContext('2d').getImageData(0, legendary.y, BAR.width, legendary.size).data;
   assert.ok(data.some((v, i) => i % 4 === 0 && v > 200));
+});
+
+const bottom = (slug, changes = {}) => statBarBottom({ ...loadCardFixture(slug), ...changes });
+
+test('the bottom shows stats, loyalty, defense, NON-PERMANENT, or nothing (5.7, D18)', () => {
+  assert.equal(bottom('niv-mizzet-the-firemind').kind, 'stats');
+  assert.deepEqual(
+    [bottom('jace-the-mind-sculptor').kind, bottom('jace-the-mind-sculptor').value],
+    ['loyalty', '3'],
+  );
+  assert.deepEqual(
+    [bottom('invasion-of-zendikar').kind, bottom('invasion-of-zendikar').value],
+    ['defense', '3'],
+  );
+  for (const slug of ['lightning-strike', 'damnation', 'ancestral-vision']) {
+    const label = bottom(slug);
+    assert.equal(label.kind, 'label', slug);
+    assert.equal(label.letters.join(''), 'NON-PERMANENT');
+  }
+  // Permanents never get a label (5.7.3–5.7.4).
+  for (const slug of [
+    'sword-of-fire-and-ice',
+    'feral-invocation',
+    'breeding-pool',
+    'bitterblossom',
+  ]) {
+    assert.equal(bottom(slug).kind, null, slug);
+  }
+});
+
+test('vehicles and spacecraft have hollow stats; creatures solid (5.7.7)', () => {
+  assert.equal(bottom('niv-mizzet-the-firemind').hollow, false);
+  assert.equal(bottom('smugglers-copter').hollow, true);
+  assert.equal(bottom('wurmwall-sweeper').hollow, true);
+  // An artifact creature is a creature.
+  assert.equal(bottom('wurmcoil-engine').hollow, false);
+});
+
+test('the bottom section is anchored to the bottom of the bar; the middle stack stops above it', () => {
+  const edge = CARD.height - BAR_BOTTOM.edge;
+  const stats = bottom('niv-mizzet-the-firemind');
+  assert.deepEqual(
+    [stats.powerY, stats.dividerY, stats.toughnessY].map((y) => edge - y),
+    [BAR_BOTTOM.stats.power, BAR_BOTTOM.stats.divider, BAR_BOTTOM.stats.toughness],
+  );
+  for (const slug of ['niv-mizzet-the-firemind', 'invasion-of-zendikar', 'lightning-strike']) {
+    const model = loadCardFixture(slug);
+    assert.equal(bottomSectionTop(model), statBarBottom(model).top - BAR_BOTTOM.gap, slug);
+  }
+  // The label's first letter is its top.
+  const label = bottom('lightning-strike');
+  assert.equal(label.top, edge - 12 * BAR_BOTTOM.label.step - BAR_BOTTOM.label.size);
+  // Nothing at the bottom: the stack may run to the bar's bottom edge.
+  assert.equal(bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')), edge);
+});
+
+const lit = (canvas, x, y, w, h) =>
+  canvas
+    .getContext('2d')
+    .getImageData(x, y, w, h)
+    .data.some((v, i) => i % 4 !== 3 && v > 128);
+
+test('stats, badges and labels are drawn; permanents with nothing leave the bottom empty', async () => {
+  const area = (canvas, top) => lit(canvas, 0, top, BAR.width, CARD.height - BAR_BOTTOM.edge - top);
+  for (const slug of [
+    'tarmogoyf',
+    'smugglers-copter',
+    'invasion-of-zendikar',
+    'lightning-strike',
+  ]) {
+    const model = loadCardFixture(slug);
+    assert.ok(area(await renderCardCanvas(model), statBarBottom(model).top), slug);
+  }
+  const sword = loadCardFixture('sword-of-fire-and-ice');
+  assert.ok(!area(await renderCardCanvas(sword), CARD.height - 300));
+});
+
+test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", async () => {
+  const model = loadCardFixture('smugglers-copter');
+  const { toughnessY } = statBarBottom(model);
+  const { value, icon } = BAR_BOTTOM.stats;
+  const shield = async (m) =>
+    (await renderCardCanvas(m))
+      .getContext('2d')
+      .getImageData(BAR.width / 2 - icon / 2, toughnessY + value, icon, icon).data;
+  const hollow = await shield(model);
+  const solid = await shield({ ...model, types: ['Artifact', 'Creature'] });
+  let edge = 0;
+  let inside = 0;
+  for (let i = 0; i < hollow.length; i += 4) {
+    if (hollow[i] > 200) edge++;
+    if (solid[i] > 200 && hollow[i] < 60) inside++;
+  }
+  assert.ok(edge > 0, 'white outline');
+  assert.ok(inside > 10, 'dark where the solid icon is white');
 });

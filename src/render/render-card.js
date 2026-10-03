@@ -1,7 +1,7 @@
 import { CARD } from '../config/layout.js';
 import { drawFooter } from './footer.js';
 import { drawFrame } from './frame.js';
-import { drawStatBarMiddle, drawStatBarTop } from './stat-bar.js';
+import { drawStatBarBottom, drawStatBarMiddle, drawStatBarTop } from './stat-bar.js';
 import { drawTextBox } from './text-box.js';
 
 /**
@@ -11,8 +11,8 @@ import { drawTextBox } from './text-box.js';
  * canvases, loading images and fonts) comes in through `options.env`.
  *
  * Draws the frame (T-B4), the text box contents (T-B5), the footer (T-B6) and
- * the top and middle of the stat bar (T-B7, T-B8); the bottom of the stat bar,
- * planeswalker bands and basic land symbol follow in T-B9 to T-B12.
+ * the stat bar (T-B7 to T-B9); planeswalker bands and the basic land symbol
+ * follow in T-B11 and T-B12.
  *
  * @typedef {object} RenderEnv
  * @property {(width: number, height: number) => any} createCanvas For offscreen work.
@@ -38,5 +38,6 @@ export async function renderCard(ctx, model, { env, assets, art = null, setSymbo
   await drawFooter(ctx, model, { assets });
   const from = await drawStatBarTop(ctx, model, { assets });
   await drawStatBarMiddle(ctx, model, { assets, from });
+  await drawStatBarBottom(ctx, model, { assets });
   ctx.restore();
 }

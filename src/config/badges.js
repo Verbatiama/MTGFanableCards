@@ -10,3 +10,6 @@ export const LOYALTY_BADGES = {
 };
 
 export const DEFENSE_BADGE = { icon: 'badges/defense' };
+
+/** Badge fill colours; the number and outline are white. */
+export const BADGE_COLOURS = { loyalty: '#3a3a3a', defense: '#7a1f1f' };

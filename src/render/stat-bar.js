@@ -1,6 +1,9 @@
 import { CARD_TYPES, isPermanent } from '../config/card-types.js';
 import { INDICATOR } from '../config/frames.js';
-import { BAR, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../config/layout.js';
+import { BADGE_COLOURS, DEFENSE_BADGE, LOYALTY_BADGES } from '../config/badges.js';
+import { LABELS } from '../config/labels.js';
+import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../config/layout.js';
+import { STAT_ICONS } from '../config/text-symbols.js';
 import { LAND_TYPE_MANA, SUBTYPE_ICONS } from '../config/subtypes.js';
 import { SUPERTYPE_ICONS } from '../config/supertypes.js';
 import { ZONE_SYMBOL_STYLE } from '../config/zone-symbols.js';
@@ -12,8 +15,8 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
  *
  * The top section (D11, D14, D17; 5.1–5.3) never moves or shrinks (4.4): the
  * card type icons, the colour indicator when the card has one, then the mana
- * block. The middle section (T-B8) hangs from the type line; the bottom
- * section (T-B9) follows.
+ * block. The middle section (T-B8) hangs from the type line. The bottom
+ * section (T-B9) is anchored to the bottom of the bar.
  */
 
 /**
@@ -146,16 +149,49 @@ export function middleItems(model) {
 }
 
 /**
- * Top of the bottom section (stats, loyalty, defense badge, NON-PERMANENT;
- * T-B9, 5.7), less a gap: as far down as the middle stack may reach.
+ * What the bottom section shows (D18, 5.7) and where its top is, as plain data:
+ * power and toughness (`stats`, hollow unless the card is a creature: vehicles
+ * and spacecraft, 5.7.7), the starting loyalty badge (7.2.3), the defense
+ * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
+ * or nothing.
+ * @param {import('../model/card-model.js').CardModel} model
  */
+export function statBarBottom(model) {
+  const B = BAR_BOTTOM;
+  const edge = CARD.height - B.edge;
+  const badge = (kind, value) => ({
+    kind,
+    value,
+    cy: edge - B.badge.centre,
+    size: B.badge[kind],
+    top: edge - B.badge.centre - B.badge[kind] / 2,
+  });
+  if (model.power !== null) {
+    return {
+      kind: 'stats',
+      power: model.power,
+      toughness: model.toughness,
+      hollow: !model.types.includes('Creature'),
+      powerY: edge - B.stats.power,
+      dividerY: edge - B.stats.divider,
+      toughnessY: edge - B.stats.toughness,
+      top: edge - B.stats.power,
+    };
+  }
+  if (model.loyalty !== null) return badge('loyalty', model.loyalty);
+  if (model.defense !== null) return badge('defense', model.defense);
+  if (!isPermanent(model.types)) {
+    const letters = [...LABELS.nonPermanent];
+    const top = edge - (letters.length - 1) * B.label.step - B.label.size;
+    return { kind: 'label', letters, top };
+  }
+  return { kind: null, top: edge };
+}
+
+/** As far down as the middle stack may reach: the bottom section's top, less a gap. */
 export function bottomSectionTop(model) {
-  const bottom = CARD.height - 14;
-  if (model.power !== null) return bottom - 120 - 8;
-  if (model.loyalty !== null) return bottom - 60 - 8;
-  if (model.defense !== null) return CARD.height - 78 - 8;
-  if (!isPermanent(model.types)) return bottom - 13 * 21 - 8;
-  return bottom;
+  const { kind, top } = statBarBottom(model);
+  return kind ? top - BAR_BOTTOM.gap : top;
 }
 
 /**
@@ -258,4 +294,156 @@ export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
   }
   ctx.restore();
   return middle.bottom;
+}
+
+/**
+ * A badge (loyalty, defense) centred on (cx, cy) in a `size` square: the shape
+ * in white, then filled with `colour` a little inside it, with `text` on top.
+ * @param {string} iconPath Badge shape, white (config path).
+ */
+export async function drawBadge(ctx, assets, iconPath, colour, cx, cy, size, text) {
+  const icon = await assets.iconOrPlaceholder(iconPath, text);
+  const inset = Math.max(2, size * 0.06);
+  ctx.save();
+  ctx.drawImage(assets.tinted(icon, '#fff'), cx - size / 2, cy - size / 2, size, size);
+  ctx.drawImage(
+    assets.tinted(icon, colour),
+    cx - size / 2 + inset,
+    cy - size / 2 + inset,
+    size - inset * 2,
+    size - inset * 2,
+  );
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  fitFont(ctx, text, size * 0.62, Math.round(size * 0.42), textFont, 10);
+  ctx.fillText(text, cx, cy + size * 0.03);
+  ctx.restore();
+}
+
+/** Six-spoke asterisk of radius r centred on (x, y); outlined when hollow. */
+function drawAsterisk(ctx, x, y, r, hollow) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < 3; i++) {
+    const a = Math.PI / 2 + (i * Math.PI) / 3;
+    ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+    ctx.lineTo(x - Math.cos(a) * r, y - Math.sin(a) * r);
+  }
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = r * 0.42;
+  ctx.stroke();
+  if (hollow) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = r * 0.42 - 3;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/**
+ * A stat value as printed ('3', '-1', '15', 'X', '*', '1+*'), centred at the
+ * top of `y` and shrunk to fit the bar (5.7.6). A `*` is drawn as a shape the
+ * height of the digits, since the font's asterisk is small and raised.
+ * Hollow values are outlined (5.7.7).
+ */
+function drawValue(ctx, value, y, hollow) {
+  const { value: size, minValue } = BAR_BOTTOM.stats;
+  const maxWidth = BAR.width - 10;
+  const cx = BAR.width / 2;
+  if (!value.includes('*')) {
+    fitFont(ctx, value, maxWidth, size, textFont, minValue);
+    ctx.textAlign = 'center';
+    if (hollow) ctx.strokeText(value, cx, y);
+    else ctx.fillText(value, cx, y);
+    return;
+  }
+  const parts = value.split(/(\*)/).filter(Boolean);
+  let digit;
+  let widths;
+  for (let s = size; s >= minValue; s -= 1) {
+    ctx.font = textFont(s);
+    // With a 'top' baseline the ascent is measured up from y (so negative).
+    digit = ctx.measureText('0');
+    const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
+    widths = parts.map((p) => (p === '*' ? height * 0.95 : ctx.measureText(p).width));
+    if (widths.reduce((a, b) => a + b, 0) <= maxWidth) break;
+  }
+  const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
+  const middle = y + (digit.actualBoundingBoxDescent - digit.actualBoundingBoxAscent) / 2;
+  let x = cx - widths.reduce((a, b) => a + b, 0) / 2;
+  ctx.textAlign = 'left';
+  parts.forEach((part, i) => {
+    if (part === '*') drawAsterisk(ctx, x + widths[i] / 2, middle, height / 2, hollow);
+    else if (hollow) ctx.strokeText(part, x, y);
+    else ctx.fillText(part, x, y);
+    x += widths[i];
+  });
+}
+
+/**
+ * A white icon at (x, y), or for hollow stats its outline: the icon in white
+ * nudged all around, with a black copy on top (5.7.7).
+ */
+function drawIcon(ctx, assets, icon, x, y, size, hollow) {
+  if (!hollow) return ctx.drawImage(icon, x, y, size, size);
+  const line = 1.25;
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    ctx.drawImage(icon, x + Math.cos(a) * line, y + Math.sin(a) * line, size, size);
+  }
+  ctx.drawImage(assets.tinted(icon, '#000'), x, y, size, size);
+}
+
+/** A value with its sword or shield underneath (5.7.1), or a text label without one. */
+async function drawStat(ctx, assets, stat, value, y, hollow) {
+  const { value: size, icon: iconSize } = BAR_BOTTOM.stats;
+  const cx = BAR.width / 2;
+  drawValue(ctx, value, y, hollow);
+  const icon = await assets.icon(STAT_ICONS[stat].icon);
+  if (icon) drawIcon(ctx, assets, icon, cx - iconSize / 2, y + size, iconSize, hollow);
+  else {
+    ctx.textAlign = 'center';
+    ctx.font = labelFont(12);
+    ctx.fillText(LABELS[stat], cx, y + size + 4);
+  }
+}
+
+/**
+ * Draws the bottom of the stat bar.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets> }} options
+ */
+export async function drawStatBarBottom(ctx, model, { assets }) {
+  const bottom = statBarBottom(model);
+  const cx = BAR.width / 2;
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.textBaseline = 'top';
+  if (bottom.kind === 'stats') {
+    await drawStat(ctx, assets, 'power', bottom.power, bottom.powerY, bottom.hollow);
+    const [x, w] = [18, BAR.width - 36];
+    if (bottom.hollow) {
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, bottom.dividerY + 0.5, w - 1, 1);
+      ctx.lineWidth = 1.5;
+    } else ctx.fillRect(x, bottom.dividerY, w, 2);
+    await drawStat(ctx, assets, 'toughness', bottom.toughness, bottom.toughnessY, bottom.hollow);
+  } else if (bottom.kind === 'loyalty' || bottom.kind === 'defense') {
+    const shape = bottom.kind === 'loyalty' ? LOYALTY_BADGES.start.icon : DEFENSE_BADGE.icon;
+    const colour = BADGE_COLOURS[bottom.kind];
+    await drawBadge(ctx, assets, shape, colour, cx, bottom.cy, bottom.size, bottom.value);
+  } else if (bottom.kind === 'label') {
+    const { size, step } = BAR_BOTTOM.label;
+    const edge = CARD.height - BAR_BOTTOM.edge;
+    ctx.font = labelFont(size);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    [...bottom.letters].reverse().forEach((ch, i) => ctx.fillText(ch, cx, edge - i * step));
+  }
+  ctx.restore();
 }

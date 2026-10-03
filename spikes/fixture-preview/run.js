@@ -24,7 +24,12 @@ import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawSymbol as drawSymbolWith } from '../../src/render/symbols.js';
 import { drawFooter } from '../../src/render/footer.js';
-import { drawStatBarMiddle, drawStatBarTop } from '../../src/render/stat-bar.js';
+import {
+  drawBadge,
+  drawStatBarBottom,
+  drawStatBarMiddle,
+  drawStatBarTop,
+} from '../../src/render/stat-bar.js';
 import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
 import {
   ART,
@@ -34,11 +39,8 @@ import {
   FOOTER,
   TEXT,
   TYPE,
-  DEFENSE_BADGE,
-  LABELS,
+  BADGE_COLOURS,
   LOYALTY_BADGES,
-  STAT_ICONS,
-  isPermanent,
 } from '../../src/config/index.js';
 
 // Card dimensions and fonts come from the real renderer's config (T-B2).
@@ -52,51 +54,7 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
 });
 
 // Symbols and icons come from the real asset loader (T-B3).
-// Icons from res/symbols/ (see its README). Any that fail to load fall back to
-// labelled boxes.
-const ICONS = new Map();
-for (const name of [
-  ...Object.values(STAT_ICONS).map((t) => t.icon),
-  ...Object.values(LOYALTY_BADGES).map((t) => t.icon),
-  DEFENSE_BADGE.icon,
-]) {
-  try {
-    const icon = await assets.icon(name);
-    if (icon) ICONS.set(name, icon);
-  } catch {
-    // Missing icon.
-  }
-}
-
 const drawSymbol = (ctx, ...rest) => drawSymbolWith(ctx, assets, ...rest);
-
-/** A white icon recoloured, at 200×200 (cached by the asset loader). */
-function tinted(icon, colour, size = 200) {
-  return assets.tinted(icon, colour, size);
-}
-
-/**
- * A badge shape (loyalty, defense) filled with `colour` and a white outline,
- * centred on (cx, cy) in a `size` square, with `text` on it.
- */
-function drawBadge(ctx, icon, colour, cx, cy, size, text) {
-  const inset = Math.max(2, size * 0.06);
-  ctx.drawImage(tinted(icon, '#fff'), cx - size / 2, cy - size / 2, size, size);
-  ctx.drawImage(
-    tinted(icon, colour),
-    cx - size / 2 + inset,
-    cy - size / 2 + inset,
-    size - inset * 2,
-    size - inset * 2,
-  );
-  ctx.save();
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = FONT(fitSize(ctx, text, size * 0.62, Math.round(size * 0.42), FONT, 10));
-  ctx.fillText(text, cx, cy + size * 0.03);
-  ctx.restore();
-}
 
 async function loadArt(model) {
   if (noArt) return null;
@@ -124,7 +82,6 @@ async function drawCard(model) {
 }
 
 async function drawStatBar(ctx, model, layout) {
-  const cx = BAR.width / 2;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
@@ -137,150 +94,12 @@ async function drawStatBar(ctx, model, layout) {
 
   // Loyalty costs, each centred on its ability band (7.2.1, D22).
   for (const band of layout.pw?.bands ?? []) {
-    if (band.cost !== null) drawLoyaltyCost(ctx, band.cost, band.top + band.h / 2, band.h);
+    if (band.cost !== null) await drawLoyaltyCost(ctx, band.cost, band.top + band.h / 2, band.h);
   }
 
-  // Bottom: stats, loyalty, defense badge, or NON-PERMANENT (D18, 5.7).
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  const bottom = CARD.height - 14;
-  if (model.power !== null) {
-    // Vehicles and spacecraft: hollow stats, as they only apply once crewed
-    // or stationed (5.7.7).
-    const hollow = !model.types.includes('Creature');
-    drawStat(
-      ctx,
-      LABELS.power,
-      model.power,
-      bottom - 120,
-      ICONS.get(STAT_ICONS.power.icon),
-      hollow,
-    );
-    if (hollow) {
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(18.5, bottom - 63.5, BAR.width - 37, 1);
-    } else ctx.fillRect(18, bottom - 64, BAR.width - 36, 2);
-    drawStat(
-      ctx,
-      LABELS.toughness,
-      model.toughness,
-      bottom - 56,
-      ICONS.get(STAT_ICONS.toughness.icon),
-      hollow,
-    );
-  } else if (model.loyalty !== null) {
-    // Starting loyalty badge at the bottom of the bar (7.2.3).
-    drawBadge(
-      ctx,
-      ICONS.get(LOYALTY_BADGES.start.icon),
-      '#3a3a3a',
-      cx,
-      bottom - 34,
-      76,
-      model.loyalty,
-    );
-  } else if (model.defense !== null) {
-    drawDefenseBadge(ctx, model.defense);
-  } else if (!isPermanent(model.types)) {
-    // Only non-permanents get a label; permanents leave the bottom empty (5.7.3).
-    const letters = [...LABELS.nonPermanent];
-    ctx.font = LABEL(18);
-    ctx.textBaseline = 'bottom';
-    letters.reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom - i * 21));
-  }
-  ctx.textAlign = 'left';
-}
-
-/** Value with its icon below (5.7.1), or a text label when there is no icon. */
-/** Defense badge at the bottom of the bar (D18, 5.7.7). */
-function drawDefenseBadge(ctx, defense) {
-  drawBadge(
-    ctx,
-    ICONS.get(DEFENSE_BADGE.icon),
-    '#7a1f1f',
-    BAR.width / 2,
-    CARD.height - 48,
-    70,
-    defense,
-  );
-}
-
-/**
- * Value as printed (*, 1+*, X, -1, 15), shrunk to fit the bar (5.7.6). `*` is
- * drawn as a shape the height of the digits, since the font's asterisk is a
- * small raised glyph.
- */
-function drawStat(ctx, label, value, y, icon, hollow = false) {
-  const cx = BAR.width / 2;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1.5;
-  if (!value.includes('*')) {
-    ctx.font = FONT(fitSize(ctx, value, BAR.width - 10, 36, FONT, 14));
-    if (hollow) ctx.strokeText(value, cx, y);
-    else ctx.fillText(value, cx, y);
-  } else {
-    drawStarValue(ctx, value, cx, y, hollow);
-  }
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  if (icon) {
-    // Faded stands in for a hollow icon until the real outline art exists.
-    ctx.globalAlpha = hollow ? 0.45 : 1;
-    ctx.drawImage(icon, cx - 10, y + 36, 20, 20);
-    ctx.globalAlpha = 1;
-  } else {
-    ctx.font = LABEL(12);
-    ctx.fillText(label, cx, y + 40);
-  }
-}
-
-/** A value containing `*`: text parts as usual, each `*` as a digit-sized shape. */
-function drawStarValue(ctx, value, cx, y, hollow) {
-  ctx.textAlign = 'left';
-  const parts = value.split(/(\*)/).filter(Boolean);
-  let digit;
-  let widths;
-  for (let size = 36; size >= 14; size -= 1) {
-    ctx.font = FONT(size);
-    // With a 'top' baseline the ascent is measured up from y (so negative).
-    digit = ctx.measureText('0');
-    const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
-    widths = parts.map((p) => (p === '*' ? height * 0.95 : ctx.measureText(p).width));
-    if (widths.reduce((a, b) => a + b, 0) <= BAR.width - 10) break;
-  }
-  const height = digit.actualBoundingBoxAscent + digit.actualBoundingBoxDescent;
-  const middle = y + (digit.actualBoundingBoxDescent - digit.actualBoundingBoxAscent) / 2;
-  let x = cx - widths.reduce((a, b) => a + b, 0) / 2;
-  parts.forEach((part, i) => {
-    if (part === '*') drawAsterisk(ctx, x + widths[i] / 2, middle, height / 2, hollow);
-    else if (hollow) ctx.strokeText(part, x, y);
-    else ctx.fillText(part, x, y);
-    x += widths[i];
-  });
-}
-
-/** Six-spoke asterisk of radius r centred on (x, y); outlined when hollow. */
-function drawAsterisk(ctx, x, y, r, hollow) {
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  for (let i = 0; i < 3; i++) {
-    const a = Math.PI / 2 + (i * Math.PI) / 3;
-    ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
-    ctx.lineTo(x - Math.cos(a) * r, y - Math.sin(a) * r);
-  }
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = r * 0.42;
-  ctx.stroke();
-  if (hollow) {
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = r * 0.42 - 3;
-    ctx.stroke();
-  }
-  ctx.restore();
+  // Bottom: stats, loyalty, defense badge, or NON-PERMANENT, from the real
+  // renderer (T-B9).
+  await drawStatBarBottom(ctx, model, { assets });
 }
 
 async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }) {
@@ -372,18 +191,19 @@ async function drawAbilityBands(ctx, pw, x, width) {
  * font, + pointing up, − down, 0 flat. ±X is drawn like a number. Scales down
  * to fit short bands.
  */
-function drawLoyaltyCost(ctx, cost, cy, bandH) {
+async function drawLoyaltyCost(ctx, cost, cy, bandH) {
   const badge = cost.startsWith('+') ? 'up' : cost.startsWith('−') ? 'down' : 'zero';
   const size = Math.min(70, bandH - 4);
-  drawBadge(ctx, ICONS.get(LOYALTY_BADGES[badge].icon), '#3a3a3a', BAR.width / 2, cy, size, cost);
-}
-
-function fitSize(ctx, text, maxWidth, size, font, min = 12) {
-  for (; size > min; size -= 1) {
-    ctx.font = font(size);
-    if (ctx.measureText(text).width <= maxWidth) break;
-  }
-  return size;
+  return drawBadge(
+    ctx,
+    assets,
+    LOYALTY_BADGES[badge].icon,
+    BADGE_COLOURS.loyalty,
+    BAR.width / 2,
+    cy,
+    size,
+    cost,
+  );
 }
 
 async function drawContactSheet(cards) {
