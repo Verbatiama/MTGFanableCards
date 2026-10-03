@@ -2,7 +2,7 @@ import { CARD_TYPES, isPermanent } from '../config/card-types.js';
 import { INDICATOR } from '../config/frames.js';
 import { BADGE_COLOURS, DEFENSE_BADGE, LOYALTY_BADGES } from '../config/badges.js';
 import { LABELS } from '../config/labels.js';
-import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../config/layout.js';
+import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, BOX, CARD, TEXT, TYPE } from '../config/layout.js';
 import { STAT_ICONS } from '../config/text-symbols.js';
 import { LAND_TYPE_MANA, SUBTYPE_ICONS } from '../config/subtypes.js';
 import { SUPERTYPE_ICONS } from '../config/supertypes.js';
@@ -27,7 +27,10 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
  *   its full height, so the mana block doesn't move.
  * - `indicator`: the colour indicator's circle, only when the card has one; it
  *   takes its own row and pushes the mana block down (5.2.4).
- * - `mana`: one row per grouped symbol, with its count (5.3).
+ * - `mana`: one row per grouped symbol, with its count (5.3). The count is
+ *   centred half way between the symbol and the card box's left edge, and the
+ *   row sits on a black pill (`pill`) ending at the frame, so it reads over the
+ *   art.
  * - `bottom`: where the top section ends.
  *
  * @param {import('../model/card-model.js').CardModel} model
@@ -55,7 +58,17 @@ export function statBarTop(model) {
   }
 
   const mana = (model.manaCost ?? []).map(({ symbol, count }) => {
-    const row = { symbol, count, x: BAR.x + 8, y, size: BAR.icon };
+    const x = BAR.x + 8;
+    const pad = BAR_TOP.pill;
+    const row = {
+      symbol,
+      count,
+      x,
+      y,
+      size: BAR.icon,
+      countX: (x + BAR.icon + BOX.x) / 2,
+      pill: { x: x - pad, y: y - pad, w: BOX.x - 4 - (x - pad), h: BAR.icon + pad * 2 },
+    };
     y += BAR.icon + BAR.gap;
     return row;
   });
@@ -111,16 +124,19 @@ export async function drawStatBarTop(ctx, model, { assets }) {
   }
   if (top.indicator) drawIndicator(ctx, top.indicator);
 
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  for (const { symbol, count, x, y, size } of top.mana) {
+  for (const { symbol, count, x, y, size, countX, pill } of top.mana) {
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.roundRect(pill.x, pill.y, pill.w, pill.h, pill.h / 2);
+    ctx.fill();
     // 'generic' is the bar's own generic symbol; rules text keeps number symbols (D11).
     await drawSymbol(ctx, assets, symbol, x, y, size);
     // Every symbol shows its count, X and {0} included (D11); two digits are smaller.
     ctx.fillStyle = '#fff';
     ctx.font = textFont(count > 9 ? 20 : 24);
-    ctx.fillText(String(count), x + size + 4, y + size / 2 + 1);
+    ctx.fillText(String(count), countX, y + size / 2 + 1);
   }
   ctx.restore();
   return top.bottom;

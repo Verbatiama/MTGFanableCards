@@ -319,6 +319,8 @@ The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **onl
 
 5.3.9 **[Confirmed]** No maximum and no special rule (D19). Real costs have at most about six rows, which always fit, and a two-digit count such as Emrakul's {15} or Draco's {16} is one row with a slightly smaller number. The mana block never shrinks or wraps; when it meets the middle stack, the middle stack gives way (5.6.3).
 
+5.3.10 **[Confirmed]** Each mana row sits on a black pill covering the symbol and its count, so it reads over the art, which reaches under the bar (6.2.1). The count is centred half way between the symbol's right edge and the left edge of the name bar, type line and text box; the pill ends at the frame's left edge, so every pill has the same width.
+
 ### 5.4 Zone and timing symbols (middle)
 
 5.4.1 **[Confirmed]** Instead of keyword symbols, symbols are needed for effects that change **where** a card can be used from (cast, activated, or otherwise working there; see 5.4.4), or **when** it can be cast. Confirmed examples:

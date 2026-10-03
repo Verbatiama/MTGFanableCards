@@ -22,9 +22,17 @@ export const BAR = { x: BORDER, width: 90, icon: 40, gap: 6 };
 /**
  * Top of the stat bar (5.1–5.3): where it starts, the type icon row (full-size
  * icon height and gap between several icons), the colour indicator's radius,
- * and the gap after each row. Mana rows are BAR.icon high, BAR.gap apart.
+ * and the gap after each row. Mana rows are BAR.icon high, BAR.gap apart, each
+ * on a black pill reaching `pill` pixels beyond the symbol.
  */
-export const BAR_TOP = { y: BORDER + 10, typeRow: 44, typeGap: 3, indicator: 14, rowGap: 8 };
+export const BAR_TOP = {
+  y: BORDER + 10,
+  typeRow: 44,
+  typeGap: 3,
+  indicator: 14,
+  rowGap: 8,
+  pill: 2,
+};
 
 /**
  * Middle of the stat bar (5.4–5.6): icon size, label height and largest label

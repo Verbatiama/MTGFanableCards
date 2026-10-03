@@ -1,7 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { INDICATOR } from '../../src/config/frames.js';
-import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../../src/config/layout.js';
+import {
+  BAR,
+  BAR_BOTTOM,
+  BAR_MIDDLE,
+  BAR_TOP,
+  BOX,
+  CARD,
+  TEXT,
+  TYPE,
+} from '../../src/config/layout.js';
 import { renderCardCanvas } from '../../src/render/node.js';
 import {
   bottomSectionTop,
@@ -68,6 +77,19 @@ test('one mana row per grouped symbol, in model order; no cost means no rows (5.
   );
   assert.equal(niv.bottom, niv.mana.at(-1).y + BAR.icon + BAR.gap);
   assert.deepEqual(top('ancestral-vision').mana, []);
+});
+
+test('each mana row sits on a black pill; its count is centred between the symbol and the card box', async () => {
+  const model = loadCardFixture('niv-mizzet-the-firemind');
+  const canvas = await renderCardCanvas(model);
+  for (const { x, y, size, countX, pill } of statBarTop(model).mana) {
+    assert.equal(countX - (x + size), BOX.x - countX);
+    // The pill covers the symbol and the count and ends at the frame.
+    assert.ok(pill.x < x && pill.y < y && pill.y + pill.h > y + size);
+    assert.equal(pill.x + pill.w, BOX.x - 4);
+    // Black between the symbol and the count, over the art.
+    assert.deepEqual(pixel(canvas, x + size + 3, y + size / 2), [0, 0, 0]);
+  }
 });
 
 test('the indicator is drawn as one circle, a wedge per colour clockwise from the top (5.2.3)', async () => {
