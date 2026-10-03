@@ -1,5 +1,15 @@
 import { FRAME, LAND_FRAME } from '../config/frames.js';
-import { ART, BOX, FOOTER, FRAME_TOP, NAME, TEXT, TEXT_SIZE, TYPE } from '../config/layout.js';
+import {
+  ART,
+  ART_FADE,
+  BOX,
+  FOOTER,
+  FRAME_TOP,
+  NAME,
+  TEXT,
+  TEXT_SIZE,
+  TYPE,
+} from '../config/layout.js';
 import { fitFont, textFont } from './fonts.js';
 
 /**
@@ -197,6 +207,31 @@ export function drawCover(ctx, image, box) {
   );
 }
 
+/** Width of a pinline, outside the box it surrounds. */
+const PIN = 4;
+
+/**
+ * The art box and its pinline on their own canvas (offset by PIN), faded
+ * linearly from transparent at ART_FADE.from to opaque at ART_FADE.to.
+ */
+function fadedArt(env, palette, art, box) {
+  const layer = env.createCanvas(box.w + PIN * 2, box.h + PIN * 2);
+  const ctx = layer.getContext('2d');
+  // Card coordinates, so the pinline blend and the fade line up with the card.
+  ctx.translate(PIN - box.x, PIN - box.y);
+  pinline(ctx, acrossBox(ctx, palette.pin), box.x, box.y, box.w, box.h, 0);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  if (art) drawCover(ctx, art, box);
+  const fade = ctx.createLinearGradient(ART_FADE.from, 0, ART_FADE.to, 0);
+  fade.addColorStop(0, 'rgba(0,0,0,0)');
+  fade.addColorStop(1, '#000');
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.fillStyle = fade;
+  ctx.fillRect(box.x - PIN, box.y - PIN, box.w + PIN * 2, box.h + PIN * 2);
+  return layer;
+}
+
 /** Set symbol height on the type line (6.3.2). */
 const SET_SYMBOL_HEIGHT = 30;
 
@@ -240,12 +275,9 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   fitFont(ctx, model.name, width - 30, TEXT_SIZE.name, textFont);
   ctx.fillText(model.name, BOX.x + 14, NAME.y + NAME.h / 2 + 2);
 
-  // Art box (3.4).
+  // Art box (3.4) with its pinline, fading in from the left (ART_FADE).
   const artBox = { x: ART.x, y: art_.y, w: ART.w, h: art_.h };
-  pinline(ctx, fill.pin, artBox.x, artBox.y, artBox.w, artBox.h, 0);
-  ctx.fillStyle = '#000';
-  ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);
-  if (art) drawCover(ctx, art, artBox);
+  ctx.drawImage(fadedArt(env, palette, art, artBox), artBox.x - PIN, artBox.y - PIN);
 
   // Type line, with the set symbol at its right end (6.3).
   ctx.fillStyle = palette.bar;

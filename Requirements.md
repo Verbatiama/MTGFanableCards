@@ -458,7 +458,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 6.2 Art box
 
-6.2.1 **[Confirmed]** The art box sits below the name bar and extends to the type line. See 3.4 for art sourcing and cropping. **[Confirmed]** It reaches left past the card box to the stat bar's left edge (inside the border), under the stat bar's icons, which are drawn over it. It keeps the aspect ratio it had before (562:412, `ART_ASPECT` in `src/config/layout.js`), so it is 668 × 490px; the type line sits under it and the text box takes the rest down to the footer (302px high).
+6.2.1 **[Confirmed]** The art box sits below the name bar and extends to the type line. See 3.4 for art sourcing and cropping. **[Confirmed]** It reaches left past the card box to the stat bar's left edge (inside the border), under the stat bar's icons, which are drawn over it. It keeps the aspect ratio it had before (562:412, `ART_ASPECT` in `src/config/layout.js`), so it is 668 × 490px; the type line sits under it and the text box takes the rest down to the footer (302px high). **[Confirmed]** The art and its pinline fade in linearly from transparent at the art's left edge to opaque where the card box's art used to start (`ART_FADE`), blending into the black stat bar.
 
 ### 6.3 Type line
 
