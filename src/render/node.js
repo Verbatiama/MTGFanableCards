@@ -75,5 +75,11 @@ export async function renderCardCanvas(
 }
 /** Renders a card model to PNG bytes (3.5.1). */
 export async function renderCardPng(model, options) {
-  return (await renderCardCanvas(model, options)).toBuffer('image/png');
+  const canvas = await renderCardCanvas(model, options);
+  const png = canvas.toBuffer('image/png');
+  // Free the pixels now rather than whenever V8 next collects (T-S6): the
+  // card database keeps the heap busy but steady, so collections are rare
+  // and released canvases would pile up outside the heap.
+  canvas.width = 0;
+  return png;
 }

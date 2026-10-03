@@ -34,6 +34,33 @@ test('copies and faces become images in decklist order, rendered once each (3.2.
   assert.equal(hasProblems(report), false);
 });
 
+test('art and set symbols are all requested before the first card renders, once each (T-S6)', async () => {
+  const requested = [];
+  let requestedAtFirstCard;
+  await generateCards(db, '2 Lightning Bolt\n1 Delver of Secrets\n1 Lightning Bolt', {
+    fetchArt: async (url) => (requested.push(url), null),
+    fetchSetSymbol: async (code) => (requested.push(code), null),
+    onProgress: () => (requestedAtFirstCard ??= requested.length),
+  });
+  assert.equal(new Set(requested).size, requested.length, 'no repeated requests');
+  assert.equal(requestedAtFirstCard, requested.length);
+});
+
+test('a failed art download skips only its card (T-S6)', async () => {
+  const { images, report } = await generateCards(db, '1 Lightning Bolt\n1 Delver of Secrets', {
+    ...offline,
+    fetchArt: async (url) => {
+      if (url?.includes('cards.scryfall.io')) throw new Error('network down');
+      return null;
+    },
+  });
+  assert.equal(images.length, 1);
+  assert.deepEqual(
+    report.skipped.map((s) => s.name),
+    ['Delver of Secrets // Insectile Aberration'],
+  );
+});
+
 test('problems are reported and never stop the batch (3.2.6, 3.3.3, D1)', async () => {
   const { images, report } = await generateCards(
     db,

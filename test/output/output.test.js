@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createCanvas } from 'canvas';
 import { unzipSync } from 'fflate';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName } from 'pdf-lib';
 import {
   assignFileNames,
   baseFileName,
@@ -77,6 +77,16 @@ test('the PDF has A4 pages with up to 9 cards each (3.5.3)', async () => {
 test('PDF cards are embedded as JPEGs, to keep the file small', async () => {
   const bytes = Buffer.from(await pdfSheets(images(2)));
   assert.match(bytes.toString('latin1'), /\/DCTDecode/);
+});
+
+test('copies sharing one PNG are embedded in the PDF once (T-S6)', async () => {
+  const [first, second] = images(2);
+  const copies = [first, { ...first, fileName: 'Card-1b.png' }, second];
+  const pdf = await PDFDocument.load(await pdfSheets(copies));
+  const jpegs = pdf.context
+    .enumerateIndirectObjects()
+    .filter(([, object]) => object.dict?.get(PDFName.of('Filter')) === PDFName.of('DCTDecode'));
+  assert.equal(jpegs.length, 2);
 });
 
 test('images can be written to a folder (scripts and the CLI, 3.5.6)', async (t) => {

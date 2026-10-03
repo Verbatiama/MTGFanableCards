@@ -29,7 +29,8 @@
     "web:dev": "vite --config web/vite.config.js",
     "web:build": "vite build --config web/vite.config.js",
     "mockups:compare": "node scripts/compare-mockups.js",
-    "visual:update": "node scripts/update-visual.js"
+    "visual:update": "node scripts/update-visual.js",
+    "perf": "node --expose-gc scripts/perf-run.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

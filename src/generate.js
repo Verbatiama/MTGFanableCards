@@ -49,6 +49,24 @@ export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, on
   }
   const total = lines.reduce((sum, { card, models }) => sum + card.quantity * models.length, 0);
 
+  // Ask for every face's art and set symbol now, in decklist order (T-S6): the
+  // art fetcher still starts downloads 100ms apart, but they arrive while
+  // earlier cards render instead of one card at a time.
+  const art = new Map(); // art URL → bytes, or null
+  const setSymbols = new Map(); // set code → bytes, or null
+  const prefetch = (cache, key, fetch) => {
+    if (cache.has(key)) return;
+    const pending = fetch(key);
+    pending.catch(() => {}); // a failure is reported when the face renders
+    cache.set(key, pending);
+  };
+  for (const { models } of lines) {
+    for (const model of models) {
+      prefetch(art, model.artUrl, fetchArt);
+      prefetch(setSymbols, model.setCode, fetchSetSymbol);
+    }
+  }
+
   const faces = []; // { name, png, warnings } per image, in output order
   const rendered = new Map(); // printing id → that printing's faces, rendered
   for (const { card, models } of lines) {
@@ -86,13 +104,9 @@ export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, on
 
   async function renderFace(model) {
     const warnings = [];
-    const [art, setSymbol] = await Promise.all([
-      fetchArt(model.artUrl),
-      fetchSetSymbol(model.setCode),
-    ]);
     const png = await renderCardPng(model, {
-      art,
-      setSymbol,
+      art: await art.get(model.artUrl),
+      setSymbol: await setSymbols.get(model.setCode),
       onWarning: (w) => warnings.push(w),
     });
     return { name: model.name, png, warnings };

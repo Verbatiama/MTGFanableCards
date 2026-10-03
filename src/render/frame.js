@@ -264,7 +264,9 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   // A planeswalker's text box can grow over all of it (T-B11): nothing to draw.
   if (art_.h > 0) {
     const shade = fullArt ? FULL_ART_BASIC.shade : null;
-    ctx.drawImage(fadedArt(env, art, artBox, shade), artBox.x - PIN, artBox.y - PIN);
+    const layer = fadedArt(env, art, artBox, shade);
+    ctx.drawImage(layer, artBox.x - PIN, artBox.y - PIN);
+    layer.width = 0; // free its pixels now (T-S6)
   }
 
   // Name bar.

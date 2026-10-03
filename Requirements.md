@@ -687,6 +687,28 @@ The implementation keeps these as configuration tables rather than hard-coding t
 
   10.5 **Performance [Confirmed].** No hard target and no batch-size limit for v1 (D24). Generation time is measured and reported (e.g. for a 100-card Commander deck, with and without cached art), but there is no pass/fail threshold. Art downloads are bounded by the Scryfall rate limit (100ms per request, D10), so about 10 seconds per 100 uncached cards.
 
+  **Measured (T-S6)** with `npm run perf` on a 100-card Izzet Commander deck (`scripts/perf/commander-100.txt`: 103 images, 83 distinct faces, as copies of basics reuse their image), on a WSL2 laptop. The first run found two slow spots, fixed with the PO in T-S6: art was requested one card at a time, so downloads and rendering didn't overlap, and the PDF converted and embedded every copy separately; native canvas memory is now also freed as soon as each image is done.
+
+  | Step                      | Cold art cache (before → after) | Warm art cache (before → after) |
+  | ------------------------- | ------------------------------- | ------------------------------- |
+  | Art                       | 83 downloaded, 0 failed         | 83 from cache                   |
+  | Decklist → images         | 28.1 s → 14.5 s                 | 10.9 s → 10.6 s                 |
+  | cards.zip (90 MB)         | 0.4 s → 0.3 s                   | 0.3 s → 0.3 s                   |
+  | cards.pdf (21 → 17 MB)    | 2.6 s → 1.4 s                   | 1.9 s → 1.3 s                   |
+  | Peak memory, whole run    | 1.8 GB → 1.06 GB                |                                 |
+
+  Rendering takes about 120 ms per face, so a warm run is almost all rendering. Loading the card database takes about 10 s and 465 MB of heap (0.75 GB RSS, most of the peak); one deck's images, zip and PDF add about 0.3 GB on top.
+
+---------------------------- | ------------------------- | -------------- |
+  | Art                          | 83 downloaded, 0 failed   | 83 from cache  |
+  | Waiting for art              | 18.4 s                    | 0.5 s          |
+  | Rendering (~120 ms per face) | 9.6 s                     | 10.4 s         |
+  | Decklist → images            | 28.1 s                    | 10.9 s         |
+  | cards.zip (90 MB)            | 0.4 s                     | 0.3 s          |
+  | cards.pdf (21 MB)            | 2.6 s                     | 1.9 s          |
+
+  Loading the card database takes about 10 s and 465 MB of heap (0.77 GB RSS). Uncached art takes about 220 ms per image, not 100 ms, because each download waits for the one before it, and art is fetched one card at a time before rendering, so downloads and rendering don't overlap. Generating the images adds about 150 MB; building the PDF adds about 650 MB more (every copy is converted to JPEG and embedded separately).
+
 ---
 
 ## 11. Consolidated open questions
