@@ -245,11 +245,11 @@ export function bottomSectionTop(model, bands) {
 /**
  * Positions in the middle section (D16, D19; 5.5.8, 5.6), as plain data.
  *
- * The stack hangs from the top of the type line and runs down beside the text
- * box, as far as the bottom section less the room the land mana symbols need.
- * A planeswalker's stack instead grows up from the bottom of the type line, as
- * far as the top section, since its loyalty costs use the bar beside the text
- * box (7.2.1). If the stack doesn't fit, its labels are dropped; if it still
+ * The stack hangs from the top of the type line, below the art, and runs down
+ * beside the text box, as far as the bottom section less the room the land
+ * mana symbols need. A planeswalker's stack stays beside the type line, since
+ * its loyalty costs use the bar beside the text box (7.2.1). If the stack
+ * doesn't fit, its labels are dropped; if it still
  * doesn't, all icons shrink together, down to half size. A mana block so long
  * it runs past the type line pushes the hanging stack down below it. Nothing
  * is hidden: `overflow` is set when the stack still doesn't fit (D19, 4.4).
@@ -267,11 +267,11 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
   const items = middleItems(model);
   const landMana = model.subtypes.filter((t) => LAND_TYPE_MANA[t]).map((t) => LAND_TYPE_MANA[t]);
   const landHeight = landMana.length * (BAR.icon + M.gap);
-  const upward = model.types.includes('Planeswalker');
-  const room = upward
-    ? { top: from + 4, bottom: type.y + type.h - 4 }
+  const top = Math.max(type.y, from + M.gap);
+  const room = model.types.includes('Planeswalker')
+    ? { top, bottom: text.y }
     : {
-        top: Math.max(type.y, from + M.gap),
+        top,
         bottom: bottomSectionTop(model, { text }) - landHeight,
       };
 
@@ -285,7 +285,7 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
     if (height(false) > space) scale = Math.max(M.minScale, space / height(false));
   }
 
-  let y = upward ? Math.max(room.top, room.bottom - height(labels, scale)) : room.top;
+  let y = room.top;
   const stack = items.map((item) => {
     const labelled = labels && item.label !== null;
     const row = { ...item, y, size: M.icon * scale, labelled };
@@ -305,13 +305,13 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
 }
 
 /** The image for a middle item, or a labelled placeholder (T-B3). */
-async function middleIcon(assets, { group, key, label }) {
+async function middleIcon(assets, { group, key }) {
   if (group === 'subtype')
     return assets.iconOrPlaceholder(SUBTYPE_ICONS[key].icon, SUBTYPE_ICONS[key].placeholder);
   const style = group === 'zone' ? ZONE_SYMBOL_STYLE[key] : SUPERTYPE_ICONS[key];
   // Snow reuses the {S} mana symbol art (5.5.4).
   if (style.manaSymbol) return textSymbolImage(assets, style.manaSymbol);
-  return assets.iconOrPlaceholder(style.icon, label.slice(0, 3));
+  return assets.iconOrPlaceholder(style.icon, key.slice(0, 3).toUpperCase());
 }
 
 /**

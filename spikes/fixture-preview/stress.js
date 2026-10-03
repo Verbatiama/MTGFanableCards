@@ -69,38 +69,13 @@ const STRESS = {
       ],
     },
   ],
-  // Planeswalker: the stack grows up from the type line (loyalty costs use the
-  // bar beside the text box) and meets the mana block, so the labels drop.
-  'stress-drop-labels': [
-    'ajani-sleeper-agent',
-    {
-      supertypes: ['Legendary', 'Snow'],
-      zoneSymbols: ['flash', 'hand', 'graveyard'],
-      manaCost: [
-        { symbol: 'W', count: 1 },
-        { symbol: 'U', count: 1 },
-        { symbol: 'B', count: 1 },
-        { symbol: 'R', count: 1 },
-        { symbol: 'G', count: 1 },
-      ],
-    },
-  ],
-  // Planeswalker with even more: labels dropped and icons shrunk.
-  'stress-shrink': [
-    'ajani-sleeper-agent',
-    {
-      supertypes: ['Legendary', 'Snow', 'World'],
-      zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
-      manaCost: [
-        { symbol: 'W', count: 1 },
-        { symbol: 'U', count: 1 },
-        { symbol: 'B', count: 1 },
-        { symbol: 'R', count: 1 },
-        { symbol: 'G', count: 1 },
-        { symbol: 'generic', count: 2 },
-      ],
-    },
-  ],
+  // Planeswalker: the stack stays beside the type line (loyalty costs use the
+  // bar beside the text box), which fits one icon but not its label, so the
+  // SNOW label drops.
+  'stress-drop-labels': ['ajani-sleeper-agent', { supertypes: ['Snow'] }],
+  // Planeswalker with the crown and FLASH: two icons only fit beside the type
+  // line once they shrink.
+  'stress-shrink': ['ajani-sleeper-agent', { zoneSymbols: ['flash'] }],
 };
 
 /** @param {Map<string, object>} fixtures */

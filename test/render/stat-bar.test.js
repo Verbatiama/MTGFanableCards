@@ -172,7 +172,7 @@ test('middle order: attaching subtypes, supertypes, zone/timing; only some label
   });
   assert.deepEqual(
     items.map((i) => `${i.key}:${i.label}`),
-    ['Aura:null', 'Legendary:LEGENDARY', 'Snow:SNOW', 'flash:FLASH', 'graveyard:GRAVEYARD'],
+    ['Aura:null', 'Legendary:null', 'Snow:SNOW', 'flash:FLASH', 'graveyard:GRAVEYARD'],
   );
   // Subtypes without icons, and supertypes without icons, are skipped.
   assert.deepEqual(
@@ -190,16 +190,32 @@ test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () 
     ['Legendary', 'Snow'],
   );
   assert.ok(labels && scale === 1);
-  assert.equal(stack[1].y, TYPE.y + BAR_MIDDLE.icon + BAR_MIDDLE.gap + BAR_MIDDLE.label);
+  // The crown has no label, so takes no label room; SNOW below it has one.
+  assert.equal(stack[1].y, TYPE.y + BAR_MIDDLE.icon + BAR_MIDDLE.gap);
+  assert.equal(stack[1].labelled, true);
   // Unlabelled subtype icons take no label room.
   const sword = middle('feral-invocation');
   assert.equal(sword.stack[1].y - sword.stack[0].y, BAR_MIDDLE.icon + BAR_MIDDLE.gap);
 });
 
-test("a planeswalker's stack grows up from the bottom of the type line (5.6.2)", () => {
-  const { stack, bottom } = middle('ajani-sleeper-agent');
-  assert.ok(stack[0].y < TYPE.y);
-  assert.equal(bottom, TYPE.y + TYPE.h - 4);
+test("a planeswalker's stack stays beside the type line, below the art (5.6.2)", () => {
+  const { stack, labels, scale } = middle('ajani-sleeper-agent');
+  assert.equal(stack[0].y, TYPE.y);
+  assert.ok(labels && scale === 1);
+  // More than fits beside the type line shrinks rather than reaching the ability bands.
+  const two = middle('ajani-sleeper-agent', { zoneSymbols: ['flash'] });
+  assert.equal(two.labels, false);
+  assert.ok(two.scale < 1);
+  assert.ok(two.bottom <= TEXT.y + 0.01);
+});
+
+test('the Legendary crown has no label, and every stack starts below the art (5.5.1)', () => {
+  for (const slug of ['niv-mizzet-the-firemind', 'jace-the-mind-sculptor', 'dark-depths']) {
+    const [crown] = middle(slug).stack;
+    assert.equal(crown.key, 'Legendary', slug);
+    assert.equal(crown.labelled, false, slug);
+    assert.ok(crown.y >= ART.y + ART.h, slug);
+  }
 });
 
 test('a stack too long drops its labels, then shrinks to at most half size, never hidden (5.6.3)', () => {

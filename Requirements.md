@@ -365,7 +365,7 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 ### 5.5 Supertype and subtype (middle)
 
-5.5.1 **[Confirmed]** Legendary is shown as a crown icon with the label "LEGENDARY" (Niv-Mizzet).
+5.5.1 **[Confirmed]** Legendary is shown as a crown icon (Niv-Mizzet). **[Confirmed]** The crown has no label (revised after T-B11): the mockup's "LEGENDARY" text is dropped, and the crown always sits below the art.
 
 5.5.2 **[Confirmed]** Basic is shown with a labelled icon, BASIC (Forest, composite image; D15).
 
@@ -375,7 +375,7 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 | Supertype | Icon                                     | Label     |
 | --------- | ---------------------------------------- | --------- |
-| Legendary | Crown                                    | LEGENDARY |
+| Legendary | Crown                                    | (none)    |
 | Basic     | Basic icon                               | BASIC     |
 | Snow      | Snowflake (the same art as the {S} mana symbol) | SNOW      |
 | World     | Globe                                    | WORLD     |
@@ -384,7 +384,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 
 **[Confirmed]** A card with several supertypes shows one icon per supertype, stacked in type-line order (D15): Dark Depths shows LEGENDARY then SNOW; Snow-Covered Forest shows BASIC then SNOW. Overflow is handled by D19.
 
-5.5.5 **[Confirmed]** Subtype icons appear in the middle section with no text label (D16). The mockups label them EQUIPMENT (Sword of Fire and Ice) and AURA (Feral Invocation); D16 drops those labels. Zone/timing and supertype icons keep their labels (5.4, 5.5.1–5.5.4).
+5.5.5 **[Confirmed]** Subtype icons appear in the middle section with no text label (D16). The mockups label them EQUIPMENT (Sword of Fire and Ice) and AURA (Feral Invocation); D16 drops those labels. Zone/timing and supertype icons keep their labels (5.4, 5.5.2–5.5.4), except the Legendary crown (5.5.1).
 
 5.5.6 **[Confirmed]** Creature subtypes and token subtypes do not get icons (README goal 9).
 
@@ -416,15 +416,15 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 5.5.9 **[Confirmed]** A card with several subtypes that have icons shows one icon each, in type-line order, like supertypes (D15, D16). Subtypes without icons are skipped, so an Aura Curse shows only the Aura icon. Overflow is handled by D19.
 
-5.5.10 **[Confirmed]** Subtype icons are icon-only; zone/timing and supertype icons carry a text label (D16).
+5.5.10 **[Confirmed]** Subtype icons are icon-only; zone/timing and supertype icons carry a text label (D16), except the Legendary crown (5.5.1).
 
 ### 5.6 Middle-section layout
 
 5.6.1 **[Confirmed]** Stack order, top to bottom (D19): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → zone/timing symbols. Land mana symbols are a separate group beside the text box (5.5.8). Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
 
-5.6.2 **[Confirmed]** The stack hangs from the type line (revised in T-B8): the top of its first symbol is level with the top of the type line box, and it runs down beside the type line and text box. Nothing in the middle stack sits beside the art. **[Confirmed]** Planeswalkers are the exception, as their loyalty costs use the bar beside the text box (7.2.1): their stack's bottom sits at the bottom of the type line and it grows upward beside the art.
+5.6.2 **[Confirmed]** The stack hangs from the type line (revised in T-B8): the top of its first symbol is level with the top of the type line box, and it runs down beside the type line and text box. Nothing in the middle stack sits beside the art. **[Confirmed]** Planeswalkers hang their stack from the top of the type line too (revised after T-B11), but it stays beside the type line, as their loyalty costs use the bar beside the text box (7.2.1).
 
-5.6.3 **[Confirmed]** Collision rule (D19, revised in T-B8). The stack may run down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. A planeswalker's stack may grow up to just under the mana block. When it doesn't fit, these steps apply in order, stopping at the first that fits:
+5.6.3 **[Confirmed]** Collision rule (D19, revised in T-B8). The stack may run down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. A planeswalker's stack may run down only to the top of the text box. When it doesn't fit, these steps apply in order, stopping at the first that fits:
 
 1. **Drop the labels** under supertype and zone/timing icons.
 2. **Shrink the icons**, all together, down to a minimum of half size.
