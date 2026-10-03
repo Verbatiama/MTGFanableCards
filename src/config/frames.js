@@ -11,9 +11,9 @@
 export const FRAME = {
   W: { border: '#e8e4d4', pin: '#f2f1ea', bar: '#f6f5ee', text: '#eaeae2' },
   U: { border: '#3a78d8', pin: '#0a55cf', bar: '#86b2e4', text: '#b3c0db' },
-  B: { border: '#5a5257', pin: '#a09a9d', bar: '#887b84', text: '#a7a4a5' },
+  B: { border: '#5a5257', pin: '#2b2729', bar: '#887b84', text: '#a7a4a5' },
   R: { border: '#c0402f', pin: '#b8302a', bar: '#ed8b5e', text: '#dccbbb' },
-  G: { border: '#3c8a50', pin: '#28934a', bar: '#b0d49f', text: '#bbdab0' },
+  G: { border: '#3c8a50', pin: '#1f7d3d', bar: '#b0d49f', text: '#bbdab0' },
   gold: { border: '#c9a640', pin: '#c9a640', bar: '#e3cc50', text: '#d6dbb4' },
   artifact: { border: '#a8a8a8', pin: '#c4c4c4', bar: '#cdcdcd', text: '#e9e9e9' },
   colourless: { border: '#9a908a', pin: '#a8a09c', bar: '#c4bcba', text: '#dedad6' },
