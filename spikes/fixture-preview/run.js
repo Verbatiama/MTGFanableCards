@@ -76,8 +76,9 @@ async function drawCard(model) {
   ctx.fillRect(0, 0, CARD.width, CARD.height);
 
   const layout = cardLayout(ctx, model);
-  await drawStatBar(ctx, model, layout);
   await drawCardBox(ctx, model, art, layout);
+  // The bar last: the art box reaches under its icons.
+  await drawStatBar(ctx, model, layout);
   return canvas;
 }
 

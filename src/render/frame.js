@@ -241,7 +241,7 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   ctx.fillText(model.name, BOX.x + 14, NAME.y + NAME.h / 2 + 2);
 
   // Art box (3.4).
-  const artBox = { x: BOX.x + 6, y: art_.y, w: width - 12, h: art_.h };
+  const artBox = { x: ART.x, y: art_.y, w: ART.w, h: art_.h };
   pinline(ctx, fill.pin, artBox.x, artBox.y, artBox.w, artBox.h, 0);
   ctx.fillStyle = '#000';
   ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);

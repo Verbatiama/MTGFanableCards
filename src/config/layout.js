@@ -57,17 +57,28 @@ export const BAR_BOTTOM = {
 export const BOX = { x: BAR.x + BAR.width + 10, right: CARD.width - BORDER - 4 };
 
 /**
- * Vertical bands of the card box, top to bottom (6.1–6.5). The frame runs from
- * the border to the footer; the footer's two lines end at the border. The
- * text box keeps its height and the art box takes what is left.
+ * Bands of the card box, top to bottom (6.1–6.5). The frame runs from the
+ * border to the footer; the footer's two lines end at the border.
+ *
+ * The art box reaches left past the card box to the stat bar's left edge,
+ * under the bar's icons, and is as tall as its aspect ratio (`ART_ASPECT`,
+ * width / height) makes it. The type line sits under it and the text box takes
+ * the rest, down to the footer.
  */
 export const FRAME_TOP = BORDER;
 export const FOOTER = { y: CARD.height - BORDER - 44 };
 export const NAME = { y: FRAME_TOP + 8, h: 58 };
-export const TEXT = { y: FOOTER.y - 8 - 380, h: 380 };
-export const TYPE = { y: TEXT.y - 56, h: 50 };
-const artTop = NAME.y + NAME.h + 6;
-export const ART = { y: artTop, h: TYPE.y - 6 - artTop };
+export const ART_ASPECT = 562 / 412;
+const art = { x: BAR.x, right: BOX.right - 6, y: NAME.y + NAME.h + 6 };
+export const ART = {
+  x: art.x,
+  y: art.y,
+  w: art.right - art.x,
+  h: Math.round((art.right - art.x) / ART_ASPECT),
+};
+export const TYPE = { y: ART.y + ART.h + 6, h: 50 };
+const textTop = TYPE.y + TYPE.h + 6;
+export const TEXT = { y: textTop, h: FOOTER.y - 8 - textTop };
 
 /** Space between the text box edges and its text (6.4). */
 export const TEXT_PADDING = { x: 20, top: 14, bottom: 10 };

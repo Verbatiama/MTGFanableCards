@@ -157,12 +157,17 @@ test('a stack too long drops its labels, then shrinks to at most half size, neve
     zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
   };
   const room = bottomSectionTop(loadCardFixture('niv-mizzet-the-firemind')) - TYPE.y;
-  const seven = middle('niv-mizzet-the-firemind', { ...lots, supertypes: ['Legendary', 'Snow'] });
-  assert.ok(7 * (BAR_MIDDLE.icon + BAR_MIDDLE.label + BAR_MIDDLE.gap) > room);
-  assert.equal(seven.labels, false);
-  assert.equal(seven.scale, 1);
-  assert.ok(seven.stack.every((i) => !i.labelled));
-  assert.ok(seven.bottom <= TYPE.y + room);
+  // As many labelled items as fit once their labels are dropped.
+  const n = Math.floor(room / (BAR_MIDDLE.icon + BAR_MIDDLE.gap));
+  assert.ok(n * (BAR_MIDDLE.icon + BAR_MIDDLE.label + BAR_MIDDLE.gap) > room);
+  const unlabelled = middle('niv-mizzet-the-firemind', {
+    supertypes: [],
+    zoneSymbols: Array(n).fill('flash'),
+  });
+  assert.equal(unlabelled.labels, false);
+  assert.equal(unlabelled.scale, 1);
+  assert.ok(unlabelled.stack.every((i) => !i.labelled));
+  assert.ok(unlabelled.bottom <= TYPE.y + room);
 
   const eight = middle('niv-mizzet-the-firemind', {
     ...lots,
