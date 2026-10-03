@@ -312,9 +312,11 @@ test('the bottom section is anchored to the bottom of the bar; the middle stack 
     const model = loadCardFixture(slug);
     assert.equal(bottomSectionTop(model), statBarBottom(model).top - BAR_BOTTOM.gap, slug);
   }
-  // The label's first letter is its top.
+  // NON-PERMANENT ends level with the bottom of the text box (5.7.2); its
+  // first letter is its top.
   const label = bottom('lightning-strike');
-  assert.equal(label.top, edge - 12 * BAR_BOTTOM.label.step - BAR_BOTTOM.label.size);
+  assert.equal(label.base, TEXT.y + TEXT.h);
+  assert.equal(label.top, label.base - 12 * BAR_BOTTOM.label.step - BAR_BOTTOM.label.size);
   // Nothing at the bottom: the stack may run to the bar's bottom edge.
   assert.equal(bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')), edge);
 });

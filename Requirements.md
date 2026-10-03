@@ -435,7 +435,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon.
 
-5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line).
+5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line). **[Confirmed]** The label ends level with the bottom of the text box, not the bottom of the bar. The middle stack stops above it, so an instant with both FLASH and SPLIT SECOND (Krosan Grip) shows them without labels (5.6.3).
 
 5.7.3 **[Confirmed]** Only NON-PERMANENT is shown (D18). Permanents never get a permanence label, so the PERMANENT label in the Sword of Fire and Ice and Feral Invocation mockups is dropped; on a permanent with no stats, loyalty or defense the bottom of the bar is left empty. Instants and sorceries always show NON-PERMANENT, as their bottom is never used by anything else.
 

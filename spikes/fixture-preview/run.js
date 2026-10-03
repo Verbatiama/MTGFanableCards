@@ -100,7 +100,7 @@ async function drawStatBar(ctx, model, layout) {
 
   // Bottom: stats, loyalty, defense badge, or NON-PERMANENT, from the real
   // renderer (T-B9).
-  await drawStatBarBottom(ctx, model, { assets });
+  await drawStatBarBottom(ctx, model, { assets, text: layout.text });
 }
 
 async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }) {

@@ -193,10 +193,12 @@ export function middleItems(model) {
  * power and toughness (`stats`, hollow unless the card is a creature: vehicles
  * and spacecraft, 5.7.7), the starting loyalty badge (7.2.3), the defense
  * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
- * or nothing.
+ * or nothing. The label ends level with the bottom of the text box (`base`);
+ * the rest sit on the bar's bottom edge.
  * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ text?: { y: number, h: number } }} [bands] The text box band.
  */
-export function statBarBottom(model) {
+export function statBarBottom(model, { text = TEXT } = {}) {
   const B = BAR_BOTTOM;
   const edge = CARD.height - B.edge;
   const badge = (kind, value) => ({
@@ -222,15 +224,16 @@ export function statBarBottom(model) {
   if (model.defense !== null) return badge('defense', model.defense);
   if (!isPermanent(model.types)) {
     const letters = [...LABELS.nonPermanent];
-    const top = edge - (letters.length - 1) * B.label.step - B.label.size;
-    return { kind: 'label', letters, top };
+    const base = text.y + text.h;
+    const top = base - (letters.length - 1) * B.label.step - B.label.size;
+    return { kind: 'label', letters, base, top };
   }
   return { kind: null, top: edge };
 }
 
 /** As far down as the middle stack may reach: the bottom section's top, less a gap. */
-export function bottomSectionTop(model) {
-  const { kind, top } = statBarBottom(model);
+export function bottomSectionTop(model, bands) {
+  const { kind, top } = statBarBottom(model, bands);
   return kind ? top - BAR_BOTTOM.gap : top;
 }
 
@@ -261,7 +264,7 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
   const upward = model.types.includes('Planeswalker');
   const room = upward
     ? { top: from + 4, bottom: type.y + type.h - 4 }
-    : { top: type.y, bottom: bottomSectionTop(model) - landHeight };
+    : { top: type.y, bottom: bottomSectionTop(model, { text }) - landHeight };
 
   const height = (labels, scale = 1) =>
     items.reduce((h, it) => h + (M.icon + (labels && it.label ? M.label : 0) + M.gap) * scale, 0);
@@ -454,10 +457,11 @@ async function drawStat(ctx, assets, stat, value, y, hollow) {
  * Draws the bottom of the stat bar.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets> }} options
+ * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>,
+ *   text?: { y: number, h: number } }} options
  */
-export async function drawStatBarBottom(ctx, model, { assets }) {
-  const bottom = statBarBottom(model);
+export async function drawStatBarBottom(ctx, model, { assets, ...bands }) {
+  const bottom = statBarBottom(model, bands);
   const cx = BAR.x + BAR.width / 2;
   ctx.save();
   ctx.fillStyle = '#fff';
@@ -479,11 +483,11 @@ export async function drawStatBarBottom(ctx, model, { assets }) {
     await drawBadge(ctx, assets, shape, colour, cx, bottom.cy, bottom.size, bottom.value);
   } else if (bottom.kind === 'label') {
     const { size, step } = BAR_BOTTOM.label;
-    const edge = CARD.height - BAR_BOTTOM.edge;
     ctx.font = labelFont(size);
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    [...bottom.letters].reverse().forEach((ch, i) => ctx.fillText(ch, cx, edge - i * step));
+    // Capitals sit on the baseline, so the last letter ends on the text box's edge.
+    ctx.textBaseline = 'alphabetic';
+    [...bottom.letters].reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom.base - i * step));
   }
   ctx.restore();
 }
