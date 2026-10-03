@@ -30,11 +30,11 @@ const lit = (canvas, x, y, w, h) =>
     .getImageData(x, y, w, h)
     .data.some((v, i) => i % 4 !== 3 && v > 128);
 
-test('the footer has number and rarity, set and language, artist and copyright (6.5.1)', async () => {
+test('the footer has set and language, artist and copyright; no number or rarity (6.5.1, C23)', async () => {
   const { drawn } = await footer(loadCardFixture('lightning-strike'), { year: 2031 });
   assert.deepEqual(
     drawn.map((d) => d.text),
-    ['152 U', 'M19 - EN', 'ADAM PAQUETTE', '™ & © 2031 Wizards of the Coast'],
+    ['M19 - EN', 'ADAM PAQUETTE', '™ & © 2031 Wizards of the Coast'],
   );
 });
 

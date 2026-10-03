@@ -4,8 +4,8 @@ import { fitFont, labelFont, textFont } from './fonts.js';
 
 /**
  * Footer (T-B6, D20; Requirements 6.5), white on the black border below the
- * card box. Left: collector number and rarity letter, then set code and
- * language. Right: the artist with the paintbrush, then the copyright line.
+ * card box. Left: set code and language, on the second row; there is no
+ * collector number or rarity (T-S4, C23). Right: the artist with the paintbrush, then the copyright line.
  * No holo stamp; the centre stays empty (6.5.3).
  */
 
@@ -33,8 +33,6 @@ export async function drawFooter(ctx, model, { assets, year = new Date().getFull
 
   ctx.font = labelFont(TEXT_SIZE.footer);
   ctx.textAlign = 'left';
-  const rarity = model.rarity[0].toUpperCase();
-  ctx.fillText(`${model.collectorNumber} ${rarity}`, BOX.x, FOOTER.y + ROW.first);
   ctx.fillText(`${model.setCode} - ${model.lang.toUpperCase()}`, BOX.x, FOOTER.y + ROW.second);
 
   // Artist, with the paintbrush to the left of the name (6.5.1).

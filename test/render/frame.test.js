@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FRAME, LAND_FRAME } from '../../src/config/frames.js';
 import { BOX, TYPE } from '../../src/config/layout.js';
-import { framePalette, producedColours } from '../../src/render/frame.js';
+import { framePalette, mix, producedColours } from '../../src/render/frame.js';
 import { renderCardCanvas } from '../../src/render/node.js';
 import { loadCardFixture } from '../fixtures/cards.js';
 
@@ -45,16 +45,21 @@ test('devoid shows the art through a translucent border', () => {
   assert.match(p.border[0], /^rgba\(/);
 });
 
-test('lands: stone border, colour from the card or the mana it makes (D21)', () => {
-  assert.deepEqual(palette('wasteland').pin, [LAND_FRAME.colourless.pin]);
-  assert.deepEqual(palette('forest').pin, [LAND_FRAME.G.pin]);
-  assert.deepEqual(palette('dryad-arbor').pin, [LAND_FRAME.G.pin]);
+test('lands: pink-tan bars, colour from the card or the mana it makes (D21, C18)', () => {
+  const wasteland = palette('wasteland');
+  assert.deepEqual(wasteland.pin, [LAND_FRAME.pin]);
+  assert.deepEqual(wasteland.text, [LAND_FRAME.text]);
+  assert.deepEqual(palette('forest').pin, [FRAME.G.pin]);
+  assert.deepEqual(palette('dryad-arbor').pin, [FRAME.G.pin]);
   const pool = palette('breeding-pool');
-  assert.deepEqual(pool.pin, [LAND_FRAME.G.pin, LAND_FRAME.U.pin]);
-  assert.equal(pool.bar, LAND_FRAME.splitBar);
-  assert.deepEqual(palette('city-of-brass').pin, [LAND_FRAME.gold.pin]);
-  for (const slug of ['wasteland', 'forest', 'breeding-pool']) {
-    assert.deepEqual(palette(slug).border, [LAND_FRAME.stone], slug);
+  assert.deepEqual(pool.pin, [FRAME.G.pin, FRAME.U.pin]);
+  assert.deepEqual(pool.text, [
+    mix(LAND_FRAME.text, FRAME.G.text, 0.5),
+    mix(LAND_FRAME.text, FRAME.U.text, 0.5),
+  ]);
+  assert.deepEqual(palette('city-of-brass').pin, [FRAME.gold.pin]);
+  for (const slug of ['wasteland', 'forest', 'breeding-pool', 'city-of-brass']) {
+    assert.equal(palette(slug).bar, LAND_FRAME.bar, slug);
   }
 });
 

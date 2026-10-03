@@ -32,6 +32,8 @@ npm run spike:preview # Generate preview images from development spikes
 npm run data:download # Download the Scryfall bulk data into cache/scryfall/ (or DATA_DIR)
 npm run render:fixtures # Render every fixture with the real renderer into out/render/
 npm run cli -- deck.txt  # Generate cards for a decklist into out/cards.zip (--pdf, --png, --strict; --help)
+npm run visual:update  # Re-render the visual regression references (test/fixtures/visual/) after an intended change
+npm run mockups:compare # Each mockup card beside its render, in out/mockups/
 ```
 
 ### Folder structure

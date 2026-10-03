@@ -24,7 +24,7 @@ import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawFooter } from '../../src/render/footer.js';
 import { cardLayout, drawAbilityBands, drawLoyaltyCosts } from '../../src/render/planeswalker.js';
 import { drawStatBarBottom, drawStatBarMiddle, drawStatBarTop } from '../../src/render/stat-bar.js';
-import { drawBasicLandSymbol, drawRulesText, drawWatermark } from '../../src/render/text-box.js';
+import { drawBasicLandSymbol, drawRulesText } from '../../src/render/text-box.js';
 import { BOX, CARD, FOOTER } from '../../src/config/index.js';
 
 // Card dimensions and fonts come from the real renderer's config (T-B2).
@@ -106,11 +106,10 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     layout: { art: ART, type: TYPE, text: TEXT },
   });
 
-  // Watermark and rules text from the real renderer (T-B5).
-  await drawWatermark(ctx, model, assets, TEXT);
+  // Rules text from the real renderer (T-B5).
   if (model.supertypes.includes('Basic')) {
     // The large mana symbol, from the real renderer (T-B12).
-    await drawBasicLandSymbol(ctx, model, assets, TEXT);
+    await drawBasicLandSymbol(ctx, model, assets);
   } else {
     if (pw) await drawAbilityBands(ctx, assets, pw);
     else await drawRulesText(ctx, model, assets, TEXT, warn);

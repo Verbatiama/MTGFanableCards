@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCanvas } from 'canvas';
-import { BASIC_LAND_SYMBOL, BOX, TEXT, TEXT_SIZE } from '../../src/config/layout.js';
+import { BOX, FULL_ART_BASIC, TEXT, TEXT_SIZE } from '../../src/config/layout.js';
 import { tokenizeCard, tokenizeLine } from '../../src/parse/oracle-text.js';
 import { registerFonts, renderCardCanvas } from '../../src/render/node.js';
 import { basicLandMana, fitText, layoutText } from '../../src/render/text-box.js';
@@ -31,14 +31,9 @@ test('inline symbols are one token each, as printed (6.4.6)', () => {
   assert.equal(lineText(lines[0]), '[2][U], [T]: Add [C][C].');
 });
 
-test('a P/T modifier and the punctuation after it wrap together (6.4.5)', () => {
-  const paragraph = rules('Enchanted creature gets +2/+2.');
-  const full = layoutText(ctx, [paragraph], 600, 26);
-  assert.equal(lineText(full.lines[0]), 'Enchanted creature gets +2 [power] +2 [toughness].');
-  // Too narrow for the whole modifier after "gets": it moves to the next line as one.
-  const words = ctx.measureText('Enchanted creature gets ').width;
-  const { lines } = layoutText(ctx, [paragraph], words + 30, 26);
-  assert.equal(lineText(lines.at(-1)), '+2 [power] +2 [toughness].');
+test('a P/T modifier is plain text, in standard formatting (C17)', () => {
+  const { lines } = layoutText(ctx, [rules('Enchanted creature gets +2/+2.')], 600, 26);
+  assert.equal(lineText(lines[0]), 'Enchanted creature gets +2/+2.');
 });
 
 test('reminder text is italic; flavour text gets a divider above its first line', () => {
@@ -95,9 +90,20 @@ test('the renderer draws the text in the text box', async () => {
   const model = loadCardFixture('lightning-strike');
   const empty = await renderCardCanvas({ ...model, oracleText: '', flavorText: null });
   const drawn = await renderCardCanvas(model);
+  // Short text is centred vertically (C15), so look across the whole box.
   const region = (canvas) =>
-    canvas.getContext('2d').getImageData(BOX.x + 20, TEXT.y + 14, 400, 60).data;
+    canvas.getContext('2d').getImageData(BOX.x + 20, TEXT.y + 14, 400, TEXT.h - 28).data;
   assert.notDeepEqual(region(drawn), region(empty));
+});
+
+test('short rules text is centred vertically in the text box (C15)', async () => {
+  const model = { ...loadCardFixture('lightning-strike'), flavorText: null };
+  const canvas = await renderCardCanvas(model);
+  const empty = await renderCardCanvas({ ...model, oracleText: '' });
+  const rows = (c, y) => c.getContext('2d').getImageData(BOX.x + 20, y, 400, 10).data;
+  // Nothing at the top of the box, text in the middle.
+  assert.deepEqual(rows(canvas, TEXT.y + 16), rows(empty, TEXT.y + 16));
+  assert.notDeepEqual(rows(canvas, TEXT.y + TEXT.h / 2 - 8), rows(empty, TEXT.y + TEXT.h / 2 - 8));
 });
 
 test('basic lands show the mana symbol they tap for, from their rules text (6.4.4)', () => {
@@ -107,21 +113,23 @@ test('basic lands show the mana symbol they tap for, from their rules text (6.4.
   assert.equal(basicLandMana({ oracleText: '' }), null);
 });
 
-test('a basic land draws a large mana symbol centred in the text box, and no text (6.4.4)', async () => {
+test('a basic land is full-art, with its mana symbol and type line over the art (6.4.4, C21)', async () => {
   const model = loadCardFixture('forest');
-  const canvas = await renderCardCanvas(model);
-  const plain = await renderCardCanvas({ ...model, supertypes: [], oracleText: '' });
+  const red = createCanvas(40, 30);
+  red.getContext('2d').fillStyle = '#f00';
+  red.getContext('2d').fillRect(0, 0, 40, 30);
+  const art = red.toBuffer('image/png');
+  const canvas = await renderCardCanvas(model, { art });
+  const noSymbol = await renderCardCanvas({ ...model, oracleText: '' }, { art });
   const cx = BOX.x + (BOX.right - BOX.x) / 2;
-  const cy = TEXT.y + TEXT.h / 2;
-  const half = BASIC_LAND_SYMBOL.size / 2;
+  const { symbolY } = FULL_ART_BASIC;
   const region = (c, x, y, w, h) => c.getContext('2d').getImageData(x, y, w, h).data;
-  // The symbol covers the centre of the text box...
+  // The symbol sits where the mockup's does...
   assert.notDeepEqual(
-    region(canvas, cx - 10, cy - 10, 20, 20),
-    region(plain, cx - 10, cy - 10, 20, 20),
+    region(canvas, cx - 10, symbolY - 10, 20, 20),
+    region(noSymbol, cx - 10, symbolY - 10, 20, 20),
   );
-  // ...and nothing is drawn outside it, where rules text would start.
-  const textTop = [BOX.x + 20, TEXT.y + 14, 200, 30];
-  assert.deepEqual(region(canvas, ...textTop), region(plain, ...textTop));
-  assert.ok(cy - half > TEXT.y && cy + half < TEXT.y + TEXT.h);
+  // ...and the art, not a text box, fills the space down to the footer.
+  const [r, g, b] = region(canvas, BOX.x + 30, TEXT.y + TEXT.h - 10, 1, 1);
+  assert.ok(r > 40 && g < 20 && b < 20, `expected darkened red art, got ${[r, g, b]}`);
 });

@@ -24,16 +24,12 @@ test('symbols stay one per symbol, as printed (D11, 6.4.6)', () => {
   assert.equal(line('Roll the planar die. {CHAOS}'), 'Roll the planar die. {CHAOS}');
 });
 
-test('numeric ±N/±N modifiers become sword/shield tokens (D20, 6.4.5)', () => {
-  assert.equal(line('Enchanted creature gets +2/+2.'), 'Enchanted creature gets [+2|+2].');
+test('power/toughness modifiers, counters and stats stay as text (C17)', () => {
+  assert.equal(line('Enchanted creature gets +2/+2.'), 'Enchanted creature gets +2/+2.');
   assert.equal(
     line('Target creature gets -5/-5 until end of turn.'),
-    'Target creature gets [-5|-5] until end of turn.',
+    'Target creature gets -5/-5 until end of turn.',
   );
-  assert.equal(line('gets +1/-1 and'), 'gets [+1|-1] and');
-});
-
-test('counters, X modifiers and plain stats stay as text', () => {
   assert.equal(line('Put a +1/+1 counter on it.'), 'Put a +1/+1 counter on it.');
   assert.equal(line('had no -1/-1 counters on it'), 'had no -1/-1 counters on it');
   assert.equal(line('It gets +X/+X.'), 'It gets +X/+X.');

@@ -265,7 +265,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 | Instant      | Bolt                      |
 | Artifact     | Chalice                   |
 | Enchantment  | Sunburst                  |
-| Planeswalker | Planeswalker symbol       |
+| Planeswalker | Planeswalker symbol (**[Confirmed]** the spark, from the Mana font; T-S4, C6) |
 | Land         | Land icon                 |
 | Battle       | New icon (D14)            |
 | Kindred      | New icon (D14)            |
@@ -370,9 +370,9 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 ### 5.5 Supertype and subtype (middle)
 
-5.5.1 **[Confirmed]** Legendary is shown as a crown icon (Niv-Mizzet). **[Confirmed]** The crown has no label (revised after T-B11): the mockup's "LEGENDARY" text is dropped, and the crown always sits below the art.
+5.5.1 **[Confirmed]** Legendary is shown as an icon (Niv-Mizzet): **[Confirmed]** a tracing of the Commander 2014 set symbol (`Examples/Commander-2014.png`), replacing the crown (T-S4, changes.md C5). **[Confirmed]** The icon has no label (revised after T-B11): the mockup's "LEGENDARY" text is dropped, and the crown always sits below the art.
 
-5.5.2 **[Confirmed]** Basic is shown with an icon (Forest, composite image; D15). **[Confirmed]** No label (revised after T-B11, like every supertype icon, 5.5.4).
+5.5.2 **[Confirmed]** Basic is shown with an icon (Forest, composite image; D15): **[Confirmed]** a white pentagon, as in the mockup (T-S4, C4). **[Confirmed]** Every land that isn't basic shows a non-basic icon (the pentagon with a pine tree cut out, as in the mockup's Wasteland) after its supertype icons, though non-basic isn't a supertype (T-S4, C9; revises D15). **[Confirmed]** No label (revised after T-B11, like every supertype icon, 5.5.4).
 
 5.5.3 **[Confirmed]** Planeswalkers are not exempt: every legendary card, planeswalkers included, shows the crown + LEGENDARY (D15, revised). The Jace mockup's missing LEGENDARY icon is treated as an omission.
 
@@ -406,7 +406,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 
 | Subtypes                                    | Icon                                                     |
 | ------------------------------------------- | -------------------------------------------------------- |
-| Aura, Equipment, Fortification              | New icons (cards that attach to another card)            |
+| Aura, Equipment, Fortification              | New icons (cards that attach to another card); **[Confirmed]** Aura and Equipment drawn as in the mockup: a ring crowned with flame-like prongs, and a sword across a shield (T-S4, C2, C3) |
 | Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
 | Wastes                                      | The colourless mana symbol ({C})                         |
 
@@ -438,7 +438,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 5.7 Bottom section
 
-5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon.
+5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon. **[Confirmed]** Mockup-sized (T-S4, C1): 60px values and 50px icons filling the bottom of the bar (`BAR_BOTTOM.stats`). The middle stack has correspondingly less room on creatures, so long stacks shrink sooner (5.6.3), and land mana symbols rise to stay clear of the stats (5.5.8).
 
 5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line). **[Confirmed]** The label ends level with the bottom of the text box, not the bottom of the bar. The middle stack stops above it, so an instant with both FLASH and SPLIT SECOND (Krosan Grip) shows them without labels (5.6.3).
 
@@ -475,7 +475,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.3.2 **[Confirmed]** The set symbol is at the right end of the type line.
 
-6.3.3 **[Confirmed]** The set symbol comes from Scryfall's set SVGs (D7) and is drawn plain black for every rarity (D20). Rarity is shown only by the letter in the footer (6.5.1). Scryfall's set list maps each set code to its icon (promo sets often use their parent's); the list and the icons are cached, and the list is fetched again at most once a day when a code isn't in it. Without a symbol, the set code is shown instead (T-B4).
+6.3.3 **[Confirmed]** The set symbol comes from Scryfall's set SVGs (D7) and is drawn plain black for every rarity (D20). Rarity is not shown (6.5.1, T-S4 C23). Scryfall's set list maps each set code to its icon (promo sets often use their parent's); the list and the icons are cached, and the list is fetched again at most once a day when a code isn't in it. Without a symbol, the set code is shown instead (T-B4).
 
 ### 6.4 Text box
 
@@ -483,13 +483,13 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.4.2 **[Confirmed]** Reminder text is shown in italics in parentheses (Fiendslayer Paladin).
 
-6.4.3 **[Confirmed]** A watermark (e.g. guild symbol) is drawn behind the text (Niv-Mizzet). **[Confirmed]** Which watermark a card has comes from Scryfall's `watermark` field (e.g. `izzet`); the images are custom SVGs in `res/symbols/` (D7, D20).
+6.4.3 **[Confirmed]** No watermark is drawn (T-S4, C22; reverses D20's watermarks). The mockup's Niv-Mizzet has one, but its Wurmcoil Engine doesn't; the card model keeps Scryfall's `watermark` field.
 
-6.4.4 **[Confirmed]** Basic lands show a large mana symbol in the text box instead of text (Forest).
+6.4.4 **[Confirmed]** Basic lands are full-art, like the mockup's Forest (T-S4, C21): the name bar, then the art down to the bottom of the text box (darkening towards the bottom), with a large mana symbol and the type line's text in white over it, and no type line bar, set symbol or text box (`FULL_ART_BASIC`). The stat bar is unchanged.
 
-6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation). **[Confirmed]** Only numeric modifiers with a sign on both numbers use it: +N/+N and -N/-N (Dismember's -5/-5), and mixed signs such as +1/-1 (D20). Everything else stays as text: X modifiers (+X/+X), counters ("a +1/+1 counter" is drawn as text too, since the counter name is not a modifier) and plain stats such as "a 1/1 Goblin token" or "X/X". Flavour text is never converted.
+6.4.5 **[Confirmed]** Power/toughness modifiers in rules text are plain text in standard Magic formatting: "+3/+1", "-1/+2" (T-S4, C17; reverses the sword and shield below). ~~They were drawn with the sword and shield icons, e.g. "+2 [sword] +2 [shield]" (Feral Invocation).~~ ~~Only numeric modifiers with a sign on both numbers use it: +N/+N and -N/-N (Dismember's -5/-5), and mixed signs such as +1/-1 (D20). Everything else stays as text: X modifiers (+X/+X), counters ("a +1/+1 counter" is drawn as text too, since the counter name is not a modifier) and plain stats such as "a 1/1 Goblin token" or "X/X". Flavour text is never converted.~~
 
-6.4.6 **[Confirmed]** Mana symbols in rules text are drawn as printed, one symbol each, with no grouping or counts (D11): "Equip {2}" uses the 2 symbol, "Add {C}{C}" shows two diamonds, and "{2}{U}: Draw a card" shows the 2 and U symbols. The grouped symbol + count display and the generic mana symbol are used only in the stat bar.
+6.4.6 **[Confirmed]** Mana symbols in rules text are drawn as printed, one symbol each, with no grouping or counts (D11): "Equip {2}" uses the 2 symbol, "Add {C}{C}" shows two diamonds, and "{2}{U}: Draw a card" shows the 2 and U symbols. The grouped symbol + count display and the generic mana symbol are used only in the stat bar. **[Confirmed]** Each inline mana symbol has a thin dark ring, so its pale disc stands out from the text box (T-S4, C17).
 
 6.4.7 Symbols to support in rules text. The Components doc lists tap, untap, energy (listed twice) and mana symbols. **[Confirmed]** All of the following are supported too (D20); {Q}, {S}, {X} and {C} are already in `symbols.svg`, and the rest need new icons. A symbol with no icon falls back to its text code:
 
@@ -502,13 +502,13 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 - loyalty cost symbols inside text
 - the planeswalker symbol
 
-  6.4.8 **[Confirmed]** Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
+  6.4.8 **[Confirmed]** Rules text is centred vertically in the text box, like printed cards (T-S4, C15). Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
 
 ### 6.5 Footer
 
 6.5.1 **[Confirmed]** The footer contains:
 
-- collector number and rarity (e.g. "85/165 R")
+- ~~collector number and rarity (e.g. "85/165 R")~~: **[Confirmed]** not shown (T-S4, C23)
 - set code and language (e.g. "PLC - EN")
 - artist credit with the paintbrush icon
 - copyright line
@@ -520,7 +520,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 ### 6.6 Frame colour
 
-6.6.1 **[Confirmed]** Frames match real Magic cards in the current frame, with the same colours and saturation (D21, revised). Each frame has a textured border, coloured pinlines around the name bar, art, type line and text box, pale name and type bars, and a pale text box. The colours are sampled from Scryfall scans and kept in the preview spike (`FRAME` and `LAND` in `spikes/fixture-preview/run.js`):
+6.6.1 **[Confirmed]** Frames match the reference mockups (T-S4, C18; revises D21's real-card colours): black around the panels, saturated name and type bars with rounded ends and a dark edge, a 6px coloured pinline around the bars and the text box (none around the art), and a pale text box, with a light texture on the panels. The colours are sampled from the mockups and kept in `src/config/frames.js` (`FRAME`, `LAND_FRAME`). D21's rules for which palette a card gets still apply (6.6.2). The table below is D21's earlier real-card palette, kept for reference:
 
 | Card                                        | Frame (reference scan)                                                          |
 | ------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -537,7 +537,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 - **Two-colour hybrid** (Kitchen Finks {G/W}; Phyrexian hybrid such as Ajani's {G/W/P} too): the border, pinlines and text box are split, left the first colour of the hybrid symbol and right the second, blended in the middle; the bars are grey and the text box is paler than either colour's (Kitchen Finks, UMA). Other two-colour cards are gold.
 - **Coloured artifacts** (Reaper King): the card's colour, by the same rule as any card (mono colour, gold, or split). Only colourless artifacts use the artifact frame.
-- **Lands** use the land frame of real cards (current frame), with the same colours and saturation (D21, revised). Every land has the same textured stone frame; the colour is in the pinlines around each panel, the name and type bars, and the text box. The palette comes from the card's colour if it has one (Dryad Arbor green), otherwise from the colours it taps for (its "Add …" text and basic land types). No colour: grey panels with a grey-brown pinline (Wasteland). One colour: that colour's land palette (Forest green). Two colours: grey bars, with the pinlines and the text box blending from the first colour to the second (Breeding Pool green → blue). Three or more, or "any color": gold pinlines and bars with a cream text box (City of Brass). The colours are sampled from Scryfall scans: the M19 basics, Wasteland (EMA), Command Tower (CMR) and Breeding Pool (RNA); the values are in the preview spike (`LAND` in `spikes/fixture-preview/run.js`).
+- **Lands** **[Confirmed]** (T-S4, C18): every land has the mockup's pink-tan bars. The pinlines come from the land's colours, by the rule below, and its text box is tinted halfway towards those colours' text box; a colourless land has brown pinlines and a grey-beige text box (Wasteland). ~~Lands use the land frame of real cards (current frame), with the same colours and saturation (D21, revised). Every land has the same textured stone frame; the colour is in the pinlines around each panel, the name and type bars, and the text box. The palette comes from the card's colour if it has one (Dryad Arbor green), otherwise from the colours it taps for (its "Add …" text and basic land types). No colour: grey panels with a grey-brown pinline (Wasteland). One colour: that colour's land palette (Forest green). Two colours: grey bars, with the pinlines and the text box blending from the first colour to the second (Breeding Pool green → blue). Three or more, or "any color": gold pinlines and bars with a cream text box (City of Brass). The colours are sampled from Scryfall scans: the M19 basics, Wasteland (EMA), Command Tower (CMR) and Breeding Pool (RNA); the values are in the preview spike (`LAND` in `spikes/fixture-preview/run.js`).~~
 - **Colourless non-artifact cards** (Ugin, Thought-Knot Seer): the colourless frame, a grey-brown border with greyish bars and a pale stone text box (Thought-Knot Seer, OGW).
 - **Devoid** (Complete Disregard): as on real devoid cards, the art shows through a translucent border (lightly tinted by the first colour in its mana cost, or gold for three or more) and a translucent text box, with grey bars (Complete Disregard, BFZ).
 - **Tokens**: out of scope for v1 (D15, section 8).
@@ -663,8 +663,8 @@ The implementation keeps these as configuration tables rather than hard-coding t
 
 - **Mana symbols (custom):** Use the generic mana symbol style from `res/symbols/symbols.svg` (includes 0-20, WUBRG, X, hybrids, etc.). Replaces standard rounded mana cost symbols with a stylized design.
 - **Set symbols, creature/spell types, zone/timing icons:** Source from Scryfall SVG library (GPL-3.0 compatible) or create custom SVGs.
-- **Watermarks (guild symbols, etc.):** Create custom SVGs or source from Scryfall as needed.
-- **Mana font icons (T-B14):** power, text symbols, loyalty badges, watermarks and the artist brush come from the [Mana font](https://github.com/andrewgioia/mana) by Andrew Gioia (SIL OFL 1.1). Icons it doesn't have (Battle, Kindred, split second, supertypes, subtypes, defense badge) were drawn for this project, and the missing mana symbols composed from the sheet; see `scripts/build-icons.js`.
+- ~~**Watermarks (guild symbols, etc.):** Create custom SVGs or source from Scryfall as needed.~~ No watermarks are drawn (6.4.3).
+- **Mana font icons (T-B14):** power, text symbols, loyalty badges, the planeswalker type icon and the artist brush come from the [Mana font](https://github.com/andrewgioia/mana) by Andrew Gioia (SIL OFL 1.1). Icons it doesn't have (Battle, Kindred, split second, supertypes, subtypes, defense badge) were drawn for this project, and the missing mana symbols composed from the sheet; see `scripts/build-icons.js`.
 - **Traced icons:** card type, zone and toughness icons are traced from [magarena](https://github.com/magarena/magarena) PNGs (GPL-3.0, compatible with this project) by `scripts/trace-symbol.js`.
 - All symbol assets are stored in `res/symbols/`. `res/symbols/README.md` lists every required symbol, its source, and which are still missing.
 

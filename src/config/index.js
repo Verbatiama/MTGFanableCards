@@ -7,5 +7,4 @@ export * from './layout.js';
 export * from './subtypes.js';
 export * from './supertypes.js';
 export * from './text-symbols.js';
-export * from './watermarks.js';
 export * from './zone-symbols.js';

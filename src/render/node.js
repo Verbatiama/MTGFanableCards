@@ -51,14 +51,15 @@ export const decodeSetSymbol = (bytes) =>
 /**
  * Renders a card model to a canvas.
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null,
+ * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null, year?: number,
  *   onWarning?: (message: string) => void }} [options]
  *   Art bytes (T-A10) and set symbol SVG bytes (T-B4); null for the fallbacks.
- *   `onWarning` receives each of renderCard's warnings (T-B10).
+ *   `onWarning` receives each of renderCard's warnings (T-B10); `year` pins the
+ *   copyright year (visual regression tests).
  */
 export async function renderCardCanvas(
   model,
-  { art = null, setSymbol = null, onWarning = () => {} } = {},
+  { art = null, setSymbol = null, year, onWarning = () => {} } = {},
 ) {
   registerFonts();
   const canvas = createCanvas(CARD.width, CARD.height);
@@ -67,6 +68,7 @@ export async function renderCardCanvas(
     assets: nodeAssets,
     art: await decode(art),
     setSymbol: await decodeSetSymbol(setSymbol),
+    year,
   });
   warnings.forEach(onWarning);
   return canvas;

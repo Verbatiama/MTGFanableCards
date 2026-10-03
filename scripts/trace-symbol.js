@@ -42,14 +42,22 @@ export const SYMBOLS = [
     size: 64,
   },
   // Card type icons (5.1, D14).
-  ...['artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery'].map(
-    (type) => ({ out: `types/${type}`, magarena: `cardbuilder/images/${type}Symbol.png` }),
-  ),
+  // Planeswalker uses the Mana font's spark instead (T-S4, C6; scripts/build-icons.js).
+  ...['artifact', 'creature', 'enchantment', 'instant', 'land', 'sorcery'].map((type) => ({
+    out: `types/${type}`,
+    magarena: `cardbuilder/images/${type}Symbol.png`,
+  })),
   // Zone and timing symbols (5.4, D12). Flash uses the instant bolt (5.4.1).
   { out: 'zones/flash', magarena: 'cardbuilder/images/instantSymbol.png' },
   { out: 'zones/hand', magarena: 'magic/data/icons/b_hand_zone.png' },
   { out: 'zones/library', magarena: 'magic/data/icons/b_library_zone.png' },
   { out: 'zones/graveyard', magarena: 'magic/data/icons/b_graveyard_zone.png' },
+  // Legendary (5.5.1, T-S4 C5): the Commander 2014 shield, chosen by the owner.
+  {
+    out: 'supertypes/legendary',
+    file: path.join(ROOT_DIR, 'Examples', 'Commander-2014.png'),
+    ink: 'dark',
+  },
   // Toughness (5.7.1): magarena's round shield, white on transparent.
   { out: 'stats/toughness', magarena: 'magic/data/icons/round-shield.png', ink: 'alpha' },
 ];

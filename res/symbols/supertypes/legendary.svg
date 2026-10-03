@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Drawn for MTGFannableCards by scripts/build-icons.js (GPL-3.0) -->
+<!-- Traced by scripts/trace-symbol.js from Examples/Commander-2014.png -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <g fill="#FFFFFF"><path d="M14 74L8 30L32 50L50 18L68 50L92 30L86 74Z"/><rect x="14" y="78" width="72" height="11" rx="2"/><circle cx="8" cy="28" r="5"/><circle cx="50" cy="15" r="5"/><circle cx="92" cy="28" r="5"/></g>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M43.37,22.2L38.31,22.52L38.3,72.39L50.1,77.87L54.69,75.81L61.7,72.39L61.69,22.52L54.38,22.13ZM30.52,22.81L14.3,24.2L8,25.27L10.4,28.95L12.26,32.62L13.5,35.98L14.37,39.65L14.77,44.55L14.41,49.75L13.46,54.34L11.56,60.15L13.99,61.39L31.43,69.42L31.71,69.33L31.71,23.13L31.43,22.72ZM68.46,22.78L68.35,69.33L86.51,61.21L88.53,60.15L86.75,54.95L85.83,50.67L85.37,46.08L85.52,40.57L86.41,36.29L88.01,32L89.78,28.64L92,25.27L85.9,24.23Z"/>
 </svg>

@@ -12,6 +12,8 @@ export const SUPERTYPES = ['Basic', 'Legendary', 'Snow', 'World', 'Ongoing', 'El
 export const SUPERTYPE_ICONS = {
   Legendary: { icon: 'supertypes/legendary' },
   Basic: { icon: 'supertypes/basic' },
+  // Not a supertype: every land that isn't basic shows it (T-S4, C9).
+  Nonbasic: { icon: 'supertypes/nonbasic' },
   Snow: { manaSymbol: 'S' },
   World: { icon: 'supertypes/world' },
 };

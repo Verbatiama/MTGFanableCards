@@ -5,6 +5,7 @@ import {
   BOX,
   FOOTER,
   FRAME_TOP,
+  FULL_ART_BASIC,
   NAME,
   TEXT,
   TEXT_SIZE,
@@ -13,18 +14,19 @@ import {
 import { fitFont, textFont } from './fonts.js';
 
 /**
- * Card-box frame (T-B4, D20, D21; Requirements 6.1–6.3, 6.6): border,
- * pinlines, name bar, art box, type line with the set symbol, and the text
- * box background, in the colours of real cards.
+ * Card-box frame (T-B4, D20, D21, T-S4; Requirements 6.1–6.3, 6.6): name
+ * bar, art box, type line with the set symbol, and the text box background,
+ * each with a coloured pinline, on black, in the mockups' colours (C18).
+ * Basic lands are full-art (C21).
  */
 
 /**
  * The frame colours for a card (D21), as plain data: each part is one colour,
  * or two for a left-to-right blend.
  *
- * - Lands: stone border; pinlines, bars and text box from the card's colour,
- *   or else the colours it taps for. Two colours blend with grey bars; three
- *   or more, or "any color", are gold.
+ * - Lands: pink-tan bars; pinlines and text box from the card's colour, or
+ *   else the colours it taps for. Two colours blend; three or more, or "any
+ *   color", are gold; none, brown pinlines and a grey-beige text box.
  * - One colour: that colour's frame.
  * - Two-colour hybrid (Phyrexian hybrid too): border, pinlines and text box
  *   split by the hybrid symbol's colours, grey bars, paler text box.
@@ -49,14 +51,15 @@ export function framePalette(model) {
   if (model.types.includes('Land')) {
     const colours = model.colors.length ? model.colors : producedColours(model);
     const parts = !colours.length
-      ? [LAND_FRAME.colourless]
-      : colours.length > 2
-        ? [LAND_FRAME.gold]
-        : colours.map((c) => LAND_FRAME[c]);
+      ? [LAND_FRAME]
+      : (colours.length > 2 ? [FRAME.gold] : colours.map((c) => FRAME[c])).map((p) => ({
+          pin: p.pin,
+          text: mix(LAND_FRAME.text, p.text, 0.5),
+        }));
     return {
-      border: [LAND_FRAME.stone],
+      border: ['#000'],
       pin: parts.map((p) => p.pin),
-      bar: parts.length === 2 ? LAND_FRAME.splitBar : parts[0].bar,
+      bar: LAND_FRAME.bar,
       text: parts.map((p) => p.text),
       devoid: false,
     };
@@ -169,20 +172,31 @@ function texture(ctx, env) {
   return ctx.createPattern(textures.get(env), 'repeat');
 }
 
-function panel(ctx, x, y, w, h, r) {
+/** Width of a pinline, outside the panel it surrounds. */
+const PIN = 6;
+/** Corner radius of the name and type bars. */
+const BAR_RADIUS = 16;
+
+/** A panel: its fill, a light texture, and a dark edge inside its pinline. */
+function panel(ctx, env, x, y, w, h, r) {
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = texture(ctx, env);
+  ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
   ctx.lineWidth = 2;
   ctx.stroke();
 }
 
 function pinline(ctx, pin, x, y, w, h, r) {
   ctx.strokeStyle = pin;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = PIN;
   ctx.beginPath();
-  ctx.roundRect(x - 2, y - 2, w + 4, h + 4, r + 2);
+  ctx.roundRect(x - PIN / 2, y - PIN / 2, w + PIN, h + PIN, r + PIN / 2);
   ctx.stroke();
 }
 
@@ -207,24 +221,28 @@ export function drawCover(ctx, image, box) {
   );
 }
 
-/** Width of a pinline, outside the box it surrounds. */
-const PIN = 4;
-
 /**
- * The art box and its pinline on their own canvas (offset by PIN), fading in
- * from transparent at ART_FADE.from to opaque at ART_FADE.to, over black. The
- * fade eases in and out (smoothstep), so neither end shows as a line, and the
- * black keeps the frame's border from showing through it.
+ * The art box on its own canvas, fading in from transparent at ART_FADE.from
+ * to opaque at ART_FADE.to, over black. The fade eases in and out
+ * (smoothstep), so neither end shows as a line. Like the mockups, the art has
+ * no pinline. A full-art basic land darkens towards the bottom, from `shade`,
+ * so the white type line reads (C21).
  */
-function fadedArt(env, palette, art, box) {
+function fadedArt(env, art, box, shade = null) {
   const layer = env.createCanvas(box.w + PIN * 2, box.h + PIN * 2);
   const ctx = layer.getContext('2d');
-  // Card coordinates, so the pinline blend and the fade line up with the card.
+  // Card coordinates, so the fade lines up with the card.
   ctx.translate(PIN - box.x, PIN - box.y);
-  pinline(ctx, acrossBox(ctx, palette.pin), box.x, box.y, box.w, box.h, 0);
   ctx.fillStyle = '#000';
   ctx.fillRect(box.x, box.y, box.w, box.h);
   if (art) drawCover(ctx, art, box);
+  if (shade !== null) {
+    const dark = ctx.createLinearGradient(0, shade, 0, box.y + box.h);
+    dark.addColorStop(0, 'rgba(0,0,0,0)');
+    dark.addColorStop(1, 'rgba(0,0,0,0.75)');
+    ctx.fillStyle = dark;
+    ctx.fillRect(box.x, shade, box.w, box.y + box.h - shade);
+  }
   const fade = ctx.createLinearGradient(ART_FADE.from, 0, ART_FADE.to, 0);
   const steps = 32;
   for (let i = 0; i <= steps; i++) {
@@ -265,36 +283,58 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
     text: acrossBox(ctx, palette.text),
   };
   const width = BOX.right - BOX.x;
+  const fullArt = isFullArt(model);
 
-  // Border: colour (or the art showing through, for devoid) plus texture.
-  const frame = { x: BOX.x - 4, y: FRAME_TOP, w: width + 8, h: FOOTER.y - FRAME_TOP };
-  if (palette.devoid && art) drawCover(ctx, art, frame);
-  ctx.fillStyle = fill.border;
-  ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
-  ctx.fillStyle = texture(ctx, env);
-  ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
+  // Black around the panels (C18); a devoid card's art shows through a
+  // translucent, textured border instead.
+  if (palette.devoid && art) {
+    const frame = { x: BOX.x - 4, y: FRAME_TOP, w: width + 8, h: FOOTER.y - FRAME_TOP };
+    drawCover(ctx, art, frame);
+    ctx.fillStyle = fill.border;
+    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
+    ctx.fillStyle = texture(ctx, env);
+    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
+  }
+
+  // Art box (3.4), fading in from the left (ART_FADE). A full-art basic land's
+  // art runs down to the bottom of the text box (C21).
+  const artBottom = fullArt ? text.y + text.h : art_.y + art_.h;
+  const artBox = { x: ART.x, y: art_.y, w: ART.w, h: artBottom - art_.y };
+  // A planeswalker's text box can grow over all of it (T-B11): nothing to draw.
+  if (art_.h > 0) {
+    const shade = fullArt ? FULL_ART_BASIC.shade : null;
+    ctx.drawImage(fadedArt(env, art, artBox, shade), artBox.x - PIN, artBox.y - PIN);
+  }
 
   // Name bar.
   ctx.fillStyle = palette.bar;
-  pinline(ctx, fill.pin, BOX.x, NAME.y, width, NAME.h, 10);
-  panel(ctx, BOX.x, NAME.y, width, NAME.h, 10);
+  pinline(ctx, fill.pin, BOX.x, NAME.y, width, NAME.h, BAR_RADIUS);
+  panel(ctx, env, BOX.x, NAME.y, width, NAME.h, BAR_RADIUS);
   ctx.fillStyle = '#111';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   fitFont(ctx, model.name, width - 30, TEXT_SIZE.name, textFont);
   ctx.fillText(model.name, BOX.x + 14, NAME.y + NAME.h / 2 + 2);
 
-  // Art box (3.4) with its pinline, fading in from the left (ART_FADE).
-  const artBox = { x: ART.x, y: art_.y, w: ART.w, h: art_.h };
-  // A planeswalker's text box can grow over all of it (T-B11): nothing to draw.
-  if (artBox.h > 0) {
-    ctx.drawImage(fadedArt(env, palette, art, artBox), artBox.x - PIN, artBox.y - PIN);
+  if (fullArt) {
+    // The type line's text alone, white over the art (C21).
+    const { typeY, typeSize } = FULL_ART_BASIC;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 6;
+    fitFont(ctx, model.typeLine, width - 40, typeSize, textFont);
+    ctx.fillText(model.typeLine, BOX.x + width / 2, typeY);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.textAlign = 'left';
+    return { palette };
   }
 
   // Type line, with the set symbol at its right end (6.3).
   ctx.fillStyle = palette.bar;
-  pinline(ctx, fill.pin, BOX.x, type.y, width, type.h, 10);
-  panel(ctx, BOX.x, type.y, width, type.h, 10);
+  pinline(ctx, fill.pin, BOX.x, type.y, width, type.h, BAR_RADIUS);
+  panel(ctx, env, BOX.x, type.y, width, type.h, BAR_RADIUS);
   const symbolRight = BOX.right - 14;
   let symbolWidth;
   if (setSymbol) {
@@ -315,8 +355,12 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   ctx.fillText(model.typeLine, BOX.x + 14, type.y + type.h / 2 + 2);
 
   // Text box background; its contents are drawn by the text box (T-B5).
-  pinline(ctx, fill.pin, BOX.x + 6, text.y, width - 12, text.h, 0);
+  const box = [BOX.x + 6, text.y, width - 12, text.h];
+  pinline(ctx, fill.pin, ...box, 0);
   ctx.fillStyle = fill.text;
-  ctx.fillRect(BOX.x + 6, text.y, width - 12, text.h);
+  panel(ctx, env, ...box, 0);
   return { palette };
 }
+
+/** Basic lands are drawn full-art, like the mockup's Forest (6.4.4, C21). */
+export const isFullArt = (model) => model.supertypes.includes('Basic');

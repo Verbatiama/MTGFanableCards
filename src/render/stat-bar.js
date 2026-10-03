@@ -173,7 +173,8 @@ export async function drawStatBarTop(ctx, model, { assets, warn = () => {}, ...b
 
 /**
  * The middle stack's items, top to bottom (D19, 5.6.1): attaching subtypes
- * (icon only, D16), supertypes (D15), then zone/timing symbols (D12), each
+ * (icon only, D16), supertypes (D15) and the non-basic land icon, then
+ * zone/timing symbols (D12), each
  * group in its own order. Only zone/timing items have a label (5.5.10).
  * @returns {{ group: 'subtype' | 'supertype' | 'zone', key: string, label: string | null }[]}
  */
@@ -185,6 +186,10 @@ export function middleItems(model) {
     ...model.supertypes
       .filter((t) => SUPERTYPE_ICONS[t])
       .map((key) => ({ group: 'supertype', key, label: null })),
+    // Lands that aren't basic, after the supertypes (T-S4, C9).
+    ...(model.types.includes('Land') && !model.supertypes.includes('Basic')
+      ? [{ group: 'supertype', key: 'Nonbasic', label: null }]
+      : []),
     ...model.zoneSymbols.map((key) => ({
       group: 'zone',
       key,
@@ -254,8 +259,8 @@ export function bottomSectionTop(model, bands) {
  * it runs past the type line pushes the hanging stack down below it. Nothing
  * is hidden: `overflow` is set when the stack still doesn't fit (D19, 4.4).
  *
- * The land mana symbols are centred on the text box, pushed down to sit under
- * the stack when it reaches them.
+ * The land mana symbols are centred on the text box, raised to stay clear of
+ * the bottom section, and pushed down to sit under the stack when it reaches them.
  *
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ from: number, type?: { y: number, h: number }, text?: { y: number, h: number } }} options
@@ -295,7 +300,10 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
   const bottom = items.length ? y : 0;
   const overflow = bottom > room.bottom + 0.5 ? { from: room.bottom, to: bottom } : null;
 
-  let landY = Math.max(text.y + text.h / 2 - landHeight / 2, bottom + M.gap);
+  // Centred on the text box, but never down into the bottom section (a creature
+  // land's stats reach above the text box's middle), and below the stack.
+  const lowest = bottomSectionTop(model, { text }) - landHeight + M.gap;
+  let landY = Math.max(Math.min(text.y + text.h / 2 - landHeight / 2, lowest), bottom + M.gap);
   const land = landMana.map((symbol) => {
     const row = { symbol, y: landY, size: BAR.icon };
     landY += BAR.icon + M.gap;

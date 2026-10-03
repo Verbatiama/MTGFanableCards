@@ -10,25 +10,20 @@
  *   per symbol as printed, never grouped (D11, 6.4.6). Codes are kept as
  *   written (`'T'`, `'2'`, `'G/U/P'`, `'CHAOS'`), so the renderer can fall back
  *   to the text code for symbols without an icon (6.4.7).
- * - `{ type: 'pt', power, toughness }`: a numeric power/toughness modifier
- *   such as +2/+2 or -5/-5, drawn with the sword and shield (D20, 6.4.5).
- *   Counters ("a +1/+1 counter"), X modifiers and plain stats ("a 1/1 token")
- *   stay as text, and flavour text is never converted.
+ *
+ * Power/toughness modifiers such as +3/+1 stay as text, in standard Magic
+ * formatting (T-S4, C17; they were once drawn with a sword and shield).
  *
  * Planeswalker lines are split into a loyalty cost and the ability (7.2.1);
  * static abilities get a null cost (7.2.4). ±X costs are kept as written (D22).
  */
 
 const SYMBOL = /\{([^}]+)\}/g;
-// +N/+N, -N/-N or mixed signs; Scryfall writes minus as "-" in rules text.
-const PT = /(?<![\w/+\-−])([+\-−]\d+)\/([+\-−]\d+)(?![\w/])/g;
-const COUNTER_AFTER = /^\s+counters?\b/;
 const LOYALTY_COST = /^([+−-](?:\d+|X)|0):\s*/;
 
 /**
  * @typedef {{ type: 'text', text: string, italic: boolean }
- *   | { type: 'symbol', symbol: string }
- *   | { type: 'pt', power: string, toughness: string }} TextToken
+ *   | { type: 'symbol', symbol: string }} TextToken
  * @typedef {{ kind: 'rules' | 'flavor', cost: string | null, tokens: TextToken[] }} Paragraph
  */
 
@@ -55,28 +50,14 @@ export function tokenizeLine(text, { flavor = false } = {}) {
     }
   };
 
-  // Symbols first, then P/T modifiers inside the text between them.
   let index = 0;
   for (const match of text.matchAll(SYMBOL)) {
-    pushRuns(text.slice(index, match.index));
+    pushText(text.slice(index, match.index));
     tokens.push({ type: 'symbol', symbol: match[1] });
     index = match.index + match[0].length;
   }
-  pushRuns(text.slice(index));
+  pushText(text.slice(index));
   return tokens;
-
-  function pushRuns(run) {
-    if (flavor) return run && pushText(run);
-    let at = 0;
-    for (const match of run.matchAll(PT)) {
-      const after = run.slice(match.index + match[0].length);
-      if (COUNTER_AFTER.test(after)) continue;
-      if (match.index > at) pushText(run.slice(at, match.index));
-      tokens.push({ type: 'pt', power: match[1], toughness: match[2] });
-      at = match.index + match[0].length;
-    }
-    if (at < run.length) pushText(run.slice(at));
-  }
 }
 
 /**

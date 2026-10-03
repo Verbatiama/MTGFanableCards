@@ -59,7 +59,8 @@ export const BAR_MIDDLE = { icon: 40, label: 16, labelSize: 13, gap: 6, minScale
 export const BAR_BOTTOM = {
   edge: BORDER,
   gap: 8,
-  stats: { power: 120, divider: 64, toughness: 56, value: 36, minValue: 14, icon: 20 },
+  // Mockup-sized (T-S4, C1): the values and sword/shield fill the bottom of the bar.
+  stats: { power: 272, divider: 144, toughness: 128, value: 60, minValue: 14, icon: 50 },
   badge: { centre: 8, loyalty: 76, defense: 70 },
   label: { size: 18, step: 21 },
 };
@@ -107,10 +108,18 @@ export const TEXT = { y: textTop, h: FOOTER.y - 8 - textTop };
 export const ABILITY_BAND = { padding: 18, shade: 'rgba(0,0,0,0.09)', cost: 70 };
 
 /**
- * A basic land's mana symbol, centred in the text box in place of its text
- * (6.4.4): its size, and the least space kept around it in a short text box.
+ * Full-art basic lands (6.4.4, T-S4 C21), placed as in the mockup's Forest:
+ * the art runs down to the bottom of the text box, darkening from `shade`
+ * down; the mana symbol (`size`) is centred at `symbolY` and the type line's
+ * text (white, `typeSize`) at `typeY`, both centred on the card box.
  */
-export const BASIC_LAND_SYMBOL = { size: 180, margin: 20 };
+export const FULL_ART_BASIC = {
+  shade: TYPE.y - 60,
+  size: 180,
+  symbolY: TEXT.y + 100,
+  typeY: TEXT.y + TEXT.h - 56,
+  typeSize: 28,
+};
 
 /** Space between the text box edges and its text (6.4). */
 export const TEXT_PADDING = { x: 20, top: 14, bottom: 10 };

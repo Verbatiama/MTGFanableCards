@@ -24,6 +24,7 @@ import { drawTextBox } from './text-box.js';
  * @property {ReturnType<typeof import('./assets.js').createAssets>} assets Shared asset loader (T-B3).
  * @property {any} [art] Loaded art image, or null for the black placeholder (3.4.1).
  * @property {any} [setSymbol] Loaded set symbol image, or null to show the set code (6.3).
+ * @property {number} [year] Copyright year; the current year by default (6.5.2).
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
@@ -31,7 +32,11 @@ import { drawTextBox } from './text-box.js';
  * @returns {Promise<{ warnings: string[] }>} Anything that didn't fit even at its
  *   smallest (D19, D20). It is still drawn, never hidden.
  */
-export async function renderCard(ctx, model, { env, assets, art = null, setSymbol = null } = {}) {
+export async function renderCard(
+  ctx,
+  model,
+  { env, assets, art = null, setSymbol = null, year } = {},
+) {
   const warnings = [];
   const warn = (message) => warnings.push(message);
   ctx.save();
@@ -45,7 +50,7 @@ export async function renderCard(ctx, model, { env, assets, art = null, setSymbo
   drawFrame(ctx, model, { env, art, setSymbol, layout: bands });
   await drawTextBox(ctx, model, { assets, box: layout.text, warn });
   if (layout.pw) await drawAbilityBands(ctx, assets, layout.pw);
-  await drawFooter(ctx, model, { assets });
+  await drawFooter(ctx, model, { assets, year });
   const from = await drawStatBarTop(ctx, model, { assets, warn, ...bands });
   await drawStatBarMiddle(ctx, model, { assets, from, warn, ...bands });
   if (layout.pw) await drawLoyaltyCosts(ctx, assets, layout.pw);

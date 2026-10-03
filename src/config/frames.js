@@ -1,45 +1,36 @@
 /**
- * Frame colours (D21, Requirements 6.6), matching real cards in the current
- * frame: a textured border, coloured pinlines around each panel, pale
- * name/type bars and a pale text box. Sampled from Scryfall scans: Pacifism
- * (DVD), Divination (M15), Murder (EMN), Shock (DDN), Giant Growth (EVG),
- * Lightning Helix (DDN), Mind Stone (C14), Thought-Knot Seer (OGW), Kitchen
- * Finks (UMA) and Complete Disregard (BFZ); the three-colour gold pinline from
- * Mantis Rider (KTK) and Bant Charm (2X2).
+ * Frame colours (T-S4, C18; Requirements 6.6), sampled from the reference
+ * mockups (Examples/jauIjDF.jpeg): saturated name and type bars, a coloured
+ * pinline around each panel and a pale text box, on black. Sampled from
+ * Fiendslayer Paladin (W), Jace (U), Damnation (B), Lightning Strike (R),
+ * Feral Invocation (G), Niv-Mizzet (gold, whose pinlines are its two colours)
+ * and Sword of Fire and Ice / Wurmcoil Engine (artifact). The colourless,
+ * three-colour gold pinline and hybrid values aren't in the mockups and are
+ * chosen to match. `border` only tints devoid cards' translucent border.
  */
 export const FRAME = {
-  W: { border: '#cdbe9c', pin: '#e9ebe0', bar: '#ebe9df', text: '#f2f0e5' },
-  U: { border: '#669ecb', pin: '#1a78b6', bar: '#b6d0d8', text: '#d5e3e7' },
-  B: { border: '#232728', pin: '#333331', bar: '#c8c6c8', text: '#eff4f6' },
-  R: { border: '#c03c2b', pin: '#e4321e', bar: '#efbba3', text: '#efd3c6' },
-  G: { border: '#557054', pin: '#256a40', bar: '#b0bbae', text: '#cddcce' },
-  gold: { border: '#d0b056', pin: '#e9d875', bar: '#d2b16e', text: '#f5f3e7' },
-  artifact: { border: '#95a3ae', pin: '#dfe0e2', bar: '#cfcfd3', text: '#d2d5d8' },
-  colourless: { border: '#89807a', pin: '#e2dfe6', bar: '#b2a8a7', text: '#d8d2c6' },
+  W: { border: '#e8e4d4', pin: '#f2f1ea', bar: '#f6f5ee', text: '#eaeae2' },
+  U: { border: '#3a78d8', pin: '#0a55cf', bar: '#86b2e4', text: '#b3c0db' },
+  B: { border: '#5a5257', pin: '#a09a9d', bar: '#887b84', text: '#a7a4a5' },
+  R: { border: '#c0402f', pin: '#b8302a', bar: '#ed8b5e', text: '#dccbbb' },
+  G: { border: '#3c8a50', pin: '#28934a', bar: '#b0d49f', text: '#bbdab0' },
+  gold: { border: '#c9a640', pin: '#c9a640', bar: '#e3cc50', text: '#d6dbb4' },
+  artifact: { border: '#a8a8a8', pin: '#c4c4c4', bar: '#cdcdcd', text: '#e9e9e9' },
+  colourless: { border: '#9a908a', pin: '#a8a09c', bar: '#c4bcba', text: '#dedad6' },
   // Hybrid cards: grey bars, and a text box paler than either colour's.
-  hybridBar: '#d8d3d1',
-  hybridText: '#f4f4f2',
+  hybridBar: '#d0cccb',
+  hybridText: '#efefec',
   // Devoid: the art shows through a translucent border and text box.
   devoid: { pin: '#e2e1c3', bar: '#a69c97', text: 'rgba(211, 209, 197, 0.88)' },
 };
 
 /**
- * Land frames: every land has the same stone border; the colour is in the
- * pinlines, bars and text box. Sampled from the M19 basics, Wasteland (EMA),
- * Command Tower (CMR) and Breeding Pool (RNA).
+ * Land frames, from the mockup's Wasteland and Forest: every land has the
+ * same pink-tan bars. A colourless land has brown pinlines and a grey-beige
+ * text box; a land with colours (its own, or those it taps for) takes their
+ * pinlines, and its text box is tinted halfway towards theirs.
  */
-export const LAND_FRAME = {
-  stone: '#b49679',
-  colourless: { pin: '#9e8a7e', bar: '#d6ced2', text: '#d5cfd4' },
-  W: { pin: '#ebeae4', bar: '#f8f8f5', text: '#ebdbac' },
-  U: { pin: '#085f94', bar: '#b9d0e4', text: '#aac0e1' },
-  B: { pin: '#2a3a3a', bar: '#b8b1b2', text: '#a09b9b' },
-  R: { pin: '#c8310f', bar: '#eabeaa', text: '#e19774' },
-  G: { pin: '#05683a', bar: '#b7c9c3', text: '#aecdb6' },
-  gold: { pin: '#e8dc90', bar: '#e0ce8b', text: '#f8f3e6' },
-  // Two-colour lands keep grey bars; only pinlines and text box are split.
-  splitBar: '#d2cfd2',
-};
+export const LAND_FRAME = { bar: '#d2af97', pin: '#8f5e57', text: '#d7d2cc' };
 
 /** Colour indicator wedge colours (D17, 5.2.3). */
 export const INDICATOR = { W: '#f8f3dc', U: '#4a8fd0', B: '#3b3633', R: '#d9583b', G: '#3f9a54' };

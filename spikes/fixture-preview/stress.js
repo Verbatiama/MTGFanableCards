@@ -52,14 +52,15 @@ const STRESS = {
       ].join('\n'),
     },
   ],
-  // Land with a basic land type and eight middle icons: too long even without
-  // labels, so the icons shrink, and the stack pushes the land mana symbol
-  // down (D16 revised, D19).
+  // Creature land with a basic land type and three middle icons (Legendary,
+  // non-basic, flash): too long for the room above its mockup-sized stats
+  // (T-S4, C1) even without labels, so the icons shrink, and the stack pushes
+  // the land mana symbol down (D16 revised, D19).
   'stress-land-push': [
     'dryad-arbor',
     {
-      supertypes: ['Legendary', 'Snow', 'World'],
-      zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
+      supertypes: ['Legendary'],
+      zoneSymbols: ['flash'],
       manaCost: [
         { symbol: 'W', count: 1 },
         { symbol: 'U', count: 1 },

@@ -17,7 +17,6 @@ import {
   SUPERTYPE_ICONS,
   SUPERTYPES,
   TEXT_SYMBOLS,
-  WATERMARKS,
   ZONE_KEYWORDS,
   ZONE_SYMBOL_STYLE,
   isPermanent,
@@ -36,7 +35,6 @@ const allIcons = [
   ...Object.values(LOYALTY_BADGES),
   DEFENSE_BADGE,
   ...Object.values(FOOTER_ICONS),
-  ...Object.values(WATERMARKS),
 ]
   .map((entry) => entry.icon)
   .filter(Boolean);
@@ -66,7 +64,8 @@ test('every zone symbol has an icon and a label, and keywords map to real symbol
 
 test('supertypes with icons are known supertypes, drawn without labels (D15)', () => {
   for (const [name, style] of Object.entries(SUPERTYPE_ICONS)) {
-    assert.ok(SUPERTYPES.includes(name), name);
+    // Non-basic isn't a supertype: it marks every land that isn't basic (C9).
+    if (name !== 'Nonbasic') assert.ok(SUPERTYPES.includes(name), name);
     assert.ok(style.icon || style.manaSymbol, name);
     assert.equal(style.label, undefined, name);
   }
@@ -86,9 +85,7 @@ test('frame palettes have every colour and every part', () => {
   for (const key of ['W', 'U', 'B', 'R', 'G', 'gold', 'artifact', 'colourless']) {
     assert.deepEqual(Object.keys(FRAME[key]).sort(), ['bar', 'border', 'pin', 'text'], key);
   }
-  for (const key of ['W', 'U', 'B', 'R', 'G', 'gold', 'colourless']) {
-    assert.deepEqual(Object.keys(LAND_FRAME[key]).sort(), ['bar', 'pin', 'text'], key);
-  }
+  assert.deepEqual(Object.keys(LAND_FRAME).sort(), ['bar', 'pin', 'text']);
   assert.deepEqual(Object.keys(INDICATOR), ['W', 'U', 'B', 'R', 'G']);
 });
 
@@ -102,7 +99,6 @@ test('every icon file in res/symbols is used by the config', () => {
     'text',
     'badges',
     'footer',
-    'watermarks',
   ]) {
     const full = path.join(SYMBOL_DIR, dir);
     if (!existsSync(full)) continue;

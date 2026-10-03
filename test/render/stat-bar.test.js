@@ -179,7 +179,15 @@ test('middle order: attaching subtypes, supertypes, zone/timing; only some label
     middleItems(loadCardFixture('ajani-sleeper-agent')).map((i) => i.key),
     ['Legendary'],
   );
-  assert.deepEqual(middleItems(loadCardFixture('breeding-pool')), []);
+  // Lands that aren't basic get the non-basic icon after the supertypes (C9).
+  assert.deepEqual(
+    middleItems(loadCardFixture('breeding-pool')).map((i) => i.key),
+    ['Nonbasic'],
+  );
+  assert.deepEqual(
+    middleItems(loadCardFixture('forest')).map((i) => i.key),
+    ['Basic'],
+  );
 });
 
 test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () => {
@@ -187,7 +195,7 @@ test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () 
   assert.equal(stack[0].y, TYPE.y);
   assert.deepEqual(
     stack.map((i) => i.key),
-    ['Legendary', 'Snow'],
+    ['Legendary', 'Snow', 'Nonbasic'],
   );
   assert.ok(labels && scale === 1);
   // Supertype icons have no label, so take no label room.
@@ -223,11 +231,13 @@ test('a stack too long drops its labels, then shrinks to at most half size, neve
     supertypes: ['Legendary', 'Snow', 'World'],
     zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
   };
-  const room = bottomSectionTop(loadCardFixture('niv-mizzet-the-firemind')) - TYPE.y;
+  // A card with nothing at the bottom of the bar, so the stack has the most room.
+  const room = bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')) - TYPE.y;
   // As many labelled items as fit once their labels are dropped.
   const n = Math.floor(room / (BAR_MIDDLE.icon + BAR_MIDDLE.gap));
   assert.ok(n * (BAR_MIDDLE.icon + BAR_MIDDLE.label + BAR_MIDDLE.gap) > room);
-  const unlabelled = middle('niv-mizzet-the-firemind', {
+  const unlabelled = middle('sword-of-fire-and-ice', {
+    subtypes: [],
     supertypes: [],
     zoneSymbols: Array(n).fill('flash'),
   });
@@ -236,7 +246,7 @@ test('a stack too long drops its labels, then shrinks to at most half size, neve
   assert.ok(unlabelled.stack.every((i) => !i.labelled));
   assert.ok(unlabelled.bottom <= TYPE.y + room);
 
-  const eight = middle('niv-mizzet-the-firemind', {
+  const eight = middle('sword-of-fire-and-ice', {
     ...lots,
     subtypes: ['Aura', 'Equipment', 'Fortification'],
   });
@@ -244,8 +254,9 @@ test('a stack too long drops its labels, then shrinks to at most half size, neve
   assert.equal(eight.stack.length, 11);
   assert.equal(eight.overflow, null);
 
-  const absurd = middle('niv-mizzet-the-firemind', {
+  const absurd = middle('sword-of-fire-and-ice', {
     ...lots,
+    subtypes: [],
     zoneSymbols: Array(20).fill('flash'),
   });
   assert.equal(absurd.scale, BAR_MIDDLE.minScale);
@@ -262,13 +273,20 @@ test('land mana symbols are centred on the text box, pushed down by a long stack
   const centre = (pool.land[0].y + pool.land.at(-1).y + BAR.icon) / 2;
   assert.ok(Math.abs(centre - (TEXT.y + TEXT.h / 2 - BAR_MIDDLE.gap / 2)) < 1);
 
-  const pushed = middle('dryad-arbor', {
+  const pushed = middle('breeding-pool', {
     supertypes: ['Legendary', 'Snow', 'World'],
     zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
   });
   assert.ok(pushed.land[0].y >= pushed.bottom + BAR_MIDDLE.gap - 0.01);
-  // The stack leaves the land symbol room above the bottom section.
-  assert.ok(pushed.land[0].y + BAR.icon <= bottomSectionTop(loadCardFixture('dryad-arbor')) + 0.5);
+  // A creature land's stats reach above the text box's middle: its land symbol
+  // rises to stay clear of them.
+  const arbor = middle('dryad-arbor');
+  const statsTop = bottomSectionTop(loadCardFixture('dryad-arbor'));
+  assert.ok(arbor.land[0].y + BAR.icon <= statsTop + 0.5);
+  // The stack leaves the land symbols room above the bottom section.
+  assert.ok(
+    pushed.land.at(-1).y + BAR.icon <= bottomSectionTop(loadCardFixture('breeding-pool')) + 0.5,
+  );
 });
 
 test('the middle stack is drawn beside the type line', async () => {
