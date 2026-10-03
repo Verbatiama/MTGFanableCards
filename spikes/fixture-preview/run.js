@@ -21,11 +21,10 @@ import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
-import { drawSymbol as drawSymbolWith } from '../../src/render/symbols.js';
 import { drawFooter } from '../../src/render/footer.js';
 import { cardLayout, drawAbilityBands, drawLoyaltyCosts } from '../../src/render/planeswalker.js';
 import { drawStatBarBottom, drawStatBarMiddle, drawStatBarTop } from '../../src/render/stat-bar.js';
-import { drawRulesText, drawWatermark } from '../../src/render/text-box.js';
+import { drawBasicLandSymbol, drawRulesText, drawWatermark } from '../../src/render/text-box.js';
 import { BOX, CARD, FOOTER } from '../../src/config/index.js';
 
 // Card dimensions and fonts come from the real renderer's config (T-B2).
@@ -39,7 +38,6 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
 });
 
 // Symbols and icons come from the real asset loader (T-B3).
-const drawSymbol = (ctx, ...rest) => drawSymbolWith(ctx, assets, ...rest);
 
 async function loadArt(model) {
   if (noArt) return null;
@@ -107,14 +105,12 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     setSymbol,
     layout: { art: ART, type: TYPE, text: TEXT },
   });
-  const width = BOX.right - BOX.x;
 
   // Watermark and rules text from the real renderer (T-B5).
   await drawWatermark(ctx, model, assets, TEXT);
-  const isBasic = model.supertypes.includes('Basic');
-  if (isBasic) {
-    const mana = /\{([WUBRGC])\}/.exec(model.oracleText);
-    if (mana) await drawSymbol(ctx, mana[1], BOX.x + width / 2 - 90, TEXT.y + TEXT.h / 2 - 90, 180);
+  if (model.supertypes.includes('Basic')) {
+    // The large mana symbol, from the real renderer (T-B12).
+    await drawBasicLandSymbol(ctx, model, assets, TEXT);
   } else {
     if (pw) await drawAbilityBands(ctx, assets, pw);
     else await drawRulesText(ctx, model, assets, TEXT, warn);

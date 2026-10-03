@@ -106,6 +106,12 @@ export const TEXT = { y: textTop, h: FOOTER.y - 8 - textTop };
  */
 export const ABILITY_BAND = { padding: 18, shade: 'rgba(0,0,0,0.09)', cost: 70 };
 
+/**
+ * A basic land's mana symbol, centred in the text box in place of its text
+ * (6.4.4): its size, and the least space kept around it in a short text box.
+ */
+export const BASIC_LAND_SYMBOL = { size: 180, margin: 20 };
+
 /** Space between the text box edges and its text (6.4). */
 export const TEXT_PADDING = { x: 20, top: 14, bottom: 10 };
 

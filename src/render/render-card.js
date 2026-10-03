@@ -12,8 +12,8 @@ import { drawTextBox } from './text-box.js';
  * canvases, loading images and fonts) comes in through `options.env`.
  *
  * Draws the frame (T-B4), the text box contents (T-B5), the footer (T-B6), the
- * stat bar (T-B7 to T-B10) and planeswalker ability bands and loyalty costs
- * (T-B11); the basic land symbol follows in T-B12.
+ * stat bar (T-B7 to T-B10), planeswalker ability bands and loyalty costs
+ * (T-B11) and the basic land symbol (T-B12).
  *
  * @typedef {object} RenderEnv
  * @property {(width: number, height: number) => any} createCanvas For offscreen work.

@@ -1,4 +1,4 @@
-import { BOX, TEXT, TEXT_PADDING, TEXT_SIZE } from '../config/layout.js';
+import { BASIC_LAND_SYMBOL, BOX, TEXT, TEXT_PADDING, TEXT_SIZE } from '../config/layout.js';
 import { STAT_ICONS } from '../config/text-symbols.js';
 import { WATERMARKS } from '../config/watermarks.js';
 import { tokenizeCard } from '../parse/oracle-text.js';
@@ -10,8 +10,9 @@ import { drawFallbackSymbol, drawSymbol } from './symbols.js';
  * symbols, italic reminder and flavour text, sword/shield P/T modifiers, the
  * watermark behind it, and text fitting.
  *
- * Basic lands (a large mana symbol, 6.4.4) and planeswalker ability bands
- * (7.2) are drawn by T-B12 and T-B11, which reuse layoutText and drawLines.
+ * Basic lands show a large mana symbol instead (6.4.4, T-B12). Planeswalker
+ * ability bands (7.2) are drawn by planeswalker.js, which reuses layoutText
+ * and drawLines.
  */
 
 const RULES_COLOUR = '#111';
@@ -205,6 +206,22 @@ export async function drawRulesText(ctx, model, assets, box = TEXT, warn = () =>
   await drawLines(ctx, assets, layout, x, box.y + TEXT_PADDING.top, width, size);
 }
 
+/** The mana symbol a basic land taps for, from its rules text ("{T}: Add {G}."), or null. */
+export const basicLandMana = (model) => /\{([WUBRGC])\}/.exec(model.oracleText)?.[1] ?? null;
+
+/**
+ * A basic land's large mana symbol, centred in the text box in place of its
+ * text (6.4.4); smaller if the text box is too short for it.
+ */
+export async function drawBasicLandSymbol(ctx, model, assets, box = TEXT) {
+  const mana = basicLandMana(model);
+  if (!mana) return;
+  const { size: full, margin } = BASIC_LAND_SYMBOL;
+  const size = Math.min(full, box.h - margin * 2);
+  const cx = BOX.x + (BOX.right - BOX.x) / 2;
+  await drawSymbol(ctx, assets, mana, cx - size / 2, box.y + box.h / 2 - size / 2, size);
+}
+
 /**
  * Draws the text box contents over the frame's background.
  * @param {CanvasRenderingContext2D} ctx
@@ -215,7 +232,8 @@ export async function drawRulesText(ctx, model, assets, box = TEXT, warn = () =>
 export async function drawTextBox(ctx, model, { assets, box = TEXT, warn }) {
   ctx.save();
   await drawWatermark(ctx, model, assets, box);
-  const special = model.supertypes.includes('Basic') || model.types.includes('Planeswalker');
-  if (!special) await drawRulesText(ctx, model, assets, box, warn);
+  if (model.supertypes.includes('Basic')) await drawBasicLandSymbol(ctx, model, assets, box);
+  else if (!model.types.includes('Planeswalker'))
+    await drawRulesText(ctx, model, assets, box, warn);
   ctx.restore();
 }
