@@ -149,10 +149,12 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 | `GET /api/jobs/:id/download` | The finished `cards.zip` or `cards.pdf`                                                                                    |
 | `GET /api/cards`             | Preview data (D27): `?line=` one decklist line; returns the card model(s) for the matched printing, or the unmatched report |
 | `GET /api/art/:id`           | Art for a preview, served from the art cache (3.4)                                                                         |
+| `GET /api/set-symbols/:code` | Set symbol SVG for a preview, from the set symbol cache (6.3; added in T-C1)                                               |
 | `GET /assets/*`              | Fonts and symbol files for in-browser rendering                                                                            |
 | `GET /api/docs`              | OpenAPI description                                                                                                        |
 
 - **Limits**, set by environment variables with generous defaults: decklist body 64 KB, 250 cards per job, 2 jobs running at once (others wait in a queue), finished files kept for 1 hour. Self-hosters can raise or remove them; the CLI has no limits (10.5). Abuse protection for a public instance is D30.
+- **Implementation (T-C1):** `src/server/` (`app.js` routes and schemas, `jobs.js` queue, `config.js` settings, `index.js` start-up), sharing `src/generate.js` with the CLI. `POST /api/jobs` rejects a decklist with no cards or more than `MAX_CARDS_PER_JOB` (counting quantities) with `400`, and a body over `MAX_BODY_KB` with `413`. Job status also lists the lines that couldn't be read, printing fallbacks, skipped cards (split and other out-of-scope layouts) and render warnings, plus the place in the queue while waiting; a job that generates nothing ends `failed`. `GET /api/cards` answers `status` `ok` (with each face's card model and its art and set symbol URLs), `unmatched` (with suggestions), `unsupported` or `error`, and `503` while the card data is still loading; jobs wait for it instead. Art ids are the art cache's file names (`front-<uuid>.jpg`), turned back into Scryfall URLs on the server, so the endpoint can't fetch anything else. Fonts and symbols are served from `res/fonts/` and `res/symbols/` as `/assets/fonts/…` and `/assets/symbols/…`; the built frontend (`web/dist`, T-C2) is served at `/` when it exists.
 
 3.6.2 **[Confirmed]** Frontend stack (D27):
 
@@ -198,6 +200,7 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 - **Scryfall refresh:** built into the app. Every `SCRYFALL_REFRESH_HOURS` (24) the server checks Scryfall's bulk-data timestamp, downloads newer data, and swaps it in without a restart (3.3.2). This works the same for self-hosters.
 - **Logging and monitoring:** structured JSON logs to stdout (Fastify's logger), with Docker log rotation. A free external uptime monitor (e.g. UptimeRobot) checks `GET /api/health` and emails the owner when it fails.
 - **Abuse protection:** per-IP rate limits on top of the request limits (3.6.1), returning `429`: `RATE_LIMIT_JOBS_PER_HOUR` (10) for new jobs and `RATE_LIMIT_PREVIEW_PER_MINUTE` (120) for preview requests; `0` turns a limit off. Client IPs come from the reverse proxy's forwarded headers. No accounts or captcha.
+  - Implementation (T-C1): the preview limit applies to each preview endpoint (`/api/cards`, `/api/art`, `/api/set-symbols`) separately, so one preview (about four requests) counts once against each; health checks, job status, downloads and `/assets/` aren't limited. Forwarded headers are trusted only from loopback and private addresses (a proxy on the same host or Docker network) so clients can't spoof their IP; `TRUST_PROXY` overrides this (`true`, `false`, or a list of addresses and CIDR ranges). `HOST` (default `0.0.0.0`) sets the listening address. Each finished job is logged with its card count and time.
 ---
 
 ## 4. Card anatomy overview

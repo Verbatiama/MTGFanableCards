@@ -6,61 +6,10 @@ import path from 'node:path';
 import { unzipSync } from 'fflate';
 import { PDFDocument } from 'pdf-lib';
 import { runCli } from '../src/cli.js';
-import { CardDatabase } from '../src/data/card-database.js';
 import { generateCards, hasProblems } from '../src/generate.js';
-import { scryfallCard } from './data/helpers.js';
+import { deckDatabase, offline } from './data/deck.js';
 
-const db = await CardDatabase.build([
-  scryfallCard({
-    name: 'Lightning Bolt',
-    mana_cost: '{R}',
-    colors: ['R'],
-    oracle_text: 'Lightning Bolt deals 3 damage to any target.',
-  }),
-  scryfallCard({
-    name: 'Lightning Bolt',
-    set: 'm10',
-    collector_number: '146',
-    released_at: '2009-07-17',
-    mana_cost: '{R}',
-    colors: ['R'],
-  }),
-  scryfallCard({
-    name: 'Delver of Secrets // Insectile Aberration',
-    layout: 'transform',
-    type_line: 'Creature — Human Wizard // Creature — Human Insect',
-    card_faces: [
-      {
-        name: 'Delver of Secrets',
-        mana_cost: '{U}',
-        type_line: 'Creature — Human Wizard',
-        colors: ['U'],
-        power: '1',
-        toughness: '1',
-        oracle_text: '',
-      },
-      {
-        name: 'Insectile Aberration',
-        mana_cost: '',
-        type_line: 'Creature — Human Insect',
-        colors: ['U'],
-        power: '3',
-        toughness: '2',
-        oracle_text: 'Flying',
-      },
-    ],
-  }),
-  scryfallCard({
-    name: 'Fire // Ice',
-    layout: 'split',
-    card_faces: [
-      { name: 'Fire', mana_cost: '{1}{R}', type_line: 'Instant' },
-      { name: 'Ice', mana_cost: '{1}{U}', type_line: 'Instant' },
-    ],
-  }),
-]);
-
-const offline = { fetchArt: async () => null, fetchSetSymbol: async () => null };
+const db = await deckDatabase();
 
 test('copies and faces become images in decklist order, rendered once each (3.2.3, 3.5.4)', async () => {
   let progress;

@@ -25,7 +25,7 @@ Requires Linux and Node.js 22 or later (see `.nvmrc`). On Windows, use WSL and c
 npm install
 npm run check         # lint + format check + tests (what CI runs)
 npm test              # tests only (node:test)
-npm start             # backend API on http://localhost:3000
+npm start             # backend API on http://localhost:3000 (OpenAPI at /api/docs)
 npm run spike:preview # Generate preview images from development spikes
 npm run data:download # Download the Scryfall bulk data into cache/scryfall/ (or DATA_DIR)
 npm run render:fixtures # Render every fixture with the real renderer into out/render/
