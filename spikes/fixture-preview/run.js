@@ -23,6 +23,7 @@ import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawSymbol as drawSymbolWith, textSymbolImage } from '../../src/render/symbols.js';
+import { drawFooter } from '../../src/render/footer.js';
 import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
 import {
   ART,
@@ -531,19 +532,11 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     else await drawRulesText(ctx, model, assets, TEXT);
   }
 
-  // Footer.
-  ctx.fillStyle = '#fff';
-  ctx.font = LABEL(15);
-  ctx.textBaseline = 'top';
-  ctx.fillText(`${model.collectorNumber} ${model.rarity[0].toUpperCase()}`, BOX.x, FOOTER.y + 6);
-  ctx.fillText(`${model.setCode} - ${model.lang.toUpperCase()}`, BOX.x, FOOTER.y + 28);
-  ctx.textAlign = 'right';
-  ctx.fillText(model.artist.toUpperCase(), BOX.right, FOOTER.y + 6);
-  // Copyright year is the year the image is generated; no holo stamp (D20).
-  ctx.font = FONT(13);
-  ctx.fillText(`™ & © ${new Date().getFullYear()} Wizards of the Coast`, BOX.right, FOOTER.y + 30);
-  ctx.textAlign = 'left';
+  // Footer from the real renderer (T-B6).
+  await drawFooter(ctx, model, { assets });
   if (model.faceIndex > 0) {
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'top';
     ctx.font = LABEL(14);
     ctx.fillText(`BACK FACE (${model.layout})`, BOX.x + 200, FOOTER.y + 52);
   }

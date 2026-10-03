@@ -1,4 +1,5 @@
 import { CARD } from '../config/layout.js';
+import { drawFooter } from './footer.js';
 import { drawFrame } from './frame.js';
 import { drawTextBox } from './text-box.js';
 
@@ -8,8 +9,9 @@ import { drawTextBox } from './text-box.js';
  * the browser's canvas alike (D5): anything environment-specific (creating
  * canvases, loading images and fonts) comes in through `options.env`.
  *
- * Draws the frame (T-B4) and the text box contents (T-B5); the stat bar,
- * footer, planeswalker bands and basic land symbol follow in T-B6 to T-B12.
+ * Draws the frame (T-B4), the text box contents (T-B5) and the footer (T-B6);
+ * the stat bar, planeswalker bands and basic land symbol follow in T-B7 to
+ * T-B12.
  *
  * @typedef {object} RenderEnv
  * @property {(width: number, height: number) => any} createCanvas For offscreen work.
@@ -32,5 +34,6 @@ export async function renderCard(ctx, model, { env, assets, art = null, setSymbo
   ctx.fillRect(0, 0, CARD.width, CARD.height);
   drawFrame(ctx, model, { env, art, setSymbol });
   await drawTextBox(ctx, model, { assets });
+  await drawFooter(ctx, model, { assets });
   ctx.restore();
 }
