@@ -1,9 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { INDICATOR } from '../../src/config/frames.js';
-import { BAR, BAR_TOP } from '../../src/config/layout.js';
+import { BAR, BAR_MIDDLE, BAR_TOP, TEXT, TYPE } from '../../src/config/layout.js';
 import { renderCardCanvas } from '../../src/render/node.js';
-import { statBarTop } from '../../src/render/stat-bar.js';
+import {
+  bottomSectionTop,
+  middleItems,
+  statBarMiddle,
+  statBarTop,
+} from '../../src/render/stat-bar.js';
 import { loadCardFixture } from '../fixtures/cards.js';
 
 const top = (slug, changes = {}) => statBarTop({ ...loadCardFixture(slug), ...changes });
@@ -99,4 +104,103 @@ test('the mana block draws a symbol and its count on each row', async () => {
     assert.ok(lit(0, size), 'symbol');
     assert.ok(lit(size + 2, BAR.width - x), 'count');
   }
+});
+
+const middle = (slug, changes = {}) => {
+  const model = { ...loadCardFixture(slug), ...changes };
+  return statBarMiddle(model, { from: statBarTop(model).bottom });
+};
+
+test('middle order: attaching subtypes, supertypes, zone/timing; only some labelled (5.6.1, 5.5.10)', () => {
+  const items = middleItems({
+    ...loadCardFixture('feral-invocation'),
+    supertypes: ['Legendary', 'Snow'],
+    zoneSymbols: ['flash', 'graveyard'],
+  });
+  assert.deepEqual(
+    items.map((i) => `${i.key}:${i.label}`),
+    ['Aura:null', 'Legendary:LEGENDARY', 'Snow:SNOW', 'flash:FLASH', 'graveyard:GRAVEYARD'],
+  );
+  // Subtypes without icons, and supertypes without icons, are skipped.
+  assert.deepEqual(
+    middleItems(loadCardFixture('ajani-sleeper-agent')).map((i) => i.key),
+    ['Legendary'],
+  );
+  assert.deepEqual(middleItems(loadCardFixture('breeding-pool')), []);
+});
+
+test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () => {
+  const { stack, labels, scale } = middle('dark-depths');
+  assert.equal(stack[0].y, TYPE.y);
+  assert.deepEqual(
+    stack.map((i) => i.key),
+    ['Legendary', 'Snow'],
+  );
+  assert.ok(labels && scale === 1);
+  assert.equal(stack[1].y, TYPE.y + BAR_MIDDLE.icon + BAR_MIDDLE.gap + BAR_MIDDLE.label);
+  // Unlabelled subtype icons take no label room.
+  const sword = middle('feral-invocation');
+  assert.equal(sword.stack[1].y - sword.stack[0].y, BAR_MIDDLE.icon + BAR_MIDDLE.gap);
+});
+
+test("a planeswalker's stack grows up from the bottom of the type line (5.6.2)", () => {
+  const { stack, bottom } = middle('ajani-sleeper-agent');
+  assert.ok(stack[0].y < TYPE.y);
+  assert.equal(bottom, TYPE.y + TYPE.h - 4);
+});
+
+test('a stack too long drops its labels, then shrinks to at most half size, never hidden (5.6.3)', () => {
+  const lots = {
+    supertypes: ['Legendary', 'Snow', 'World'],
+    zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
+  };
+  const room = bottomSectionTop(loadCardFixture('niv-mizzet-the-firemind')) - TYPE.y;
+  const seven = middle('niv-mizzet-the-firemind', { ...lots, supertypes: ['Legendary', 'Snow'] });
+  assert.ok(7 * (BAR_MIDDLE.icon + BAR_MIDDLE.label + BAR_MIDDLE.gap) > room);
+  assert.equal(seven.labels, false);
+  assert.equal(seven.scale, 1);
+  assert.ok(seven.stack.every((i) => !i.labelled));
+  assert.ok(seven.bottom <= TYPE.y + room);
+
+  const eight = middle('niv-mizzet-the-firemind', {
+    ...lots,
+    subtypes: ['Aura', 'Equipment', 'Fortification'],
+  });
+  assert.ok(eight.scale < 1 && eight.scale >= BAR_MIDDLE.minScale);
+  assert.equal(eight.stack.length, 11);
+  assert.equal(eight.overflow, null);
+
+  const absurd = middle('niv-mizzet-the-firemind', {
+    ...lots,
+    zoneSymbols: Array(20).fill('flash'),
+  });
+  assert.equal(absurd.scale, BAR_MIDDLE.minScale);
+  assert.equal(absurd.stack.length, 23);
+  assert.ok(absurd.overflow);
+});
+
+test('land mana symbols are centred on the text box, pushed down by a long stack (5.5.8)', () => {
+  const pool = middle('breeding-pool');
+  assert.deepEqual(
+    pool.land.map((l) => l.symbol),
+    ['G', 'U'],
+  );
+  const centre = (pool.land[0].y + pool.land.at(-1).y + BAR.icon) / 2;
+  assert.ok(Math.abs(centre - (TEXT.y + TEXT.h / 2 - BAR_MIDDLE.gap / 2)) < 1);
+
+  const pushed = middle('dryad-arbor', {
+    supertypes: ['Legendary', 'Snow', 'World'],
+    zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
+  });
+  assert.ok(pushed.land[0].y >= pushed.bottom + BAR_MIDDLE.gap - 0.01);
+  // The stack leaves the land symbol room above the bottom section.
+  assert.ok(pushed.land[0].y + BAR.icon <= bottomSectionTop(loadCardFixture('dryad-arbor')) + 0.5);
+});
+
+test('the middle stack is drawn beside the type line', async () => {
+  const model = loadCardFixture('dark-depths');
+  const canvas = await renderCardCanvas(model);
+  const [legendary] = statBarMiddle(model, { from: statBarTop(model).bottom }).stack;
+  const data = canvas.getContext('2d').getImageData(0, legendary.y, BAR.width, legendary.size).data;
+  assert.ok(data.some((v, i) => i % 4 === 0 && v > 200));
 });

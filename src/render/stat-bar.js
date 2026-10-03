@@ -1,15 +1,19 @@
-import { CARD_TYPES } from '../config/card-types.js';
+import { CARD_TYPES, isPermanent } from '../config/card-types.js';
 import { INDICATOR } from '../config/frames.js';
-import { BAR, BAR_TOP } from '../config/layout.js';
-import { textFont } from './fonts.js';
-import { drawSymbol } from './symbols.js';
+import { BAR, BAR_MIDDLE, BAR_TOP, CARD, TEXT, TYPE } from '../config/layout.js';
+import { LAND_TYPE_MANA, SUBTYPE_ICONS } from '../config/subtypes.js';
+import { SUPERTYPE_ICONS } from '../config/supertypes.js';
+import { ZONE_SYMBOL_STYLE } from '../config/zone-symbols.js';
+import { fitFont, labelFont, textFont } from './fonts.js';
+import { drawSymbol, textSymbolImage } from './symbols.js';
 
 /**
  * Stat bar (T-B7 onwards; Requirements 5), black down the left edge.
  *
  * The top section (D11, D14, D17; 5.1–5.3) never moves or shrinks (4.4): the
  * card type icons, the colour indicator when the card has one, then the mana
- * block. The middle (T-B8) and bottom (T-B9) sections follow.
+ * block. The middle section (T-B8) hangs from the type line; the bottom
+ * section (T-B9) follows.
  */
 
 /**
@@ -117,4 +121,141 @@ export async function drawStatBarTop(ctx, model, { assets }) {
   }
   ctx.restore();
   return top.bottom;
+}
+
+/**
+ * The middle stack's items, top to bottom (D19, 5.6.1): attaching subtypes
+ * (icon only, D16), supertypes (D15), then zone/timing symbols (D12), each
+ * group in its own order. Supertype and zone/timing items have a label.
+ * @returns {{ group: 'subtype' | 'supertype' | 'zone', key: string, label: string | null }[]}
+ */
+export function middleItems(model) {
+  return [
+    ...model.subtypes
+      .filter((t) => SUBTYPE_ICONS[t])
+      .map((key) => ({ group: 'subtype', key, label: null })),
+    ...model.supertypes
+      .filter((t) => SUPERTYPE_ICONS[t])
+      .map((key) => ({ group: 'supertype', key, label: SUPERTYPE_ICONS[key].label })),
+    ...model.zoneSymbols.map((key) => ({
+      group: 'zone',
+      key,
+      label: ZONE_SYMBOL_STYLE[key].label,
+    })),
+  ];
+}
+
+/**
+ * Top of the bottom section (stats, loyalty, defense badge, NON-PERMANENT;
+ * T-B9, 5.7), less a gap: as far down as the middle stack may reach.
+ */
+export function bottomSectionTop(model) {
+  const bottom = CARD.height - 14;
+  if (model.power !== null) return bottom - 120 - 8;
+  if (model.loyalty !== null) return bottom - 60 - 8;
+  if (model.defense !== null) return CARD.height - 78 - 8;
+  if (!isPermanent(model.types)) return bottom - 13 * 21 - 8;
+  return bottom;
+}
+
+/**
+ * Positions in the middle section (D16, D19; 5.5.8, 5.6), as plain data.
+ *
+ * The stack hangs from the top of the type line and runs down beside the text
+ * box, as far as the bottom section less the room the land mana symbols need.
+ * A planeswalker's stack instead grows up from the bottom of the type line, as
+ * far as the top section, since its loyalty costs use the bar beside the text
+ * box (7.2.1). If the stack doesn't fit, its labels are dropped; if it still
+ * doesn't, all icons shrink together, down to half size. Nothing is hidden:
+ * `overflow` is set when it still doesn't fit.
+ *
+ * The land mana symbols are centred on the text box, pushed down to sit under
+ * the stack when it reaches them.
+ *
+ * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ from: number, type?: { y: number, h: number }, text?: { y: number, h: number } }} options
+ *   `from`: where the top section ends (statBarTop().bottom). `type`, `text`:
+ *   the type line and text box bands, which planeswalkers move (T-B11).
+ */
+export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
+  const M = BAR_MIDDLE;
+  const items = middleItems(model);
+  const landMana = model.subtypes.filter((t) => LAND_TYPE_MANA[t]).map((t) => LAND_TYPE_MANA[t]);
+  const landHeight = landMana.length * (BAR.icon + M.gap);
+  const upward = model.types.includes('Planeswalker');
+  const room = upward
+    ? { top: from + 4, bottom: type.y + type.h - 4 }
+    : { top: type.y, bottom: bottomSectionTop(model) - landHeight };
+
+  const height = (labels, scale = 1) =>
+    items.reduce((h, it) => h + (M.icon + (labels && it.label ? M.label : 0) + M.gap) * scale, 0);
+  const space = room.bottom - room.top;
+  let labels = true;
+  let scale = 1;
+  if (height(true) > space) {
+    labels = false;
+    if (height(false) > space) scale = Math.max(M.minScale, space / height(false));
+  }
+
+  let y = upward ? Math.max(room.top, room.bottom - height(labels, scale)) : room.top;
+  const stack = items.map((item) => {
+    const labelled = labels && item.label !== null;
+    const row = { ...item, y, size: M.icon * scale, labelled };
+    y += (M.icon + M.gap + (labelled ? M.label : 0)) * scale;
+    return row;
+  });
+  const bottom = items.length ? y : 0;
+  const overflow = bottom > room.bottom + 0.5 ? { from: room.bottom, to: bottom } : null;
+
+  let landY = Math.max(text.y + text.h / 2 - landHeight / 2, bottom + M.gap);
+  const land = landMana.map((symbol) => {
+    const row = { symbol, y: landY, size: BAR.icon };
+    landY += BAR.icon + M.gap;
+    return row;
+  });
+  return { stack, labels, scale, overflow, land, bottom };
+}
+
+/** The image for a middle item, or a labelled placeholder (T-B3). */
+async function middleIcon(assets, { group, key, label }) {
+  if (group === 'subtype')
+    return assets.iconOrPlaceholder(SUBTYPE_ICONS[key].icon, SUBTYPE_ICONS[key].placeholder);
+  const style = group === 'zone' ? ZONE_SYMBOL_STYLE[key] : SUPERTYPE_ICONS[key];
+  // Snow reuses the {S} mana symbol art (5.5.4).
+  if (style.manaSymbol) return textSymbolImage(assets, style.manaSymbol);
+  return assets.iconOrPlaceholder(style.icon, label.slice(0, 3));
+}
+
+/**
+ * Draws the middle of the stat bar: the stack and the land mana symbols.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>, from: number,
+ *   type?: { y: number, h: number }, text?: { y: number, h: number } }} options
+ */
+export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
+  const middle = statBarMiddle(model, bands);
+  const cx = BAR.width / 2;
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (const item of middle.stack) {
+    const icon = await middleIcon(assets, item);
+    if (icon) ctx.drawImage(icon, cx - item.size / 2, item.y, item.size, item.size);
+    if (item.labelled) {
+      fitFont(ctx, item.label, BAR.width - 6, BAR_MIDDLE.labelSize, labelFont, 8);
+      ctx.fillText(item.label, cx, item.y + item.size + BAR_MIDDLE.label * middle.scale);
+    }
+  }
+  if (middle.overflow) {
+    // Still too long at the minimum size: flag it rather than hide anything.
+    ctx.fillStyle = '#e33';
+    ctx.fillRect(0, middle.overflow.from, 4, middle.overflow.to - middle.overflow.from);
+  }
+  for (const { symbol, y, size } of middle.land) {
+    await drawSymbol(ctx, assets, symbol, cx - size / 2, y, size);
+  }
+  ctx.restore();
+  return middle.bottom;
 }

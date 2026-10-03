@@ -22,27 +22,22 @@ import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
-import { drawSymbol as drawSymbolWith, textSymbolImage } from '../../src/render/symbols.js';
+import { drawSymbol as drawSymbolWith } from '../../src/render/symbols.js';
 import { drawFooter } from '../../src/render/footer.js';
-import { drawStatBarTop } from '../../src/render/stat-bar.js';
+import { drawStatBarMiddle, drawStatBarTop } from '../../src/render/stat-bar.js';
 import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
 import {
   ART,
   BAR,
   BOX,
   CARD,
-  CARD_TYPES,
   FOOTER,
   TEXT,
   TYPE,
   DEFENSE_BADGE,
   LABELS,
-  LAND_TYPE_MANA,
   LOYALTY_BADGES,
   STAT_ICONS,
-  SUBTYPE_ICONS,
-  SUPERTYPE_ICONS,
-  ZONE_SYMBOL_STYLE,
   isPermanent,
 } from '../../src/config/index.js';
 
@@ -61,13 +56,7 @@ registerFont(path.join(FONT_DIR, 'Beleren2016SmallCaps-Bold.ttf'), {
 // labelled boxes.
 const ICONS = new Map();
 for (const name of [
-  ...Object.values(CARD_TYPES).map((t) => t.icon),
-  ...Object.values(ZONE_SYMBOL_STYLE).map((z) => z.icon),
-  ...Object.values(SUPERTYPE_ICONS)
-    .filter((t) => t.icon)
-    .map((t) => t.icon),
   ...Object.values(STAT_ICONS).map((t) => t.icon),
-  ...Object.values(SUBTYPE_ICONS).map((t) => t.icon),
   ...Object.values(LOYALTY_BADGES).map((t) => t.icon),
   DEFENSE_BADGE.icon,
 ]) {
@@ -79,8 +68,6 @@ for (const name of [
   }
 }
 
-// Symbols as the text box draws them (T-B5).
-const symbol = (code) => textSymbolImage(assets, code);
 const drawSymbol = (ctx, ...rest) => drawSymbolWith(ctx, assets, ...rest);
 
 /** A white icon recoloured, at 200×200 (cached by the asset loader). */
@@ -144,48 +131,13 @@ async function drawStatBar(ctx, model, layout) {
   // Top: card type icons, colour indicator, mana, from the real renderer (T-B7).
   const y = await drawStatBarTop(ctx, model, { assets });
 
-  // Middle (D19, 5.6): top to bottom, attaching subtypes (icon-only, D16),
-  // supertypes (D15), zone/timing symbols (D12), so zone/timing sits nearest
-  // the type line.
-  // Boxes stand in for missing icons; zone/timing boxes are gold.
-  const middle = [];
-  for (const subtype of model.subtypes.filter((t) => SUBTYPE_ICONS[t])) {
-    const style = SUBTYPE_ICONS[subtype];
-    middle.push({ icon: ICONS.get(style.icon), abbr: style.placeholder });
-  }
-  // Snow reuses the {S} art.
-  for (const supertype of model.supertypes.filter((t) => SUPERTYPE_ICONS[t])) {
-    const style = SUPERTYPE_ICONS[supertype];
-    const icon = style.manaSymbol ? await symbol(style.manaSymbol) : ICONS.get(style.icon);
-    middle.push({ label: style.label, icon });
-  }
-  for (const z of model.zoneSymbols) {
-    const style = ZONE_SYMBOL_STYLE[z];
-    middle.push({ label: style.label, zone: true, icon: ICONS.get(style.icon) });
-  }
-  // Land mana symbols: one icon each in type-line order, centred on the text
-  // box. The middle stack has priority: if it spills that far it pushes them
-  // down, and it may only spill as far as leaves them room (D16 revised).
-  const landMana = [];
-  for (const t of model.subtypes.filter((t) => LAND_TYPE_MANA[t])) {
-    landMana.push(await symbol(LAND_TYPE_MANA[t]));
-  }
-  const landHeight = landMana.length * (BAR.icon + MIDDLE.gap);
-  const limit = middleLimit(model, layout) - landHeight;
-  const anchor = layout.type.y + layout.type.h - 4;
-  const stackBottom = drawMiddle(ctx, middle, y + 4, limit, anchor);
+  // Middle: the stack hanging from the type line and the land mana symbols,
+  // from the real renderer (T-B8).
+  await drawStatBarMiddle(ctx, model, { assets, from: y, type: layout.type, text: layout.text });
 
   // Loyalty costs, each centred on its ability band (7.2.1, D22).
   for (const band of layout.pw?.bands ?? []) {
     if (band.cost !== null) drawLoyaltyCost(ctx, band.cost, band.top + band.h / 2, band.h);
-  }
-  let landTop = Math.max(
-    layout.text.y + layout.text.h / 2 - landHeight / 2,
-    stackBottom + MIDDLE.gap,
-  );
-  for (const icon of landMana) {
-    ctx.drawImage(icon, cx - BAR.icon / 2, landTop, BAR.icon, BAR.icon);
-    landTop += BAR.icon + MIDDLE.gap;
   }
 
   // Bottom: stats, loyalty, defense badge, or NON-PERMANENT (D18, 5.7).
@@ -241,86 +193,6 @@ async function drawStatBar(ctx, model, layout) {
 }
 
 /** Value with its icon below (5.7.1), or a text label when there is no icon. */
-const MIDDLE = { icon: 40, label: 16, gap: 6, minScale: 0.5 };
-
-/**
- * Lowest y the middle stack may reach when it spills below the type line: the
- * top of the bottom section. Planeswalker loyalty costs use the bar beside the
- * text box (7.2.1), so their stack must stay above the type line.
- */
-function middleLimit(model, layout) {
-  const bottom = CARD.height - 14;
-  if (model.types.includes('Planeswalker')) return layout.type.y + layout.type.h - 4;
-  if (model.power !== null) return bottom - 120 - 8;
-  if (model.loyalty !== null) return bottom - 60 - 8;
-  if (model.defense !== null) return CARD.height - 78 - 8;
-  if (!isPermanent(model.types)) return bottom - 13 * 21 - 8;
-  return bottom;
-}
-
-/**
- * Lay out the middle stack (D19, 4.4 / 5.6.3). It is anchored at the type line
- * and grows upward. If it would meet the mana block (`floor`), it starts just
- * under the mana block and continues below the type line, down to `limit`. If
- * it still doesn't fit, labels are dropped; then icons shrink. Nothing is hidden.
- * Returns the bottom of the stack.
- */
-function drawMiddle(ctx, items, floor, limit, anchor) {
-  if (!items.length) return 0;
-  const height = (labels, scale = 1) =>
-    items.reduce(
-      (h, it) => h + (MIDDLE.icon + (labels && it.label ? MIDDLE.label : 0) + MIDDLE.gap) * scale,
-      0,
-    );
-  let labels = true;
-  let scale = 1;
-  if (height(true) > limit - floor) {
-    labels = false;
-    if (height(false) > limit - floor) {
-      scale = Math.max(MIDDLE.minScale, (limit - floor) / height(false));
-    }
-  }
-  const total = height(labels, scale);
-  let top = total <= anchor - floor ? anchor - total : floor;
-  for (const item of items) top += drawMiddleItem(ctx, item, top, labels, scale);
-  if (top > limit + 0.5) {
-    // Still overflowing at the minimum size: flag it rather than hide anything.
-    ctx.fillStyle = '#e33';
-    ctx.fillRect(0, limit, 4, top - limit);
-  }
-  return top;
-}
-
-/** One middle icon (and its label, if shown) at `top`; returns the height used. */
-function drawMiddleItem(ctx, { label, zone, icon, abbr }, top, labels, scale) {
-  const cx = BAR.width / 2;
-  const size = MIDDLE.icon * scale;
-  if (icon) ctx.drawImage(icon, cx - size / 2, top, size, size);
-  else {
-    ctx.strokeStyle = zone ? '#d9a441' : '#777';
-    ctx.lineWidth = zone ? 2 : 1;
-    ctx.strokeRect(cx - size / 2 + 2, top + 3, size - 4, size - 6);
-    if (abbr) {
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = LABEL(Math.round(12 * scale));
-      ctx.fillText(abbr, cx, top + size / 2);
-    }
-  }
-  let used = size + MIDDLE.gap * scale;
-  if (labels && label) {
-    const text = label.toUpperCase();
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.font = LABEL(fitSize(ctx, text, BAR.width - 6, 13, LABEL, 8));
-    used += MIDDLE.label * scale;
-    ctx.fillText(text, cx, top + size + MIDDLE.label * scale);
-  }
-  return used;
-}
-
 /** Defense badge at the bottom of the bar (D18, 5.7.7). */
 function drawDefenseBadge(ctx, defense) {
   drawBadge(

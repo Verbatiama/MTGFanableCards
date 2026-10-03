@@ -229,7 +229,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 4.2 **[Confirmed]** The stat bar has three sections (D16–D19):
 
 - **Top**, anchored to the top: card type icon, colour indicator, mana cost.
-- **Middle**, anchored at the type line: attaching subtypes, supertypes, zone/timing symbols (5.6.1). Below it, beside the text box, the land mana symbols (5.5.8).
+- **Middle**, hanging from the type line: the top of the first symbol aligns with the top of the type line box, and the stack runs down beside the type line and text box (5.6.2): attaching subtypes, supertypes, zone/timing symbols (5.6.1). Below it, beside the text box, the land mana symbols (5.5.8). Planeswalkers' stack grows upward from the bottom of the type line instead (5.6.2).
 - **Bottom**, anchored to the bottom: stats, loyalty, defense, or the NON-PERMANENT label (5.7.3).
 
   4.3 **[Confirmed]** Layout dimensions are derived from the example mockups and stored in a configuration file for easy adjustment. Initial v1 estimates (750×1050px card):
@@ -401,7 +401,7 @@ Token is out of scope for v1 and gets no icon; tokens are decided with the other
 | Plains, Island, Swamp, Mountain, Forest     | That colour's mana symbol ({W}, {U}, {B}, {R}, {G})      |
 | Wastes                                      | The colourless mana symbol ({C})                         |
 
-**[Confirmed]** The basic land type symbols show what the land taps for (D16, revised). They are not part of the middle stack: they form their own group in the bar, one icon per land type in type-line order, centred on the middle of the text box (Breeding Pool shows {G} above {U} there). The middle stack has priority: if it spills below the type line (5.6.3) far enough to reach them, they are pushed down to sit just under it.
+**[Confirmed]** The basic land type symbols show what the land taps for (D16, revised). They are not part of the middle stack: they form their own group in the bar, one icon per land type in type-line order, centred on the middle of the text box (Breeding Pool shows {G} above {U} there). The middle stack has priority: if it runs far enough down beside the text box to reach them, they are pushed down to sit just under it (5.6.3).
 
 Every other subtype gets no icon and shows only in the type line, including the rest of the Components list (Vehicle, Food, Saga, Curse, Rune, Desert, Gate, Lair, Locus, Urza's, Adventure, Arcane, Lesson, Trap). Whether a subtype gets an icon depends only on the subtype, so Equipment on an artifact creature (reconfigure) and Forest on Dryad Arbor still show; creature subtypes never do (5.5.6). The mapping is a config table (section 9), so a subtype can be added later without code changes. For reference, the earlier open question listed these real subtypes missing from the Components doc:
 
@@ -416,17 +416,16 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 ### 5.6 Middle-section layout
 
-5.6.1 **[Confirmed]** Stack order, top to bottom (D19): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → zone/timing symbols, so zone/timing sits nearest the type line. Land mana symbols are a separate group beside the text box (5.5.8). Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
+5.6.1 **[Confirmed]** Stack order, top to bottom (D19): attaching subtype icons (Aura, Equipment, Fortification) → supertype icons → zone/timing symbols. Land mana symbols are a separate group beside the text box (5.5.8). Within each group the earlier rules apply: subtypes and supertypes in type-line order (D15, D16), zone/timing in the fixed D12 order. This reverses the Feral Invocation mockup, which has FLASH above AURA; its PERMANENT label is removed by D18 (5.7.3).
 
-5.6.2 **[Confirmed]** The stack is anchored at the type line and grows upward into the space beside the art, unless it would meet the mana block (5.6.3).
+5.6.2 **[Confirmed]** The stack hangs from the type line (revised in T-B8): the top of its first symbol is level with the top of the type line box, and it runs down beside the type line and text box. Nothing in the middle stack sits beside the art. **[Confirmed]** Planeswalkers are the exception, as their loyalty costs use the bar beside the text box (7.2.1): their stack's bottom sits at the bottom of the type line and it grows upward beside the art.
 
-5.6.3 **[Confirmed]** Collision rule (D19). When the stack would meet the mana block, these steps apply in order, stopping at the first that fits:
+5.6.3 **[Confirmed]** Collision rule (D19, revised in T-B8). The stack may run down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. A planeswalker's stack may grow up to just under the mana block. When it doesn't fit, these steps apply in order, stopping at the first that fits:
 
-1. **Continue below the type line.** The stack starts just under the mana block and runs down past the type line into the empty bar beside the text box, keeping its order. It may go down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. Planeswalkers skip this step, as their loyalty costs use the bar beside the text box (7.2.1).
-2. **Drop the labels** under supertype and zone/timing icons.
-3. **Shrink the icons**, all together, down to a minimum of half size.
+1. **Drop the labels** under supertype and zone/timing icons.
+2. **Shrink the icons**, all together, down to a minimum of half size.
 
-Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, real cards rarely reach step 1: a legendary five-colour creature with flash and flashback still fits above the type line. The preview spike has synthetic stress cases for each step (`spikes/fixture-preview/stress.js`).
+Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, real cards never reach step 1: a legendary creature with flash and flashback fits beside the text box with room to spare. The preview spike has synthetic stress cases for each step (`spikes/fixture-preview/stress.js`).
 
 ### 5.7 Bottom section
 

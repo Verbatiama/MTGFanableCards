@@ -5,8 +5,9 @@
  * and each name says it is a stress case.
  */
 const STRESS = {
-  // Five mana rows + five labelled middle icons: spills below the type line.
-  'stress-spill': [
+  // Five mana rows + five labelled middle icons: a long stack hanging from the
+  // type line still fits beside the text box with its labels (D19, 5.6.2).
+  'stress-long-stack': [
     'atraxa-grand-unifier',
     {
       supertypes: ['Legendary', 'Snow'],
@@ -40,8 +41,9 @@ const STRESS = {
       ].join('\n'),
     },
   ],
-  // Land with a basic land type whose middle stack spills below the type line
-  // far enough to push the land mana symbol down (D16 revised).
+  // Land with a basic land type and eight middle icons: too long even without
+  // labels, so the icons shrink, and the stack pushes the land mana symbol
+  // down (D16 revised, D19).
   'stress-land-push': [
     'dryad-arbor',
     {
@@ -56,8 +58,8 @@ const STRESS = {
       ],
     },
   ],
-  // Planeswalker: can't spill (loyalty costs use the bar below the type line),
-  // so the labels are dropped.
+  // Planeswalker: the stack grows up from the type line (loyalty costs use the
+  // bar beside the text box) and meets the mana block, so the labels drop.
   'stress-drop-labels': [
     'ajani-sleeper-agent',
     {

@@ -16,6 +16,12 @@ export const BAR = { width: 90, icon: 40, gap: 6 };
  */
 export const BAR_TOP = { y: 14, typeRow: 44, typeGap: 3, indicator: 14, rowGap: 8 };
 
+/**
+ * Middle of the stat bar (5.4–5.6): icon size, label height and largest label
+ * text size, gap after each item, and how far icons may shrink (D19).
+ */
+export const BAR_MIDDLE = { icon: 40, label: 16, labelSize: 13, gap: 6, minScale: 0.5 };
+
 /** The card box: its left edge (after the bar and a gap) and right edge. */
 export const BOX = { x: BAR.width + 10, right: CARD.width - 12 };
 
