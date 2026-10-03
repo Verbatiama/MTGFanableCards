@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdirSync } from 'node:fs';
+import { rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 /**
@@ -30,9 +31,13 @@ import path from 'node:path';
 
 /**
  * @param {object} options
- * @param {(job: Job, onProgress: (p: { done: number, total: number }) => void) =>
- *   Promise<{ bytes: Uint8Array | null, report: object, error?: string }>} options.run
- *   Generates a job's file; `bytes` null (with `error`) when nothing was generated.
+ * @param {(job: Job, onProgress: (p: { done: number, total: number }) => void,
+ *   work: { workDir: string }) => Promise<{ bytes?: Uint8Array | null,
+ *   write?: (file: string) => Promise<void>, report: object, error?: string }>} options.run
+ *   Generates a job's file: as `bytes`, or with `write`, which writes it to the
+ *   path it's given (low-memory mode, T-S13). Neither (with `error`) when
+ *   nothing was generated. `workDir` is an empty directory for the job's
+ *   temporary files, deleted when the job ends.
  * @param {string} options.dir Where finished files are written.
  * @param {number} [options.maxRunning]
  * @param {number} [options.ttlMs]
@@ -89,16 +94,19 @@ export function createJobQueue({
   async function start(job) {
     job.status = 'running';
     const started = now();
+    const workDir = path.join(dir, `${job.id}.work`);
     try {
-      const { bytes, report, error } = await run(job, ({ done, total }) => {
+      // Synchronous, so the job starts running before create() returns.
+      mkdirSync(workDir, { recursive: true });
+      const onProgress = ({ done, total }) => {
         job.done = done;
         job.total = total;
-      });
+      };
+      const { bytes, write, report, error } = await run(job, onProgress, { workDir });
       job.report = report;
-      if (bytes) {
-        await mkdir(dir, { recursive: true });
+      if (bytes || write) {
         job.file = path.join(dir, `${job.id}.${job.format}`);
-        await writeFile(job.file, bytes);
+        await (write ? write(job.file) : writeFile(job.file, bytes));
         job.status = 'done';
       } else {
         fail(job, error ?? 'No cards were generated');
@@ -106,6 +114,8 @@ export function createJobQueue({
     } catch (error) {
       log.error(error);
       fail(job, `Generation failed: ${error.message}`);
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
     }
     const seconds = ((now() - started) / 1000).toFixed(1);
     log.info(`job ${job.id} ${job.status}: ${job.done} cards in ${seconds} s`);

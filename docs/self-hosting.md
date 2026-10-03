@@ -5,7 +5,7 @@ Run your own copy of MTG Fannable Cards with Docker: the web app, optionally beh
 ## What you need
 
 - A Linux x86-64 machine with [Docker](https://docs.docker.com/engine/install/) and Docker Compose 2.24 or later.
-- 2 GB of RAM. The app holds Scryfall's card data in memory (about 0.75 GB), and briefly twice that while it swaps in a daily update.
+- 2 GB of RAM, or 1 GB with [low-memory mode](#1-gb-servers). The app holds Scryfall's card data in memory (about 0.75 GB), and briefly twice that while it swaps in a daily update.
 - About 15 GB of disk: the card data (about 115 MB, plus working space) and the art cache, which is capped at 10 GB by default.
 - For HTTPS, a domain name whose DNS record points at the machine, and ports 80 and 443 open.
 
@@ -59,14 +59,29 @@ Everything is optional, set in `.env`. Limits set to `0` are turned off.
 | `ART_CACHE_MAX_GB`              | 10      | Art cache cap; the least-used quarter is dropped when reached                                                                        |
 | `MAX_BODY_KB`                   | 64      | Largest decklist accepted                                                                                                            |
 | `MAX_CARDS_PER_JOB`             | 250     | Cards per batch, counting copies                                                                                                     |
-| `MAX_RUNNING_JOBS`              | 2       | Batches rendering at once; others queue                                                                                              |
+| `MAX_RUNNING_JOBS`              | 2       | Batches rendering at once; others queue (1 with `LOW_MEMORY`)                                                                        |
 | `JOB_TTL_MINUTES`               | 60      | How long finished downloads are kept                                                                                                 |
 | `SCRYFALL_REFRESH_HOURS`        | 24      | How often to check Scryfall for new card data                                                                                        |
 | `RATE_LIMIT_JOBS_PER_HOUR`      | 10      | New batches per visitor IP per hour                                                                                                  |
 | `RATE_LIMIT_PREVIEW_PER_MINUTE` | 120     | Preview requests per visitor IP per minute                                                                                           |
+| `LOW_MEMORY`                    | false   | `true` fits the app on a 1 GB server; see [1 GB servers](#1-gb-servers)                                                              |
 | `TRUST_PROXY`                   | private | Proxies whose forwarded headers are trusted: `true`, `false`, or addresses and CIDR ranges; by default loopback and private networks |
 
 Change `.env`, then `docker compose up -d` to apply it.
+
+## 1 GB servers
+
+With `LOW_MEMORY=true` in `.env` (or `npm run provision -- --low-memory`), the app fits on a 1 GB server, such as DigitalOcean's US$6 droplet. Keep the swap file the provisioning script adds, as a safety margin. In this mode:
+
+- The card data takes about half the memory: it skips Scryfall's Unique Artwork file, which the app doesn't use yet, and stores text that repeats across printings once.
+- One batch renders at a time (`MAX_RUNNING_JOBS` defaults to 1), so at busy times visitors wait longer in the queue.
+- A batch's images are written to disk as they render, and the zip is written straight to its file, so a 250-card batch doesn't hold every image in memory.
+- The daily card data update unloads the old data before loading the new, so for about 10 seconds a day previews say the data is loading and new batches wait.
+- Node's heap is capped at 768 MB instead of 1536 MB (set `NODE_OPTIONS` yourself to change it).
+
+Measured on a 100-card deck, the app peaks at about 0.6 GB of memory in this mode instead of 1 GB, at the same speed.
+
+The CLI follows the same setting, but it still loads its own copy of the card data, so stop the app before running it on a 1 GB server.
 
 ## The command line
 

@@ -1,7 +1,9 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
+import { once } from 'node:events';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { loadImage, createCanvas } from 'canvas';
-import { zipSync } from 'fflate';
+import { Zip, ZipPassThrough, zipSync } from 'fflate';
 import { PDFDocument, grayscale } from 'pdf-lib';
 
 /**
@@ -9,9 +11,11 @@ import { PDFDocument, grayscale } from 'pdf-lib';
  * `cards.zip`, or the optional A4 PDF with 9 cards per page.
  *
  * Every function takes the images in output order as
- * `{ fileName, png }` (file names from assignFileNames).
+ * `{ fileName, png }` (file names from assignFileNames), or as
+ * `{ fileName, file }` when the PNG was written to disk as it rendered
+ * (low-memory mode, T-S13).
  *
- * @typedef {{ fileName: string, png: Uint8Array }} OutputImage
+ * @typedef {{ fileName: string, png: Uint8Array } | { fileName: string, file: string }} OutputImage
  */
 
 /** Physical card size (63 × 88 mm), so printed cards can be cut out and sleeved. */
@@ -26,10 +30,15 @@ const PER_PAGE = 9;
 const JPEG_QUALITY = 0.92;
 const CUT_LINE = { thickness: 0.3, color: grayscale(0.55) };
 
+/** An image's PNG bytes, read from disk if it was written there. */
+const readPng = (image) => image.png ?? readFile(image.file);
+
 /** Writes each image to `dir` (scripts and the CLI write to out/, 3.5.6). */
 export async function writeImages(dir, images) {
   await mkdir(dir, { recursive: true });
-  for (const { fileName, png } of images) await writeFile(path.join(dir, fileName), png);
+  for (const image of images) {
+    await writeFile(path.join(dir, image.fileName), await readPng(image));
+  }
 }
 
 /**
@@ -43,6 +52,30 @@ export function zipImages(images) {
     images.map(({ fileName, png }) => [fileName, [png, { level: 0 }]]),
   );
   return zipSync(entries);
+}
+
+/**
+ * Writes the same zip as `zipImages` to `target`, one image at a time, so the
+ * images and the zip are never all in memory (low-memory mode, T-S13).
+ * @param {OutputImage[]} images
+ * @param {string} target
+ */
+export async function zipImagesToFile(images, target) {
+  const out = createWriteStream(target);
+  const finished = once(out, 'finish');
+  const zip = new Zip((error, chunk, final) => {
+    if (error) return out.destroy(error);
+    out.write(chunk);
+    if (final) out.end();
+  });
+  for (const image of images) {
+    const entry = new ZipPassThrough(image.fileName);
+    zip.add(entry);
+    entry.push(await readPng(image), true);
+    if (out.writableNeedDrain) await once(out, 'drain');
+  }
+  zip.end();
+  await finished;
 }
 
 /**
@@ -62,9 +95,9 @@ export async function pdfSheets(images) {
   const left = (A4_W - PER_ROW * CARD_W) / 2;
   const bottom = (A4_H - PER_ROW * CARD_H) / 2;
 
-  const embedded = new Map(); // png → its embedded JPEG
+  const embedded = new Map(); // png (or its file) → its embedded JPEG
   let page;
-  for (const [i, { png }] of images.entries()) {
+  for (const [i, image] of images.entries()) {
     if (i % PER_PAGE === 0) {
       page = pdf.addPage([A4_W, A4_H]);
       drawCutLines(page, left, bottom, Math.min(PER_PAGE, images.length - i));
@@ -72,8 +105,10 @@ export async function pdfSheets(images) {
     const slot = i % PER_PAGE;
     const column = slot % PER_ROW;
     const row = Math.floor(slot / PER_ROW);
-    if (!embedded.has(png)) embedded.set(png, await pdf.embedJpg(await toJpeg(png)));
-    page.drawImage(embedded.get(png), {
+    const key = image.png ?? image.file;
+    if (!embedded.has(key))
+      embedded.set(key, await pdf.embedJpg(await toJpeg(await readPng(image))));
+    page.drawImage(embedded.get(key), {
       x: left + column * CARD_W,
       // PDF y runs upwards, so the first row is the highest.
       y: bottom + (PER_ROW - 1 - row) * CARD_H,

@@ -41,9 +41,14 @@ export async function readBulkMeta(dir) {
  * @param {object} options
  * @param {string} options.dir Data directory.
  * @param {typeof fetch} [options.fetch] Injected for tests.
+ * @param {string[]} [options.types] Bulk types to download (keys of BULK_FILES); all by default.
  * @returns {Promise<{ updated: string[] }>} The bulk types that were downloaded.
  */
-export async function downloadBulkData({ dir, fetch = globalThis.fetch }) {
+export async function downloadBulkData({
+  dir,
+  fetch = globalThis.fetch,
+  types = Object.keys(BULK_FILES),
+}) {
   await mkdir(dir, { recursive: true });
   const response = await fetch(BULK_INDEX_URL, { headers: HEADERS });
   if (!response.ok) throw new Error(`Scryfall bulk index: HTTP ${response.status}`);
@@ -51,7 +56,8 @@ export async function downloadBulkData({ dir, fetch = globalThis.fetch }) {
 
   const meta = await readBulkMeta(dir);
   const updated = [];
-  for (const [type, file] of Object.entries(BULK_FILES)) {
+  for (const type of types) {
+    const file = BULK_FILES[type];
     const entry = data.find((b) => b.type === type);
     if (!entry) throw new Error(`Scryfall bulk index has no ${type} file`);
     if (meta[type] === entry.updated_at) continue;

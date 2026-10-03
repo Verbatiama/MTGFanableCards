@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { access, mkdtemp, readFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createJobQueue } from '../../src/server/jobs.js';
@@ -89,4 +89,21 @@ test('shutdown drops queued jobs, waits for running ones and removes the files (
   assert.equal(running.status, 'done');
   assert.equal(control.started(queued), false);
   await assert.rejects(access(dir));
+});
+
+test('each job gets a work directory, deleted when it ends; run can write the file itself (T-S13)', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'jobs-'));
+  let workDir;
+  const run = async (job, onProgress, work) => {
+    workDir = work.workDir;
+    assert.ok((await stat(workDir)).isDirectory());
+    await writeFile(path.join(workDir, '0.png'), 'png');
+    return { write: (file) => writeFile(file, `written ${job.decklist}`), report };
+  };
+  const queue = createJobQueue({ run, dir, log: quiet });
+  const job = queue.create({ decklist: 'a' });
+  await until(() => job.status === 'done');
+  assert.equal(await readFile(job.file, 'utf8'), 'written a');
+  await assert.rejects(access(workDir));
+  await queue.shutdown();
 });

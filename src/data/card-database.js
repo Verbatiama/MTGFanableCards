@@ -1,6 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { createGunzip } from 'node:zlib';
+import { isLowMemory } from '../low-memory.js';
 
 /**
  * In-memory index of Scryfall card data (T-A3, Requirements 3.2.4–3.2.5, 3.3).
@@ -99,6 +100,43 @@ export function slimCard(card) {
   return slim;
 }
 
+// Different on (almost) every printing, so not worth sharing.
+const UNSHARED_FIELDS = new Set(['id', 'art_crop', 'illustration_id']);
+
+/**
+ * Low-memory mode (T-S13): returns a function that makes a slim card share
+ * one copy of each repeated string and array (rules text, type lines, set
+ * names, artists, colours, keywords) with every card it saw before. JSON.parse
+ * gives every printing its own copies. Shared arrays are frozen.
+ */
+function createSharer() {
+  const strings = new Map();
+  const arrays = new Map();
+  const value = (v) => {
+    if (typeof v === 'string') {
+      const shared = strings.get(v);
+      if (shared !== undefined) return shared;
+      strings.set(v, v);
+      return v;
+    }
+    if (Array.isArray(v)) {
+      const key = JSON.stringify(v);
+      let shared = arrays.get(key);
+      if (!shared) arrays.set(key, (shared = Object.freeze(v.map(value))));
+      return shared;
+    }
+    return v;
+  };
+  const share = (object) => {
+    for (const [key, v] of Object.entries(object)) {
+      if (key === 'card_faces') v.forEach(share);
+      else if (!UNSHARED_FIELDS.has(key)) object[key] = value(v);
+    }
+    return object;
+  };
+  return share;
+}
+
 function keep(card) {
   return card.object === 'card' && card.lang === 'en' && !SKIPPED_LAYOUTS.has(card.layout);
 }
@@ -130,14 +168,18 @@ export class CardDatabase {
   /**
    * @param {Iterable<object> | AsyncIterable<object>} defaultCards Scryfall card objects.
    * @param {Iterable<object> | AsyncIterable<object>} [uniqueArtwork]
+   * @param {{ share?: boolean }} [options] `share`: share repeated strings and
+   *   arrays between cards (low-memory mode, T-S13); on with LOW_MEMORY.
    */
-  static async build(defaultCards, uniqueArtwork = []) {
+  static async build(defaultCards, uniqueArtwork = [], { share = isLowMemory() } = {}) {
     const db = new CardDatabase();
-    for await (const card of defaultCards) if (keep(card)) db.#add(slimCard(card));
+    const shareFields = share ? createSharer() : (card) => card;
+    const slim = (card) => shareFields(slimCard(card));
+    for await (const card of defaultCards) if (keep(card)) db.#add(slim(card));
     for await (const card of uniqueArtwork) {
       if (!keep(card)) continue;
       const list = db.#artworks.get(card.oracle_id) ?? [];
-      list.push(slimCard(card));
+      list.push(slim(card));
       db.#artworks.set(card.oracle_id, list);
     }
     for (const entry of db.#cards.values()) entry.printings.sort(byRelease);
@@ -145,9 +187,18 @@ export class CardDatabase {
     return db;
   }
 
-  /** Loads the bulk files written by `downloadBulkData`. */
-  static async fromFiles({ defaultCards, uniqueArtwork }) {
-    return CardDatabase.build(readJsonLines(defaultCards), readJsonLines(uniqueArtwork));
+  /**
+   * Loads the bulk files written by `downloadBulkData`. Without
+   * `uniqueArtwork` (low-memory mode), `artworks()` finds nothing.
+   * @param {{ defaultCards: string, uniqueArtwork?: string }} files
+   * @param {{ share?: boolean }} [options] As for `build`.
+   */
+  static async fromFiles({ defaultCards, uniqueArtwork }, options) {
+    return CardDatabase.build(
+      readJsonLines(defaultCards),
+      uniqueArtwork ? readJsonLines(uniqueArtwork) : [],
+      options,
+    );
   }
 
   #add(card) {

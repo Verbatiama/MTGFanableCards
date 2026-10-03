@@ -190,10 +190,17 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 | `SCRYFALL_REFRESH_HOURS` | `24`     | How often to check for new Scryfall data (3.6.5)         |
 | `RATE_LIMIT_JOBS_PER_HOUR` | `10`   | New jobs per client IP per hour; `0` for no limit (3.6.5) |
 | `RATE_LIMIT_PREVIEW_PER_MINUTE` | `120` | Preview requests per client IP per minute; `0` for no limit (3.6.5) |
+| `LOW_MEMORY`          | `false`     | Low-memory mode for 1 GB servers (below)                 |
 
 - **Art cache cap:** the cache records how often each art is used. When it reaches `ART_CACHE_MAX_GB`, the least-used 25% of cached art is deleted (ties broken by least recent use).
-- **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM, and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
-- **Implementation (T-S9):** `Dockerfile` (Node 22 on Debian slim; the frontend built in a first stage; runs as user `node`; `DATA_DIR=/data`, `ART_CACHE_DIR=/data/art`; `--max-old-space-size=1536` for a refresh; a health check on `/api/health`), `docker-entrypoint.sh` (`server` by default, `cli …` for the CLI), `docker-compose.yml` (image `ghcr.io/verbatiama/mtgfanablecards:${FANNABLE_TAG:-latest}`, `data` volume, `./out` for the CLI, Docker log rotation, and the `caddy` profile using `Caddyfile` with `DOMAIN`), `.env.example`, and the guide in `docs/self-hosting.md`. The CLI reads the decklist from stdin in Docker: `docker compose run --rm -T app cli - < deck.txt`.
+- **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM (1 GB with `LOW_MEMORY`, below), and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
+- **[Confirmed] Low-memory mode** (T-S13, D31): `LOW_MEMORY=true` (or `1`) fits the app on a 1 GB server, such as a US$6/month droplet; off by default, and nothing changes when it's off. It is one deployment setting, read by `src/low-memory.js`; the provisioning script's `--low-memory` writes it to `.env`. It turns on:
+  - **Card data:** only the Default Cards file is downloaded and loaded (the Unique Artwork file isn't used yet, so `artworks()` finds nothing), and each repeated string and array (rules text, type lines, set names, artists, colours, keywords) is stored once and shared between printings; shared arrays are frozen.
+  - **Refresh:** the old card data is unloaded before the new data loads, so the two never take memory together. For those ~10 seconds a day previews answer 503 ("The card data is still loading"), `/api/health` reports `loading`, and new jobs wait. A job already running keeps the old data until it finishes.
+  - **Jobs:** `MAX_RUNNING_JOBS` defaults to 1 (an explicit value still wins). Each job's images are written to a work folder as they render instead of being kept in memory, and the zip is streamed to its file; the PDF reads the images back one at a time. The work folder is deleted when the job ends.
+  - **Heap:** `docker-entrypoint.sh` sets `--max-old-space-size=768` instead of 1536, unless `NODE_OPTIONS` is set.
+  - **CLI:** uses the same card data savings; it still loads its own copy, so stop the app before running it on a 1 GB server.
+- **Implementation (T-S9):** `Dockerfile` (Node 22 on Debian slim; the frontend built in a first stage; runs as user `node`; `DATA_DIR=/data`, `ART_CACHE_DIR=/data/art`; `--max-old-space-size=1536` for a refresh, set by the entrypoint since T-S13; a health check on `/api/health`), `docker-entrypoint.sh` (`server` by default, `cli …` for the CLI), `docker-compose.yml` (image `ghcr.io/verbatiama/mtgfanablecards:${FANNABLE_TAG:-latest}`, `data` volume, `./out` for the CLI, Docker log rotation, and the `caddy` profile using `Caddyfile` with `DOMAIN`), `.env.example`, and the guide in `docs/self-hosting.md`. The CLI reads the decklist from stdin in Docker: `docker compose run --rm -T app cli - < deck.txt`.
 
 3.6.5 **[Confirmed]** Operations (D30):
 
@@ -699,6 +706,8 @@ The implementation keeps these as configuration tables rather than hard-coding t
   | Peak memory, whole run    | 1.8 GB → 1.06 GB                |                                 |
 
   Rendering takes about 120 ms per face, so a warm run is almost all rendering. Loading the card database takes about 10 s and 465 MB of heap (0.75 GB RSS, most of the peak); one deck's images, zip and PDF add about 0.3 GB on top.
+
+  **Low-memory mode (T-S13, 3.6.4)**, measured the same way with `LOW_MEMORY=true npm run perf`: the card database takes 240 MB of heap instead of 465 MB (0.53 GB peak RSS while loading instead of 0.76 GB), and the whole run peaks at 0.62 GB instead of 1.04 GB, at the same speed (cold 12.2 s, warm 11.0 s to images; zip 0.4 s; PDF 1.4 s). The server itself (`LOW_MEMORY=true`, 768 MB heap) peaked at 0.6 GB generating the deck as a zip and then as a PDF.
 
 ---------------------------- | ------------------------- | -------------- |
   | Art                          | 83 downloaded, 0 failed   | 83 from cache  |

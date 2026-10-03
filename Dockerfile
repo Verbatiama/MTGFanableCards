@@ -15,12 +15,10 @@ RUN npm run web:build && npm prune --omit=dev
 
 FROM node:22-bookworm-slim
 WORKDIR /app
-# The heap needs room for a Scryfall refresh, when two card databases briefly
-# coexist (~1.2 GB).
+# docker-entrypoint.sh sets NODE_OPTIONS for the heap size (LOW_MEMORY, T-S13).
 ENV NODE_ENV=production \
     DATA_DIR=/data \
-    ART_CACHE_DIR=/data/art \
-    NODE_OPTIONS=--max-old-space-size=1536
+    ART_CACHE_DIR=/data/art
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/web/dist ./web/dist
 COPY package.json docker-entrypoint.sh ./

@@ -6,6 +6,7 @@
   "imageTag": "main",
   "deployKey": "~/.ssh/fannable_deploy.pub",
   "swapGb": 2,
+  "lowMemory": false,
   "start": false,
   "env": {
     "MAX_RUNNING_JOBS": "2"

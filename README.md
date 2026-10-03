@@ -50,7 +50,7 @@ npm run cli -- - < deck.txt        # read the decklist from stdin
 
 To put the app on the internet, `npm run provision` sets up a fresh Ubuntu server over SSH. It installs updates, a swap file, Docker and a firewall that only lets SSH and the web through. It also creates a `deploy` user to run the app, and writes the app's Docker setup (see the [self-hosting guide](docs/self-hosting.md)).
 
-1. Create a droplet by following DigitalOcean's guide, [How to Create a Droplet](https://docs.digitalocean.com/products/droplets/how-to/create/). Choose the latest Ubuntu LTS image, the 2 GB / 1 CPU size and the region nearest your players. Under authentication, choose **SSH Key** and add your public key ([How to Add SSH Keys to New or Existing Droplets](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/)).
+1. Create a droplet by following DigitalOcean's guide, [How to Create a Droplet](https://docs.digitalocean.com/products/droplets/how-to/create/). Choose the latest Ubuntu LTS image, the 2 GB / 1 CPU size and the region nearest your players. The 1 GB size also works if you add `--low-memory` in step 4, at the cost of one batch at a time (see [1 GB servers](docs/self-hosting.md#1-gb-servers)). Under authentication, choose **SSH Key** and add your public key ([How to Add SSH Keys to New or Existing Droplets](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/)).
 2. Check you can log in: `ssh root@<droplet IP>`.
 3. To use a domain name with HTTPS, add a DNS `A` record that points the name at the droplet's IP.
 4. From this repository, run the script with arguments:

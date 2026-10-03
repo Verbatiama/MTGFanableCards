@@ -1,3 +1,5 @@
+import { writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { resolveDecklist } from './data/resolve.js';
 import { mapCard, UnsupportedLayoutError } from './model/from-scryfall.js';
 import { assignFileNames } from './output/file-names.js';
@@ -29,9 +31,16 @@ import { renderCardPng } from './render/node.js';
  * @param {(code: string) => Promise<Uint8Array | null>} options.fetchSetSymbol Set symbols (T-B4).
  * @param {(progress: { done: number, total: number }) => void} [options.onProgress]
  *   Called after each line is rendered, counting images.
+ * @param {string} [options.pngDir] An existing directory to write each image
+ *   to as it renders, so images don't stay in memory (low-memory mode, T-S13):
+ *   they then come back as `{ fileName, file }` instead of `{ fileName, png }`.
  * @returns {Promise<{ images: import('./output/bundle.js').OutputImage[], report: GenerateReport }>}
  */
-export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, onProgress }) {
+export async function generateCards(
+  db,
+  decklist,
+  { fetchArt, fetchSetSymbol, onProgress, pngDir },
+) {
   const { cards, unmatched, errors } = resolveDecklist(db, decklist);
   const report = { errors, unmatched, fallbacks: [], skipped: [], renderWarnings: [] };
 
@@ -67,7 +76,8 @@ export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, on
     }
   }
 
-  const faces = []; // { name, png, warnings } per image, in output order
+  let pngCount = 0; // files written to pngDir
+  const faces = []; // { name, png or file, warnings } per image, in output order
   const rendered = new Map(); // printing id → that printing's faces, rendered
   for (const { card, models } of lines) {
     let printed = rendered.get(card.printing.id);
@@ -91,7 +101,9 @@ export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, on
   }
 
   const fileNames = assignFileNames(faces.map((f) => f.name));
-  const images = faces.map((face, i) => ({ fileName: fileNames[i], png: face.png }));
+  const images = faces.map(({ png, file }, i) =>
+    file ? { fileName: fileNames[i], file } : { fileName: fileNames[i], png },
+  );
   // Warnings once per rendered face, under its first file name.
   const reported = new Set();
   faces.forEach((face, i) => {
@@ -109,7 +121,10 @@ export async function generateCards(db, decklist, { fetchArt, fetchSetSymbol, on
       setSymbol: await setSymbols.get(model.setCode),
       onWarning: (w) => warnings.push(w),
     });
-    return { name: model.name, png, warnings };
+    if (!pngDir) return { name: model.name, png, warnings };
+    const file = path.join(pngDir, `${pngCount++}.png`);
+    await writeFile(file, png);
+    return { name: model.name, file, warnings };
   }
 }
 

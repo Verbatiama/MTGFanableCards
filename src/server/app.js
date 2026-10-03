@@ -1,5 +1,5 @@
 import { createReadStream, existsSync } from 'node:fs';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import Fastify from 'fastify';
@@ -10,7 +10,7 @@ import { cacheFileName } from '../art/art-cache.js';
 import { resolveDecklist } from '../data/resolve.js';
 import { generateCards } from '../generate.js';
 import { mapCard, UnsupportedLayoutError } from '../model/from-scryfall.js';
-import { pdfSheets, zipImages } from '../output/index.js';
+import { pdfSheets, zipImages, zipImagesToFile } from '../output/index.js';
 import { parseDecklist } from '../parse/decklist.js';
 import { RES_DIR, ROOT_DIR } from '../paths.js';
 import { loadConfig } from './config.js';
@@ -26,8 +26,10 @@ import { createJobQueue } from './jobs.js';
  * T-C2) is served at / when present.
  *
  * @typedef {object} Services
- * @property {import('../data/card-database.js').CardDatabase | null} db Current card data.
- * @property {Promise<unknown>} ready Resolves once the card data is loaded.
+ * @property {import('../data/card-database.js').CardDatabase | null} db Current card data;
+ *   null while it loads.
+ * @property {() => Promise<import('../data/card-database.js').CardDatabase>} loaded
+ *   The current card data, once it has loaded.
  * @property {(url: string | null) => Promise<Uint8Array | null>} fetchArt
  * @property {(code: string) => Promise<Uint8Array | null>} fetchSetSymbol
  * @property {() => Promise<void> | void} [close]
@@ -52,7 +54,8 @@ export async function buildApp({
     maxRunning: config.maxRunningJobs,
     ttlMs: config.jobTtlMs,
     log: app.log,
-    run: (job, onProgress) => runJob(services, job, onProgress),
+    run: (job, onProgress, { workDir }) =>
+      runJob(services, job, onProgress, config.lowMemory && workDir),
   });
   app.addHook('onClose', async () => {
     await jobs.shutdown();
@@ -208,15 +211,27 @@ const STATUS_TEXT = {
   503: 'Service Unavailable',
 };
 
-/** Renders a job's decklist and bundles it (3.5.3). */
-async function runJob(services, job, onProgress) {
-  await services.ready;
-  const { images, report } = await generateCards(services.db, job.decklist, {
+/**
+ * Renders a job's decklist and bundles it (3.5.3). With `pngDir` (low-memory
+ * mode, T-S13) the images are written there as they render, and the zip is
+ * streamed to the job's file rather than built in memory.
+ */
+async function runJob(services, job, onProgress, pngDir) {
+  const db = await services.loaded();
+  const { images, report } = await generateCards(db, job.decklist, {
     fetchArt: services.fetchArt,
     fetchSetSymbol: services.fetchSetSymbol,
     onProgress,
+    ...(pngDir && { pngDir }),
   });
   if (!images.length) return { bytes: null, report, error: 'No cards were generated' };
+  if (pngDir) {
+    const write =
+      job.format === 'pdf'
+        ? async (file) => writeFile(file, await pdfSheets(images))
+        : (file) => zipImagesToFile(images, file);
+    return { write, report };
+  }
   const bytes = job.format === 'pdf' ? await pdfSheets(images) : zipImages(images);
   return { bytes, report };
 }

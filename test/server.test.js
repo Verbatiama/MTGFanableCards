@@ -17,7 +17,7 @@ async function app({ env = {}, services = {} } = {}) {
       RATE_LIMIT_PREVIEW_PER_MINUTE: '0',
       ...env,
     }),
-    services: () => ({ db, ready: Promise.resolve(), ...offline, ...services }),
+    services: () => ({ db, loaded: async () => db, ...offline, ...services }),
     webDir: '/nonexistent',
   });
   return instance;
@@ -96,6 +96,20 @@ test('format pdf gives cards.pdf (3.5.3)', () =>
     assert.equal((await PDFDocument.load(download.rawPayload)).getPageCount(), 2);
   }));
 
+test('LOW_MEMORY jobs give the same zip and PDF, written from disk (T-S13)', async () => {
+  const run = (env, format) =>
+    withApp({ env }, async (a) => {
+      const decklist = '2 Lightning Bolt\nDelver of Secrets\n8 Lightning Bolt (M10) 146';
+      const job = await finished(a, (await post(a, { decklist, format })).json().id);
+      assert.equal(job.status, 'done');
+      return (await get(a, job.downloadUrl)).rawPayload;
+    });
+  const low = { LOW_MEMORY: 'true' };
+  assert.deepEqual(unzipSync(await run(low, 'zip')), unzipSync(await run({}, 'zip')));
+  const pages = async (bytes) => (await PDFDocument.load(bytes)).getPageCount();
+  assert.equal(await pages(await run(low, 'pdf')), await pages(await run({}, 'pdf')));
+});
+
 test('a job with nothing to render fails, with the report', () =>
   withApp({}, async (a) => {
     const job = await finished(
@@ -130,7 +144,8 @@ test('requests are validated and limited (3.6.1)', () =>
 test('jobs beyond MAX_RUNNING_JOBS wait in a queue', async () => {
   let release;
   const ready = new Promise((resolve) => (release = resolve));
-  await withApp({ env: { MAX_RUNNING_JOBS: '1' }, services: { ready } }, async (a) => {
+  const loaded = () => ready.then(() => db);
+  await withApp({ env: { MAX_RUNNING_JOBS: '1' }, services: { loaded } }, async (a) => {
     const first = (await post(a, { decklist: 'Lightning Bolt' })).json();
     const second = (await post(a, { decklist: 'Lightning Bolt' })).json();
     assert.equal(first.status, 'running');
@@ -185,7 +200,7 @@ test('GET /api/cards previews one decklist line (D27)', () =>
   }));
 
 test('previews wait for the card data with 503; jobs wait for it', () =>
-  withApp({ services: { db: null, ready: new Promise(() => {}) } }, async (a) => {
+  withApp({ services: { db: null, loaded: () => new Promise(() => {}) } }, async (a) => {
     assert.equal((await get(a, '/api/cards?line=Lightning%20Bolt')).statusCode, 503);
     assert.equal((await get(a, '/api/health')).json().data, 'loading');
   }));
@@ -274,4 +289,15 @@ test('configuration comes from environment variables with the documented default
   assert.equal(loadConfig({ MAX_BODY_KB: '0' }).maxBodyBytes, Number.MAX_SAFE_INTEGER);
   assert.equal(loadConfig({ TRUST_PROXY: 'false' }).trustProxy, false);
   assert.throws(() => loadConfig({ MAX_RUNNING_JOBS: 'two' }), /MAX_RUNNING_JOBS/);
+  assert.equal(config.lowMemory, false);
+});
+
+test('LOW_MEMORY runs one job at a time unless MAX_RUNNING_JOBS says otherwise (T-S13)', () => {
+  for (const value of ['true', '1']) {
+    const config = loadConfig({ LOW_MEMORY: value });
+    assert.equal(config.lowMemory, true);
+    assert.equal(config.maxRunningJobs, 1);
+  }
+  assert.equal(loadConfig({ LOW_MEMORY: 'false' }).lowMemory, false);
+  assert.equal(loadConfig({ LOW_MEMORY: 'true', MAX_RUNNING_JOBS: '3' }).maxRunningJobs, 3);
 });

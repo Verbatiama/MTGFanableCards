@@ -26,7 +26,7 @@ export async function startServer(config = loadConfig()) {
         get db() {
           return store.db;
         },
-        ready: store.ready,
+        loaded: store.loaded,
         fetchArt: artFetcher.fetchArt,
         fetchSetSymbol: setSymbols.fetchSetSymbol,
         async close() {

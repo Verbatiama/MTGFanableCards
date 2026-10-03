@@ -11,6 +11,11 @@ const bolt = scryfallCard({ name: 'Lightning Bolt' });
 const shock = scryfallCard({ name: 'Shock' });
 const files = (cards) => ({ default_cards: jsonlGz(cards), unique_artwork: jsonlGz(cards) });
 
+/** Waits until `condition` holds. */
+async function until(condition) {
+  while (!condition()) await new Promise((resolve) => setTimeout(resolve, 1));
+}
+
 async function tempDir(t) {
   const dir = await mkdtemp(path.join(tmpdir(), 'fannable-data-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
@@ -76,4 +81,30 @@ test('fails when there is no data on disk and Scryfall cannot be reached', async
   const offline = fakeScryfall({ versions: {}, files: {}, fail: true });
   const store = createCardStore({ dir, fetch: offline.fetch, refreshHours: 0, log: quietLog });
   await assert.rejects(store.ready, /network down/);
+});
+
+test('low-memory mode uses only Default Cards and drops the old data during a refresh (T-S13)', async (t) => {
+  const dir = await tempDir(t);
+  const versions = { default_cards: 'v1', unique_artwork: 'v1' };
+  const data = files([bolt]);
+  const scryfall = fakeScryfall({ versions, files: data });
+  const store = createCardStore({
+    dir,
+    fetch: scryfall.fetch,
+    refreshHours: 0,
+    lowMemory: true,
+    log: quietLog,
+  });
+  await store.ready;
+  assert.deepEqual(await readdir(dir), ['bulk-meta.json', 'default-cards.jsonl.gz']);
+  assert.equal(await store.loaded(), store.db);
+
+  Object.assign(versions, { default_cards: 'v2' });
+  Object.assign(data, files([bolt, shock]));
+  const refreshing = store.refresh();
+  await until(() => store.db === null);
+  const loaded = store.loaded();
+  await refreshing;
+  assert.equal((await loaded).lookup('Shock')?.name, 'Shock');
+  assert.equal(await loaded, store.db);
 });

@@ -9,8 +9,12 @@
  *
  * Uses the Scryfall bulk files already in the data directory (no refresh), and
  * a temporary art and set-symbol cache, so the project's cache isn't touched.
+ *
+ * With LOW_MEMORY=true it measures low-memory mode (T-S13) as a server runs
+ * it: no Unique Artwork data, shared strings, images written to disk as they
+ * render and the zip streamed to a file.
  */
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -19,23 +23,26 @@ import { createSetSymbolFetcher } from '../src/art/set-symbols.js';
 import { CardDatabase } from '../src/data/card-database.js';
 import { BULK_FILES } from '../src/data/scryfall-bulk.js';
 import { generateCards, hasProblems } from '../src/generate.js';
-import { pdfSheets, zipImages } from '../src/output/index.js';
+import { isLowMemory } from '../src/low-memory.js';
+import { pdfSheets, zipImages, zipImagesToFile } from '../src/output/index.js';
 import { DATA_DIR, ROOT_DIR } from '../src/paths.js';
 
 const deckFile = process.argv[2] ?? path.join(ROOT_DIR, 'scripts/perf/commander-100.txt');
 const decklist = await readFile(deckFile, 'utf8');
 const seconds = (ms) => `${(ms / 1000).toFixed(1)} s`;
 
+const lowMemory = isLowMemory();
 let started = performance.now();
 const db = await CardDatabase.fromFiles({
   defaultCards: path.join(DATA_DIR, BULK_FILES.default_cards),
-  uniqueArtwork: path.join(DATA_DIR, BULK_FILES.unique_artwork),
+  ...(!lowMemory && { uniqueArtwork: path.join(DATA_DIR, BULK_FILES.unique_artwork) }),
 });
 const loadMs = performance.now() - started;
 const peakAfterLoad = process.resourceUsage().maxRSS * 1024;
 globalThis.gc?.();
 const memoryAfterLoad = process.memoryUsage();
 
+let runs = 0;
 const cacheDir = await mkdtemp(path.join(os.tmpdir(), 'fannable-perf-'));
 try {
   const cold = await run();
@@ -49,17 +56,27 @@ try {
 async function run() {
   const art = createArtFetcher({ dir: path.join(cacheDir, 'art') });
   const sets = createSetSymbolFetcher({ dir: path.join(cacheDir, 'sets') });
+  const workDir = path.join(cacheDir, `work-${runs++}`);
+  await mkdir(workDir);
   started = performance.now();
   const { images, report } = await generateCards(db, decklist, {
     fetchArt: art.fetchArt,
     fetchSetSymbol: sets.fetchSetSymbol,
+    ...(lowMemory && { pngDir: workDir }),
   });
   const generateMs = performance.now() - started;
   const peakAfterImages = process.resourceUsage().maxRSS * 1024;
   await art.flush();
 
   started = performance.now();
-  const zip = zipImages(images);
+  let zipBytes;
+  if (lowMemory) {
+    const file = path.join(workDir, 'cards.zip');
+    await zipImagesToFile(images, file);
+    zipBytes = (await stat(file)).size;
+  } else {
+    zipBytes = zipImages(images).length;
+  }
   const zipMs = performance.now() - started;
 
   started = performance.now();
@@ -69,13 +86,13 @@ async function run() {
   if (hasProblems(report)) console.warn('Decklist problems:', JSON.stringify(report, null, 2));
   return {
     images: images.length,
-    rendered: new Set(images.map((i) => i.png)).size,
+    rendered: new Set(images.map((i) => i.png ?? i.file)).size,
     art: { ...art.stats },
     generateMs,
     peakAfterImages,
     zipMs,
     pdfMs,
-    zipBytes: zip.length,
+    zipBytes,
     pdfBytes: pdf.length,
   };
 }
@@ -83,7 +100,7 @@ async function run() {
 function report(cold, warm) {
   const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} MB`;
   const row = (label, a, b) => console.log(`| ${label} | ${a} | ${b} |`);
-  console.log(`Deck: ${path.relative(process.cwd(), deckFile)}`);
+  console.log(`Deck: ${path.relative(process.cwd(), deckFile)}${lowMemory ? ' (LOW_MEMORY)' : ''}`);
   console.log(`Card database: ${db.size} cards loaded in ${seconds(loadMs)}`);
   console.log(
     `Images: ${cold.images} (${cold.rendered} rendered once, copies reuse their image)\n`,

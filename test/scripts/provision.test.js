@@ -44,6 +44,7 @@ test('bad settings are refused before connecting', () => {
   fails(['--host', 'h', '--domain', 'not a domain'], {}, /Not a domain/);
   fails(['--host', 'h', '--swap-gb', 'lots'], {}, /swapGb/);
   fails(['--host', 'h', '--env', 'lower=1'], {}, /KEY=VALUE/);
+  fails(['--config', 'p.json'], { host: 'h', lowMemory: 'yes' }, /lowMemory/);
   fails(['--host', 'h', '--bogus'], {}, /Unknown option/);
 });
 
@@ -58,6 +59,13 @@ test('.env: HTTPS through Caddy with a domain, port 3000 without', () => {
   assert.doesNotMatch(plain, /caddy|DOMAIN/);
   assert.match(plain, /^APP_PORT=3000$/m);
   assert.match(plain, /^FANNABLE_TAG=latest$/m);
+  assert.doesNotMatch(plain, /LOW_MEMORY/);
+});
+
+test('.env: --low-memory turns on LOW_MEMORY for a 1 GB server (T-S13)', () => {
+  assert.match(envFile(load(['--host', 'h', '--low-memory'])), /^LOW_MEMORY=true$/m);
+  const fromFile = load(['--config', 'p.json'], { host: 'h', lowMemory: true });
+  assert.match(envFile(fromFile), /^LOW_MEMORY=true$/m);
 });
 
 test('the server script is valid bash and opens only the ports it needs', () => {

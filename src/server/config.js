@@ -1,3 +1,5 @@
+import { isLowMemory } from '../low-memory.js';
+
 /**
  * Server settings from environment variables (D26, D29, D30; Requirements
  * 3.6.1, 3.6.4, 3.6.5). Limits set to 0 are turned off.
@@ -27,12 +29,14 @@ function trustProxy(raw) {
 
 /** @param {Record<string, string | undefined>} [env] */
 export function loadConfig(env = process.env) {
+  const lowMemory = isLowMemory(env);
   return {
+    lowMemory,
     port: number(env, 'PORT', 3000),
     host: env.HOST ?? '0.0.0.0',
     maxBodyBytes: number(env, 'MAX_BODY_KB', 64) * 1024 || Number.MAX_SAFE_INTEGER,
     maxCardsPerJob: number(env, 'MAX_CARDS_PER_JOB', 250),
-    maxRunningJobs: Math.max(1, number(env, 'MAX_RUNNING_JOBS', 2)),
+    maxRunningJobs: Math.max(1, number(env, 'MAX_RUNNING_JOBS', lowMemory ? 1 : 2)),
     jobTtlMs: number(env, 'JOB_TTL_MINUTES', 60) * 60_000,
     rateLimitJobsPerHour: number(env, 'RATE_LIMIT_JOBS_PER_HOUR', 10),
     rateLimitPreviewPerMinute: number(env, 'RATE_LIMIT_PREVIEW_PER_MINUTE', 120),

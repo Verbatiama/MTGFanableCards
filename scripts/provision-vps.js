@@ -33,6 +33,7 @@ export const DEFAULTS = {
   imageTag: 'main',
   deployKey: null,
   swapGb: 2,
+  lowMemory: false,
   start: false,
   env: {},
 };
@@ -52,6 +53,7 @@ Options (each overrides the same setting in the JSON file):
   --image-tag <tag>    Image version: main, latest or vX.Y.Z (default: main)
   --deploy-key <file>  Public key for GitHub Actions to deploy with (optional)
   --swap-gb <n>        Swap file size, 0 for none (default: 2)
+  --low-memory         Fit the app on a 1 GB server: sets LOW_MEMORY=true in .env
   --env KEY=VALUE      Extra app setting for .env, e.g. MAX_RUNNING_JOBS=1 (repeatable)
   --start              Pull the image and start the app at the end
   --dry-run            Print the script that would run on the server, and stop
@@ -69,6 +71,7 @@ const OPTIONS = {
   'image-tag': { type: 'string' },
   'deploy-key': { type: 'string' },
   'swap-gb': { type: 'string' },
+  'low-memory': { type: 'boolean' },
   env: { type: 'string', multiple: true },
   start: { type: 'boolean' },
   'dry-run': { type: 'boolean', default: false },
@@ -129,6 +132,9 @@ export function loadSettings(argv, readFile = (file) => readFileSync(file, 'utf8
   if (!Number.isInteger(config.swapGb) || config.swapGb < 0) {
     throw new Error(`swapGb must be a whole number ≥ 0: ${config.swapGb}`);
   }
+  if (typeof config.lowMemory !== 'boolean') {
+    throw new Error(`lowMemory must be true or false: ${config.lowMemory}`);
+  }
   for (const [key, value] of Object.entries(config.env)) {
     if (!/^[A-Z][A-Z0-9_]*$/.test(key) || /[\n\r]/.test(String(value))) {
       throw new Error(`Not a valid .env setting: ${key}`);
@@ -148,6 +154,7 @@ export function envFile(config) {
   } else {
     lines.push('APP_PORT=3000');
   }
+  if (config.lowMemory) lines.push('LOW_MEMORY=true');
   for (const [key, value] of Object.entries(config.env)) lines.push(`${key}=${value}`);
   return `${lines.join('\n')}\n`;
 }

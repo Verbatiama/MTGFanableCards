@@ -92,3 +92,28 @@ test('unmatched names get close suggestions, closest first (3.2.4)', () => {
   assert.deepEqual(db.suggest('Smugglers Copter'), ["Smuggler's Copter"]);
   assert.deepEqual(db.suggest('Something Else Entirely'), []);
 });
+
+test('sharing repeated strings and arrays gives the same data (low-memory mode, T-S13)', async () => {
+  const bolts = [
+    cards[0],
+    { ...cards[1], colors: ['R'] },
+    { ...cards[0], set: 'm11', colors: ['R'] },
+  ];
+  const shared = await CardDatabase.build(bolts, [], { share: true });
+  const plain = await CardDatabase.build(bolts, [], { share: false });
+  assert.deepEqual(shared.lookup('Lightning Bolt'), plain.lookup('Lightning Bolt'));
+  assert.deepEqual(shared.suggest('Lightnin Bolt'), plain.suggest('Lightnin Bolt'));
+
+  const [lea, m10, m11] = shared.lookup('Lightning Bolt').printings;
+  assert.equal(lea.colors, m11.colors, 'one shared array');
+  assert.ok(Object.isFrozen(lea.colors));
+  assert.notEqual(lea.colors, m10.colors, 'different contents are not shared');
+  const [plainLea, , plainM11] = plain.lookup('Lightning Bolt').printings;
+  assert.notEqual(plainLea.colors, plainM11.colors);
+});
+
+test('without unique artwork data, artworks() finds nothing', async () => {
+  const noArt = await CardDatabase.build(cards, []);
+  assert.deepEqual(noArt.artworks('Lightning Bolt'), []);
+  assert.equal(noArt.lookup('Lightning Bolt').printings.length, 2);
+});

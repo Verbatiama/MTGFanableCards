@@ -65,6 +65,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | D28 | ✓ DECIDED: DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) running the self-hosting Docker setup; data and art cache on a Docker volume; fannable.verbatiam.dev with Caddy and automatic TLS | PO     | D2, D10, D23 | 3.6.3 |
 | D29 | ✓ DECIDED: Docker image (GHCR) + Compose file with optional Caddy profile; env-var settings; art cache capped (10 GB default, drop least-used 25% at the cap); CLI via the same image or npm run cli; Linux x86-64, 2 GB RAM, ~15 GB disk | PO + A | D5, D26      | 3.6.4 |
 | D30 | ✓ DECIDED: Deploy on every push to main (CI → GHCR :main → SSH compose pull/up), graceful shutdown finishes running jobs; built-in Scryfall refresh every 24 h; JSON logs + free uptime check on /api/health; per-IP rate limits (10 jobs/h, 120 previews/min) | PO + A | D26, D28     | 3.6.5 |
+| D31 | ✓ DECIDED: `LOW_MEMORY` deployment flag for 1 GB servers (off by default): no Unique Artwork data, shared strings in the card data, refresh drops the old data first (~10 s of 503 previews a day), one job at a time, job images on disk and the zip streamed, 768 MB heap | PO + A | D28, D29, D30 | 3.6.4 |
 
 ### Dev A: data pipeline
 
@@ -119,6 +120,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-S10 | Provision the VPS (D28): DigitalOcean droplet in Sydney, 2 GB; firewall (SSH, HTTP, HTTPS only), Docker, Caddy reverse proxy. Script ready: `npm run provision` (scripts/provision-vps.js; arguments or a JSON file; updates, swap, Docker, ufw, deploy user, app folder with the Caddy profile); README walks through creating the droplet. Left: create the droplet and run it | PO + A | D28, D29 | 3.6.3 |
 | T-S11 | Set up the subdomain: DNS record for `fannable.verbatiam.dev` pointing at the VPS, Caddy site with automatic Let's Encrypt TLS, check HTTPS works | PO | T-S10 | 3.6.3 |
 | T-S12 | Monitoring: free uptime monitor on `https://fannable.verbatiam.dev/api/health` with email alerts to the owner | PO | T-S9 | 3.6.5 |
+| T-S13 | ✓ DONE: Low-memory mode (D31): `LOW_MEMORY=true` (src/low-memory.js; `--low-memory` in the provisioning script) skips the Unique Artwork download, shares repeated strings and arrays in the card data, unloads the old data before a refresh (`store.loaded()` waits for the new), defaults `MAX_RUNNING_JOBS` to 1, writes job images to a work folder as they render and streams the zip (`zipImagesToFile`), and caps the heap at 768 MB (docker-entrypoint.sh); off, nothing changes. Measured with `npm run perf`: card data 465 → 240 MB heap, peak 1.04 → 0.62 GB, same speed; the server peaks at 0.6 GB for the 100-card deck as zip and PDF | A | D31, T-S6, T-S9 | 3.6.4, 10.5 |
 
 ## Phase 4: Special layouts (after v1, or as scoped by D1)
 

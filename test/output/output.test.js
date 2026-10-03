@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createCanvas } from 'canvas';
@@ -12,6 +12,7 @@ import {
   pdfSheets,
   writeImages,
   zipImages,
+  zipImagesToFile,
 } from '../../src/output/index.js';
 
 /** A small solid-colour PNG standing in for a rendered card. */
@@ -94,4 +95,40 @@ test('images can be written to a folder (scripts and the CLI, 3.5.6)', async (t)
   t.after(() => rm(dir, { recursive: true, force: true }));
   await writeImages(path.join(dir, 'cards'), images(2));
   assert.deepEqual((await readdir(path.join(dir, 'cards'))).sort(), ['Card-1.png', 'Card-2.png']);
+});
+
+/** The images written to `dir` as low-memory jobs keep them: `{ fileName, file }` (T-S13). */
+async function onDisk(t, input) {
+  const dir = await mkdtemp(path.join(tmpdir(), 'fannable-png-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  return Promise.all(
+    input.map(async ({ fileName, png }, i) => {
+      const file = path.join(dir, `${i}.png`);
+      await writeFile(file, png);
+      return { fileName, file };
+    }),
+  );
+}
+
+test('zipImagesToFile streams the same zip from images on disk (T-S13)', async (t) => {
+  const input = images(3);
+  const [stored] = await onDisk(t, [{ fileName: 'x', png: Buffer.alloc(0) }]);
+  const target = path.join(path.dirname(stored.file), 'cards.zip');
+  await zipImagesToFile(await onDisk(t, input), target);
+  assert.deepEqual(unzipSync(await readFile(target)), unzipSync(zipImages(input)));
+});
+
+test('the PDF and writeImages take images on disk too, embedding a shared file once (T-S13)', async (t) => {
+  const [first, second] = await onDisk(t, images(2));
+  const pdf = await PDFDocument.load(await pdfSheets([first, { ...first, fileName: 'b' }, second]));
+  assert.equal(pdf.getPageCount(), 1);
+  const jpegs = pdf.context
+    .enumerateIndirectObjects()
+    .filter(([, object]) => object.dict?.get(PDFName.of('Filter')) === PDFName.of('DCTDecode'));
+  assert.equal(jpegs.length, 2);
+
+  const dir = await mkdtemp(path.join(tmpdir(), 'fannable-out-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await writeImages(dir, [first]);
+  assert.deepEqual(await readFile(path.join(dir, 'Card-1.png')), await readFile(first.file));
 });
