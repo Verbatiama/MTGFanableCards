@@ -20,7 +20,7 @@ The rest of the card is the usual name, art, type line, rules and flavour text, 
 
 ## Using it
 
-You need Linux (on Windows, use WSL) and Node.js 22 or later. The first run downloads Scryfall's card data (about 115 MB) into `cache/scryfall/`. After that, each start downloads it again only when Scryfall has published a newer version, and a running server checks once a day. Loading the card data takes about 10 seconds. Art is downloaded as needed and cached in `cache/art/`, so a deck's first run is slower: a 100-card deck takes about 15 seconds with new art, then about 11 seconds once the art is cached.
+To run your own server with Docker, see the [self-hosting guide](docs/self-hosting.md). To run it from this repository, you need Linux (on Windows, use WSL) and Node.js 22 or later. The first run downloads Scryfall's card data (about 115 MB) into `cache/scryfall/`. After that, each start downloads it again only when Scryfall has published a newer version, and a running server checks once a day. Loading the card data takes about 10 seconds. Art is downloaded as needed and cached in `cache/art/`, so a deck's first run is slower: a 100-card deck takes about 15 seconds with new art, then about 11 seconds once the art is cached.
 
 ```
 npm install

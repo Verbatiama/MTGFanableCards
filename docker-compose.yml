@@ -1,0 +1,54 @@
+# MTG Fannable Cards (T-S9, D29, D30). See docs/self-hosting.md.
+#
+#   docker compose up -d                      # the app on port 3000
+#   COMPOSE_PROFILES=caddy DOMAIN=cards.example.com docker compose up -d   # with HTTPS
+#   docker compose run --rm -T app cli - < deck.txt                         # the CLI, into ./out
+#
+# Settings go in a .env file next to this one (see .env.example).
+
+services:
+  app:
+    image: ${FANNABLE_IMAGE:-ghcr.io/verbatiama/mtgfanablecards}:${FANNABLE_TAG:-latest}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - ${APP_PORT:-3000}:3000
+    volumes:
+      - data:/data
+      - ./out:/app/out
+    # Running jobs finish before the container stops (3.6.5).
+    stop_grace_period: 5m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+
+  caddy:
+    image: caddy:2
+    profiles: [caddy]
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+
+volumes:
+  data:
+  caddy-data:
+  caddy-config:

@@ -193,6 +193,7 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 
 - **Art cache cap:** the cache records how often each art is used. When it reaches `ART_CACHE_MAX_GB`, the least-used 25% of cached art is deleted (ties broken by least recent use).
 - **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM, and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
+- **Implementation (T-S9):** `Dockerfile` (Node 22 on Debian slim; the frontend built in a first stage; runs as user `node`; `DATA_DIR=/data`, `ART_CACHE_DIR=/data/art`; `--max-old-space-size=1536` for a refresh; a health check on `/api/health`), `docker-entrypoint.sh` (`server` by default, `cli …` for the CLI), `docker-compose.yml` (image `ghcr.io/verbatiama/mtgfanablecards:${FANNABLE_TAG:-latest}`, `data` volume, `./out` for the CLI, Docker log rotation, and the `caddy` profile using `Caddyfile` with `DOMAIN`), `.env.example`, and the guide in `docs/self-hosting.md`. The CLI reads the decklist from stdin in Docker: `docker compose run --rm -T app cli - < deck.txt`.
 
 3.6.5 **[Confirmed]** Operations (D30):
 
