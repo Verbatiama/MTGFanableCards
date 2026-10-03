@@ -109,7 +109,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 
 | ID   | Task                                                                           | Owner | Depends on        | Req       |
 | ---- | ------------------------------------------------------------------------------ | ----- | ----------------- | --------- |
-| T-S3 | Wire the full pipeline end to end: names → zip                                 | A + B | T-A12, T-B4–T-B12, T-C1, T-C2 | 3         |
+| T-S3 | ✓ DONE: Pipeline wired end to end (names → zip) through src/generate.js for the CLI, the API jobs and the browser previews; test/pipeline.test.js runs every fixture's real Scryfall printing through database → decklist → models → renderer → zip and gets images identical to the fixture renders; smoke run of 3,000 random real cards: no failures or warnings, only split/adventure/flip skipped | A + B | T-A12, T-B4–T-B12, T-C1, T-C2 | 3         |
 | T-S4 | Visual regression tests against the 10 mockups                                 | B     | T-A2, T-S3        | all       |
 | T-S5 | Unit tests for real JSON edge cases (hybrid, XX, colour indicator, multi-type) | A     | T-A6–T-A8         | 5         |
 | T-S6 | Performance run on a 100-card deck, including art downloads                    | A     | T-S3, D24         | 10.5      |
