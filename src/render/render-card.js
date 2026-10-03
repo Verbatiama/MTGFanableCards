@@ -1,6 +1,7 @@
 import { CARD } from '../config/layout.js';
 import { drawFooter } from './footer.js';
 import { drawFrame } from './frame.js';
+import { cardLayout, drawAbilityBands, drawLoyaltyCosts } from './planeswalker.js';
 import { drawStatBarBottom, drawStatBarMiddle, drawStatBarTop } from './stat-bar.js';
 import { drawTextBox } from './text-box.js';
 
@@ -10,9 +11,9 @@ import { drawTextBox } from './text-box.js';
  * the browser's canvas alike (D5): anything environment-specific (creating
  * canvases, loading images and fonts) comes in through `options.env`.
  *
- * Draws the frame (T-B4), the text box contents (T-B5), the footer (T-B6) and
- * the stat bar (T-B7 to T-B9); planeswalker bands and the basic land symbol
- * follow in T-B11 and T-B12.
+ * Draws the frame (T-B4), the text box contents (T-B5), the footer (T-B6), the
+ * stat bar (T-B7 to T-B10) and planeswalker ability bands and loyalty costs
+ * (T-B11); the basic land symbol follows in T-B12.
  *
  * @typedef {object} RenderEnv
  * @property {(width: number, height: number) => any} createCanvas For offscreen work.
@@ -37,12 +38,18 @@ export async function renderCard(ctx, model, { env, assets, art = null, setSymbo
   // The whole card is black: its border and the stat bar (3.5.1, 4.1).
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CARD.width, CARD.height);
-  drawFrame(ctx, model, { env, art, setSymbol });
-  await drawTextBox(ctx, model, { assets, warn });
+  // Bands first: a planeswalker's abilities decide where everything goes (7.2.6).
+  const layout = cardLayout(ctx, model);
+  const bands = { art: layout.art, type: layout.type, text: layout.text };
+  if (layout.art.h <= 0) warn('text box: the abilities need more room than the art box has');
+  drawFrame(ctx, model, { env, art, setSymbol, layout: bands });
+  await drawTextBox(ctx, model, { assets, box: layout.text, warn });
+  if (layout.pw) await drawAbilityBands(ctx, assets, layout.pw);
   await drawFooter(ctx, model, { assets });
-  const from = await drawStatBarTop(ctx, model, { assets, warn });
-  await drawStatBarMiddle(ctx, model, { assets, from, warn });
-  await drawStatBarBottom(ctx, model, { assets });
+  const from = await drawStatBarTop(ctx, model, { assets, warn, ...bands });
+  await drawStatBarMiddle(ctx, model, { assets, from, warn, ...bands });
+  if (layout.pw) await drawLoyaltyCosts(ctx, assets, layout.pw);
+  await drawStatBarBottom(ctx, model, { assets, ...bands });
   ctx.restore();
   return { warnings };
 }

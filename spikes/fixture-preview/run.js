@@ -20,28 +20,13 @@ import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
-import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawSymbol as drawSymbolWith } from '../../src/render/symbols.js';
 import { drawFooter } from '../../src/render/footer.js';
-import {
-  drawBadge,
-  drawStatBarBottom,
-  drawStatBarMiddle,
-  drawStatBarTop,
-} from '../../src/render/stat-bar.js';
-import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
-import {
-  ART,
-  BAR,
-  BOX,
-  CARD,
-  FOOTER,
-  TEXT,
-  TYPE,
-  BADGE_COLOURS,
-  LOYALTY_BADGES,
-} from '../../src/config/index.js';
+import { cardLayout, drawAbilityBands, drawLoyaltyCosts } from '../../src/render/planeswalker.js';
+import { drawStatBarBottom, drawStatBarMiddle, drawStatBarTop } from '../../src/render/stat-bar.js';
+import { drawRulesText, drawWatermark } from '../../src/render/text-box.js';
+import { BOX, CARD, FOOTER } from '../../src/config/index.js';
 
 // Card dimensions and fonts come from the real renderer's config (T-B2).
 const FONT = textFont;
@@ -103,10 +88,8 @@ async function drawStatBar(ctx, model, layout) {
     text: layout.text,
   });
 
-  // Loyalty costs, each centred on its ability band (7.2.1, D22).
-  for (const band of layout.pw?.bands ?? []) {
-    if (band.cost !== null) await drawLoyaltyCost(ctx, band.cost, band.top + band.h / 2, band.h);
-  }
+  // Loyalty costs, each centred on its ability band, from the real renderer (T-B11).
+  if (layout.pw) await drawLoyaltyCosts(ctx, assets, layout.pw);
 
   // Bottom: stats, loyalty, defense badge, or NON-PERMANENT, from the real
   // renderer (T-B9).
@@ -133,7 +116,7 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     const mana = /\{([WUBRGC])\}/.exec(model.oracleText);
     if (mana) await drawSymbol(ctx, mana[1], BOX.x + width / 2 - 90, TEXT.y + TEXT.h / 2 - 90, 180);
   } else {
-    if (pw) await drawAbilityBands(ctx, pw, BOX.x + 6, width - 12);
+    if (pw) await drawAbilityBands(ctx, assets, pw);
     else await drawRulesText(ctx, model, assets, TEXT, warn);
   }
 
@@ -145,76 +128,6 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     ctx.font = LABEL(14);
     ctx.fillText(`BACK FACE (${model.layout})`, BOX.x + 200, FOOTER.y + 28);
   }
-}
-
-/**
- * Per-card geometry. Planeswalkers (7.2.6, D22) get equal-height ability bands,
- * one per Oracle line, sized to the longest; the font shrinks to fit (normal
- * text-fitting rules). If it still doesn't fit at the minimum size, the text box
- * grows upward: the type line moves up with it and the art gets shorter.
- */
-function cardLayout(ctx, model) {
-  const base = { art: ART, type: TYPE, text: TEXT, pw: null };
-  if (!model.types.includes('Planeswalker') || !model.oracleText) return base;
-  const width = BOX.right - BOX.x - 12 - 40;
-  // One band per Oracle line, with its loyalty cost (T-A7 tokenizer).
-  const abilities = tokenizeCard(model).filter((p) => p.kind === 'rules');
-  const measure = (size) => {
-    const layouts = abilities.map((a) => layoutText(ctx, [a], width, size));
-    return { layouts, h: Math.max(...layouts.map((l) => l.height)) + 18 };
-  };
-  let size = 26;
-  let m = measure(size);
-  while (size > 12 && m.h * abilities.length > TEXT.h) m = measure(--size);
-  const textH = Math.max(TEXT.h, m.h * abilities.length);
-  const grow = textH - TEXT.h;
-  const text = { y: TEXT.y - grow, h: textH };
-  // Equal bands that fill the text box.
-  const h = textH / abilities.length;
-  const bands = abilities.map((a, i) => ({
-    cost: a.cost,
-    layout: m.layouts[i],
-    top: text.y + i * h,
-    h,
-  }));
-  return {
-    art: { y: ART.y, h: ART.h - grow },
-    type: { y: TYPE.y - grow, h: TYPE.h },
-    text,
-    pw: { size, bands },
-  };
-}
-
-/** Alternating shaded ability bands, text centred in each (7.2.2). */
-async function drawAbilityBands(ctx, pw, x, width) {
-  for (const [i, band] of pw.bands.entries()) {
-    if (i % 2) {
-      ctx.fillStyle = 'rgba(0,0,0,0.09)';
-      ctx.fillRect(x, band.top, width, band.h);
-    }
-    const top = band.top + (band.h - band.layout.height) / 2;
-    await drawLines(ctx, assets, band.layout, x + 20, top, width - 40, pw.size);
-  }
-}
-
-/**
- * Loyalty cost in the bar (D22): the printed-card badge shapes from the Mana
- * font, + pointing up, − down, 0 flat. ±X is drawn like a number. Scales down
- * to fit short bands.
- */
-async function drawLoyaltyCost(ctx, cost, cy, bandH) {
-  const badge = cost.startsWith('+') ? 'up' : cost.startsWith('−') ? 'down' : 'zero';
-  const size = Math.min(70, bandH - 4);
-  return drawBadge(
-    ctx,
-    assets,
-    LOYALTY_BADGES[badge].icon,
-    BADGE_COLOURS.loyalty,
-    BAR.x + BAR.width / 2,
-    cy,
-    size,
-    cost,
-  );
 }
 
 async function drawContactSheet(cards) {

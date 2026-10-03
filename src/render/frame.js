@@ -286,7 +286,10 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
 
   // Art box (3.4) with its pinline, fading in from the left (ART_FADE).
   const artBox = { x: ART.x, y: art_.y, w: ART.w, h: art_.h };
-  ctx.drawImage(fadedArt(env, palette, art, artBox), artBox.x - PIN, artBox.y - PIN);
+  // A planeswalker's text box can grow over all of it (T-B11): nothing to draw.
+  if (artBox.h > 0) {
+    ctx.drawImage(fadedArt(env, palette, art, artBox), artBox.x - PIN, artBox.y - PIN);
+  }
 
   // Type line, with the set symbol at its right end (6.3).
   ctx.fillStyle = palette.bar;

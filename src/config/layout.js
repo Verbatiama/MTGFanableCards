@@ -100,6 +100,12 @@ export const TYPE = { y: ART.y + ART.h + 6, h: 50 };
 const textTop = TYPE.y + TYPE.h + 6;
 export const TEXT = { y: textTop, h: FOOTER.y - 8 - textTop };
 
+/**
+ * Planeswalker ability bands (7.2, D22): space above and below each ability's
+ * text, the shade on every other band, and the largest loyalty cost badge.
+ */
+export const ABILITY_BAND = { padding: 18, shade: 'rgba(0,0,0,0.09)', cost: 70 };
+
 /** Space between the text box edges and its text (6.4). */
 export const TEXT_PADDING = { x: 20, top: 14, bottom: 10 };
 
