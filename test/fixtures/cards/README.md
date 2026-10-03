@@ -6,6 +6,8 @@ Load them with `loadCardFixtures()` / `loadCardFixture(slug)` from `test/fixture
 
 `test/fixtures/scryfall/printings.json` holds the real Scryfall printing of each fixture card, as the card database stores it (T-A3). `test/model/from-scryfall.test.js` maps those printings (T-A6) and checks the result matches these files, so the fixtures double as the mapper's expected output.
 
+`test/fixtures/scryfall/edge-cases.json` holds more real printings, with no hand-written model: hybrid, XX, colour-indicator and multi-type cards (T-S5). `test/model/edge-cases.test.js` checks what the mapper and the stat bar make of them, and the preview spike draws them as `edge-<face>`.
+
 ## Conventions
 
 - **File name:** the face name in lower case, punctuation dropped, words joined by `-` (`Smuggler's Copter` → `smugglers-copter.json`).

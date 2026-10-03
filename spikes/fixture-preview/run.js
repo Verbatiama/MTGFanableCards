@@ -6,6 +6,8 @@
  *
  *   node spikes/fixture-preview/run.js [--no-art] [slug ...]
  *
+ * Also previews the real Scryfall edge cases of the unit tests (T-S5) as edge-<face>.
+ *
  * Writes out/fixture-preview/<slug>.png, a contact sheet (_all.png) and the
  * previews as printable A4 sheets (_sheets.pdf).
  */
@@ -20,6 +22,7 @@ import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
 import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
+import { mapCard } from '../../src/model/from-scryfall.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
 import { drawFooter } from '../../src/render/footer.js';
 import { cardLayout, drawAbilityBands, drawLoyaltyCosts } from '../../src/render/planeswalker.js';
@@ -146,6 +149,20 @@ async function drawContactSheet(cards) {
   return canvas;
 }
 
+// Real Scryfall edge cases from the unit tests (T-S5): hybrid, XX, colour
+// indicator and multi-type cards, mapped by the real mapper.
+async function edgeCaseModels() {
+  const file = new URL('../../test/fixtures/scryfall/edge-cases.json', import.meta.url);
+  const printings = JSON.parse(await readFile(file, 'utf8'));
+  const slug = (name) =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+  return printings.flatMap(mapCard).map((model) => [`edge-${slug(model.name)}`, model]);
+}
+
 const artFetcher = createArtFetcher();
 const setSymbols = createSetSymbolFetcher(); // T-A10, shares cache/art/ with the app
 const fixtures = loadCardFixtures();
@@ -160,7 +177,7 @@ await mkdir(dir, { recursive: true });
 const created = [];
 const changed = [];
 const cards = [];
-for (const [slug, model] of [...fixtures, ...stressModels(fixtures)]) {
+for (const [slug, model] of [...fixtures, ...stressModels(fixtures), ...(await edgeCaseModels())]) {
   if (wanted.length && !wanted.includes(slug)) continue;
   warnings = [];
   const canvas = await drawCard(model);
