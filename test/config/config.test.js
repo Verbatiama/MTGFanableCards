@@ -8,6 +8,7 @@ import {
   FOOTER_ICONS,
   FRAME,
   INDICATOR,
+  LABELS,
   LAND_FRAME,
   LAND_TYPE_MANA,
   LOYALTY_BADGES,
@@ -23,7 +24,10 @@ import {
 } from '../../src/config/index.js';
 import { ZONE_SYMBOLS } from '../../src/model/card-model.js';
 import { SYMBOL_DIR } from '../../src/paths.js';
+import { copyrightLine } from '../../src/render/footer.js';
+import { middleItems, statBarBottom } from '../../src/render/stat-bar.js';
 import { listSymbolCodes } from '../../src/render/symbol-sheet.js';
+import { loadCardFixture } from '../fixtures/cards.js';
 
 const allIcons = [
   ...Object.values(CARD_TYPES),
@@ -124,4 +128,24 @@ test('every composed mana symbol image exists and is used', () => {
   for (const file of readdirSync(path.join(SYMBOL_DIR, 'mana'))) {
     assert.ok(used.has(`mana/${file}`), `mana/${file} is not in the config`);
   }
+});
+
+test('every word the renderer adds to a card comes from the config, so it can be translated (10.4)', (t) => {
+  const saved = { labels: { ...LABELS }, flash: ZONE_SYMBOL_STYLE.flash.label };
+  t.after(() => {
+    Object.assign(LABELS, saved.labels);
+    ZONE_SYMBOL_STYLE.flash.label = saved.flash;
+  });
+  Object.assign(LABELS, { nonPermanent: 'NO PERMANENTE', copyright: '™ y © {year} Wizards' });
+  ZONE_SYMBOL_STYLE.flash.label = 'DESTELLO';
+
+  const strike = loadCardFixture('lightning-strike');
+  assert.equal(statBarBottom(strike).letters.join(''), 'NO PERMANENTE');
+  assert.ok(middleItems(strike).some((i) => i.label === 'DESTELLO'));
+  assert.equal(copyrightLine(2031), '™ y © 2031 Wizards');
+});
+
+test('labels are English for v1 (D24, 10.4)', () => {
+  assert.equal(LABELS.nonPermanent, 'NON-PERMANENT');
+  assert.equal(ZONE_SYMBOL_STYLE.flash.label, 'FLASH');
 });

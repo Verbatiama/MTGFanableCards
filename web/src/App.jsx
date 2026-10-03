@@ -197,6 +197,22 @@ function Preview({ line, onSuggestion }) {
   );
 }
 
+/**
+ * The card's text alternative (10.3, T-S7): name, type line and stats, and the
+ * rules text, so a screen reader gets what the picture shows.
+ */
+function cardLabel(model) {
+  const stats =
+    model.power !== null
+      ? `${model.power}/${model.toughness}`
+      : model.loyalty !== null
+        ? `Loyalty ${model.loyalty}`
+        : model.defense !== null
+          ? `Defense ${model.defense}`
+          : null;
+  return [model.name, model.typeLine, stats, model.oracleText].filter(Boolean).join('. ');
+}
+
 /** One face, drawn with src/render/ onto a canvas. */
 function CardCanvas({ face }) {
   const canvas = useRef(null);
@@ -216,7 +232,7 @@ function CardCanvas({ face }) {
 
   return (
     <figure>
-      <canvas ref={canvas} className="card" role="img" aria-label={face.model.name} />
+      <canvas ref={canvas} className="card" role="img" aria-label={cardLabel(face.model)} />
       {error && <figcaption className="problem">Couldn&apos;t draw this card: {error}</figcaption>}
       {warnings.map((w) => (
         <figcaption key={w} className="muted">
@@ -289,7 +305,11 @@ function Generate({ decklist, onLine }) {
       <button type="button" className="primary" onClick={start} disabled={starting || active}>
         {active ? 'Generating…' : 'Generate cards'}
       </button>
-      {error && <p className="problem">{error}</p>}
+      {error && (
+        <p className="problem" role="alert">
+          {error}
+        </p>
+      )}
       {job && <JobStatus job={job} onLine={onLine} />}
     </div>
   );
@@ -298,7 +318,8 @@ function Generate({ decklist, onLine }) {
 function JobStatus({ job, onLine }) {
   const problems = reportProblems(job);
   return (
-    <div className="job">
+    // Announced to screen readers as it changes: queue, progress, done (10.3, T-S7).
+    <div className="job" role="status">
       {job.status === 'queued' && (
         <p>
           Waiting for {job.queuePosition > 0 ? `${job.queuePosition} other job(s)` : 'a free slot'}…
@@ -320,7 +341,11 @@ function JobStatus({ job, onLine }) {
           </span>
         </p>
       )}
-      {job.status === 'failed' && <p className="problem">{job.error}</p>}
+      {job.status === 'failed' && (
+        <p className="problem" role="alert">
+          {job.error}
+        </p>
+      )}
       {problems.length > 0 && (
         <div className="report">
           <h3>

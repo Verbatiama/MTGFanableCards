@@ -1,3 +1,4 @@
+import { LABELS } from '../config/labels.js';
 import { BOX, FOOTER, TEXT_SIZE } from '../config/layout.js';
 import { FOOTER_ICONS } from '../config/text-symbols.js';
 import { fitFont, labelFont, textFont } from './fonts.js';
@@ -18,7 +19,7 @@ const LEFT_COLUMN = 160;
 const BRUSH_SIZE = 28;
 
 /** The copyright line for a year: the year the image is generated (6.5.2). */
-export const copyrightLine = (year) => `™ & © ${year} Wizards of the Coast`;
+export const copyrightLine = (year) => LABELS.copyright.replace('{year}', year);
 
 /**
  * Draws the footer.
