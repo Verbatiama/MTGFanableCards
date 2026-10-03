@@ -79,7 +79,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | T-A9  | ✓ DONE: Configuration tables in src/config/ (card types, supertypes, subtypes and land mana, zone/timing styles and keywords, text and stat symbols, frame palettes, labels); mapper and preview spike use them (previews unchanged); a test pins the icons still to be made | S1, D7, D14–D16, D21 | 9            |
 | T-A10 | ✓ DONE: Art fetcher (src/art/art-cache.js): disk cache with a usage index, 100 ms request spacing, shared in-flight downloads, null on failure (black placeholder), least-used 25% evicted at ART_CACHE_MAX_GB; the preview spike uses it | T-A4, D10, T-S2, D29      | 3.4          |
 | T-A11 | ✓ DONE: Output (src/output/): file names from face names with counters for copies, PNG writer, cards.zip (fflate), A4 PDF with 9 cards per page at 63 × 88 mm as JPEGs, with cut lines (pdf-lib); the preview spike also writes _sheets.pdf | D4, T-B2             | 3.5          |
-| T-A12 | CLI entry point and error reporting (`npm run cli`, also run from the Docker image; D29)                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
+| T-A12 | TODO: CLI entry point and error reporting (`npm run cli`, also run from the Docker image; D29)                                                                                                                            | T-A4, T-A11, D9      | 3.1.2, 3.2.6 |
 
 ### Dev B: renderer
 
@@ -125,7 +125,7 @@ Decide these first: they set the frameworks the API, frontend and deployment are
 | ID    | Task                                                                                                         | Owner | Depends on | Req     |
 | ----- | ------------------------------------------------------------------------------------------------------------ | ----- | ---------- | ------- |
 | D25   | Mockups and rules for the in-scope special layouts, and the meaning of the flip markers (including "Ignite") | PO    | D1         | 8.1–8.3 |
-| T-A13 | Parse multi-face data (double-faced, split, adventure and others) into the card model                        | A     | D25, T-A6  | 8       |
+| T-A13 | TODO: Parse multi-face data (double-faced, split, adventure and others) into the card model                        | A     | D25, T-A6  | 8       |
 | T-B13 | Render double-faced faces, back-face marker, split, adventure, saga, class and battle                        | B     | D25, T-B10 | 8       |
 
 ## Critical path and parallel working
