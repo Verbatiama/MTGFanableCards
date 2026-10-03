@@ -42,7 +42,7 @@ test('art fills the art box; no art leaves it black (3.4.1)', async () => {
   assert.deepEqual(pixel(broken, ...artCentre), [0, 0, 0]);
 });
 
-test('the art fades in linearly from its left edge to the card box', async () => {
+test('the art fades in smoothly from its left edge to the card box', async () => {
   const red = createCanvas(40, 30);
   const ctx = red.getContext('2d');
   ctx.fillStyle = '#ff0000';

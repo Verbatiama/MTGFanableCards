@@ -77,8 +77,9 @@ export const ART = {
   h: Math.round((art.right - art.x) / ART_ASPECT),
 };
 /**
- * The art fades in linearly from its left edge (transparent) to where the card
- * box's art used to start (opaque), so it blends into the black stat bar.
+ * The art fades in from its left edge (transparent) to where the card box's
+ * art used to start (opaque), eased at both ends, so it blends seamlessly into
+ * the black stat bar.
  */
 export const ART_FADE = { from: ART.x, to: BOX.x + 6 };
 export const TYPE = { y: ART.y + ART.h + 6, h: 50 };
