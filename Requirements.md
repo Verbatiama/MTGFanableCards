@@ -367,24 +367,24 @@ The result is stored in the card model as `zoneSymbols` (T-A8).
 
 5.5.1 **[Confirmed]** Legendary is shown as a crown icon (Niv-Mizzet). **[Confirmed]** The crown has no label (revised after T-B11): the mockup's "LEGENDARY" text is dropped, and the crown always sits below the art.
 
-5.5.2 **[Confirmed]** Basic is shown with a labelled icon, BASIC (Forest, composite image; D15).
+5.5.2 **[Confirmed]** Basic is shown with an icon (Forest, composite image; D15). **[Confirmed]** No label (revised after T-B11, like every supertype icon, 5.5.4).
 
 5.5.3 **[Confirmed]** Planeswalkers are not exempt: every legendary card, planeswalkers included, shows the crown + LEGENDARY (D15, revised). The Jace mockup's missing LEGENDARY icon is treated as an omission.
 
-5.5.4 **[Confirmed]** Snow and World get an icon with a label, like Legendary and Basic (D15):
+5.5.4 **[Confirmed]** Snow and World get an icon, like Legendary and Basic (D15). **[Confirmed]** Supertype icons have no labels (revised after T-B11); only zone/timing symbols keep theirs (5.5.10):
 
 | Supertype | Icon                                     | Label     |
 | --------- | ---------------------------------------- | --------- |
 | Legendary | Crown                                    | (none)    |
-| Basic     | Basic icon                               | BASIC     |
-| Snow      | Snowflake (the same art as the {S} mana symbol) | SNOW      |
-| World     | Globe                                    | WORLD     |
+| Basic     | Basic icon                               | (none)    |
+| Snow      | Snowflake (the same art as the {S} mana symbol) | (none)    |
+| World     | Globe                                    | (none)    |
 
 Token is out of scope for v1 and gets no icon; tokens are decided with the other special layouts (section 8). Ongoing and Elite only appear on out-of-scope card kinds (5.1.4) and get no icon.
 
-**[Confirmed]** A card with several supertypes shows one icon per supertype, stacked in type-line order (D15): Dark Depths shows LEGENDARY then SNOW; Snow-Covered Forest shows BASIC then SNOW. Overflow is handled by D19.
+**[Confirmed]** A card with several supertypes shows one icon per supertype, stacked in type-line order (D15): Dark Depths shows the crown then the snowflake; Snow-Covered Forest shows Basic then the snowflake. Overflow is handled by D19.
 
-5.5.5 **[Confirmed]** Subtype icons appear in the middle section with no text label (D16). The mockups label them EQUIPMENT (Sword of Fire and Ice) and AURA (Feral Invocation); D16 drops those labels. Zone/timing and supertype icons keep their labels (5.4, 5.5.2–5.5.4), except the Legendary crown (5.5.1).
+5.5.5 **[Confirmed]** Subtype icons appear in the middle section with no text label (D16). The mockups label them EQUIPMENT (Sword of Fire and Ice) and AURA (Feral Invocation); D16 drops those labels. Zone/timing icons keep their labels (5.4); supertype icons have none (5.5.1–5.5.4).
 
 5.5.6 **[Confirmed]** Creature subtypes and token subtypes do not get icons (README goal 9).
 
@@ -416,7 +416,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 5.5.9 **[Confirmed]** A card with several subtypes that have icons shows one icon each, in type-line order, like supertypes (D15, D16). Subtypes without icons are skipped, so an Aura Curse shows only the Aura icon. Overflow is handled by D19.
 
-5.5.10 **[Confirmed]** Subtype icons are icon-only; zone/timing and supertype icons carry a text label (D16), except the Legendary crown (5.5.1).
+5.5.10 **[Confirmed]** Subtype and supertype icons are icon-only; only zone/timing icons carry a text label (D16; supertype labels removed after T-B11).
 
 ### 5.6 Middle-section layout
 
@@ -426,7 +426,7 @@ Every other subtype gets no icon and shows only in the type line, including the 
 
 5.6.3 **[Confirmed]** Collision rule (D19, revised in T-B8). The stack may run down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. A planeswalker's stack may run down only to the top of the text box. When it doesn't fit, these steps apply in order, stopping at the first that fits:
 
-1. **Drop the labels** under supertype and zone/timing icons.
+1. **Drop the labels** under zone/timing icons.
 2. **Shrink the icons**, all together, down to a minimum of half size.
 
 Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, real cards never reach step 1: a legendary creature with flash and flashback fits beside the text box with room to spare. The preview spike has synthetic stress cases for each step (`spikes/fixture-preview/stress.js`).
@@ -646,7 +646,7 @@ The implementation keeps these as configuration tables rather than hard-coding t
 | Table                                 | Maps        | Status                                               |
 | ------------------------------------- | ----------- | ---------------------------------------------------- |
 | Card type → icon                      | 5.1         | Defined (D14); all icons made (T-B14)                |
-| Supertype → icon + label              | 5.5.1–5.5.4 | Defined (D15); all icons made (T-B14)                |
+| Supertype → icon                      | 5.5.1–5.5.4 | Defined (D15); all icons made (T-B14)                |
 | Subtype → icon                        | 5.5.7–5.5.9 | Defined (D16); all icons made (T-B14)                |
 | Mana symbol → icon, count rule, order | 5.3         | Defined (D11); Y, Z and the extra hybrids composed (T-B14) |
 | Mechanic → zone/timing symbol + label | 5.4         | Defined (D12); all icons made (T-B14)                |
@@ -676,9 +676,9 @@ The implementation keeps these as configuration tables rather than hard-coding t
 - Generated card images carry no extra "unofficial" marking; the footer keeps the copyright line (6.5.2).
 - Design attribution: none needed (1.4). Symbol licensing: the symbol sheet is the project's own, traced icons are GPL-3.0 like the project, and set symbols come from Scryfall at runtime (9.1, `res/symbols/README.md`).
 
-  10.3 **Accessibility [Confirmed].** No formal accessibility target for v1, for card images or the frontend (D24). The decisions already made stand: mana symbols carry glyphs, zone/timing and supertype icons carry labels (D12, D15), and the colour indicator uses divider lines with no letters (D17, 5.2.5).
+  10.3 **Accessibility [Confirmed].** No formal accessibility target for v1, for card images or the frontend (D24). The decisions already made stand: mana symbols carry glyphs, zone/timing icons carry labels (D12), and the colour indicator uses divider lines with no letters (D17, 5.2.5).
 
-  10.4 **Localisation [Confirmed].** English only for v1 (D24): English printings and English labels ("NON-PERMANENT", "LEGENDARY", "FLASH", …). The labels live in the configuration tables (section 9), so translations can be added later without code changes. The footer keeps its language code ("EN").
+  10.4 **Localisation [Confirmed].** English only for v1 (D24): English printings and English labels ("NON-PERMANENT", "FLASH", …). The labels live in the configuration tables (section 9), so translations can be added later without code changes. The footer keeps its language code ("EN").
 
   10.5 **Performance [Confirmed].** No hard target and no batch-size limit for v1 (D24). Generation time is measured and reported (e.g. for a 100-card Commander deck, with and without cached art), but there is no pass/fail threshold. Art downloads are bounded by the Scryfall rate limit (100ms per request, D10), so about 10 seconds per 100 uncached cards.
 

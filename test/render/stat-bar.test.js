@@ -172,7 +172,7 @@ test('middle order: attaching subtypes, supertypes, zone/timing; only some label
   });
   assert.deepEqual(
     items.map((i) => `${i.key}:${i.label}`),
-    ['Aura:null', 'Legendary:null', 'Snow:SNOW', 'flash:FLASH', 'graveyard:GRAVEYARD'],
+    ['Aura:null', 'Legendary:null', 'Snow:null', 'flash:FLASH', 'graveyard:GRAVEYARD'],
   );
   // Subtypes without icons, and supertypes without icons, are skipped.
   assert.deepEqual(
@@ -190,9 +190,9 @@ test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () 
     ['Legendary', 'Snow'],
   );
   assert.ok(labels && scale === 1);
-  // The crown has no label, so takes no label room; SNOW below it has one.
+  // Supertype icons have no label, so take no label room.
   assert.equal(stack[1].y, TYPE.y + BAR_MIDDLE.icon + BAR_MIDDLE.gap);
-  assert.equal(stack[1].labelled, true);
+  assert.ok(stack.every((i) => !i.labelled));
   // Unlabelled subtype icons take no label room.
   const sword = middle('feral-invocation');
   assert.equal(sword.stack[1].y - sword.stack[0].y, BAR_MIDDLE.icon + BAR_MIDDLE.gap);

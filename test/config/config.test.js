@@ -64,11 +64,11 @@ test('every zone symbol has an icon and a label, and keywords map to real symbol
   for (const symbol of Object.keys(ZONE_KEYWORDS)) assert.ok(ZONE_SYMBOLS.includes(symbol));
 });
 
-test('supertypes with icons are known supertypes and have labels, except the crown (D15)', () => {
+test('supertypes with icons are known supertypes, drawn without labels (D15)', () => {
   for (const [name, style] of Object.entries(SUPERTYPE_ICONS)) {
     assert.ok(SUPERTYPES.includes(name), name);
     assert.ok(style.icon || style.manaSymbol, name);
-    assert.equal(Boolean(style.label), name !== 'Legendary', name);
+    assert.equal(style.label, undefined, name);
   }
 });
 

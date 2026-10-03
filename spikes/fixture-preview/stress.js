@@ -71,8 +71,8 @@ const STRESS = {
   ],
   // Planeswalker: the stack stays beside the type line (loyalty costs use the
   // bar beside the text box), which fits one icon but not its label, so the
-  // SNOW label drops.
-  'stress-drop-labels': ['ajani-sleeper-agent', { supertypes: ['Snow'] }],
+  // FLASH label drops.
+  'stress-drop-labels': ['ajani-sleeper-agent', { supertypes: [], zoneSymbols: ['flash'] }],
   // Planeswalker with the crown and FLASH: two icons only fit beside the type
   // line once they shrink.
   'stress-shrink': ['ajani-sleeper-agent', { zoneSymbols: ['flash'] }],

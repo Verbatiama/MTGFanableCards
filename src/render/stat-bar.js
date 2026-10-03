@@ -174,7 +174,7 @@ export async function drawStatBarTop(ctx, model, { assets, warn = () => {}, ...b
 /**
  * The middle stack's items, top to bottom (D19, 5.6.1): attaching subtypes
  * (icon only, D16), supertypes (D15), then zone/timing symbols (D12), each
- * group in its own order. Supertype and zone/timing items have a label.
+ * group in its own order. Only zone/timing items have a label (5.5.10).
  * @returns {{ group: 'subtype' | 'supertype' | 'zone', key: string, label: string | null }[]}
  */
 export function middleItems(model) {
@@ -184,7 +184,7 @@ export function middleItems(model) {
       .map((key) => ({ group: 'subtype', key, label: null })),
     ...model.supertypes
       .filter((t) => SUPERTYPE_ICONS[t])
-      .map((key) => ({ group: 'supertype', key, label: SUPERTYPE_ICONS[key].label })),
+      .map((key) => ({ group: 'supertype', key, label: null })),
     ...model.zoneSymbols.map((key) => ({
       group: 'zone',
       key,
