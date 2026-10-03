@@ -18,7 +18,8 @@ WORKDIR /app
 # docker-entrypoint.sh sets NODE_OPTIONS for the heap size (LOW_MEMORY, T-S13).
 ENV NODE_ENV=production \
     DATA_DIR=/data \
-    ART_CACHE_DIR=/data/art
+    ART_CACHE_DIR=/data/art \
+    SET_CACHE_DIR=/data/sets
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/web/dist ./web/dist
 COPY package.json docker-entrypoint.sh ./

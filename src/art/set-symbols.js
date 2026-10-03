@@ -1,6 +1,6 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { CACHE_DIR } from '../paths.js';
+import { SET_CACHE_DIR } from '../paths.js';
 
 /**
  * Set symbol fetcher (T-B4, D7, Requirements 6.3.3): Scryfall's set SVGs,
@@ -24,7 +24,7 @@ const DAY_MS = 86_400_000;
  * @param {{ warn: Function }} [options.log]
  */
 export function createSetSymbolFetcher({
-  dir = path.join(CACHE_DIR, 'sets'),
+  dir = SET_CACHE_DIR,
   fetch = globalThis.fetch,
   now = Date.now,
   log = console,
