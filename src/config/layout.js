@@ -31,8 +31,10 @@ export const BAR = { x: BORDER, width: 90, icon: 56, gap: 6 };
  * row wouldn't otherwise fit `bottom` above the type line.
  */
 export const BAR_TOP = {
-  y: BORDER + 10,
-  typeRow: 80,
+  // The type icon row lines up with the name bar (NAME: its top and height),
+  // so the icon never reaches down over the art.
+  y: BORDER + 8,
+  typeRow: 58,
   typeGap: 3,
   indicator: 22,
   rowGap: 8,

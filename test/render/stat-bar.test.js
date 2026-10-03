@@ -9,6 +9,7 @@ import {
   BAR_TOP,
   BOX,
   CARD,
+  NAME,
   TEXT,
   TYPE,
 } from '../../src/config/layout.js';
@@ -83,6 +84,17 @@ test('one mana row per grouped symbol, in model order; no cost means no rows (5.
   assert.deepEqual(top('ancestral-vision').mana, []);
 });
 
+test('the type icon row lines up with the name bar and stays above the art (5.1)', () => {
+  assert.equal(BAR_TOP.y, NAME.y);
+  assert.equal(BAR_TOP.typeRow, NAME.h);
+  for (const slug of ['niv-mizzet-the-firemind', 'wurmcoil-engine', 'dryad-arbor']) {
+    for (const icon of top(slug).types) {
+      assert.ok(icon.y >= NAME.y && icon.y + icon.size <= NAME.y + NAME.h, slug);
+      assert.ok(icon.y + icon.size <= ART.y, slug);
+    }
+  }
+});
+
 test('the mana rows start below the top of the art and spread out over it (5.3.11)', () => {
   const [first, second] = top('niv-mizzet-the-firemind').mana;
   // Below the art's top edge, or below the type icon row when that reaches lower.
@@ -106,9 +118,9 @@ test('the mana rows close up only when they would not fit above the type line (5
 
   // A type line moved up (planeswalkers, T-B11) closes them up too.
   const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(4) };
-  const raised = statBarTop(model, { type: { y: TYPE.y - 200 } }).mana;
+  const raised = statBarTop(model, { type: { y: TYPE.y - 210 } }).mana;
   assert.ok(raised[1].pill.y - raised[0].pill.y < pillH + BAR_TOP.mana.gap);
-  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 200 - BAR_TOP.mana.bottom + 0.01);
+  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 210 - BAR_TOP.mana.bottom + 0.01);
 });
 
 test('each mana row sits on a black pill; its count is centred between the symbol and the card box', async () => {
