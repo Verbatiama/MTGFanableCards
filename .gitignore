@@ -27,3 +27,6 @@ Thumbs.db
 
 # Frontend build (T-C2)
 web/dist/
+
+# Your provisioning settings (scripts/provision.example.json)
+provision.json

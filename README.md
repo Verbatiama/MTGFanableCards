@@ -46,6 +46,32 @@ npm run cli -- - < deck.txt        # read the decklist from stdin
 
 `--out <dir>` writes somewhere other than `out/`. Problems are listed on stderr by line number and never stop the batch; add `--strict` to exit with code 1 when there were any. `--help` lists every option.
 
+### On a DigitalOcean droplet
+
+To put the app on the internet, `npm run provision` sets up a fresh Ubuntu server over SSH. It installs updates, a swap file, Docker and a firewall that only lets SSH and the web through. It also creates a `deploy` user to run the app, and writes the app's Docker setup (see the [self-hosting guide](docs/self-hosting.md)).
+
+1. Create a droplet by following DigitalOcean's guide, [How to Create a Droplet](https://docs.digitalocean.com/products/droplets/how-to/create/). Choose the latest Ubuntu LTS image, the 2 GB / 1 CPU size and the region nearest your players. Under authentication, choose **SSH Key** and add your public key ([How to Add SSH Keys to New or Existing Droplets](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/)).
+2. Check you can log in: `ssh root@<droplet IP>`.
+3. To use a domain name with HTTPS, add a DNS `A` record that points the name at the droplet's IP.
+4. From this repository, run the script with arguments:
+
+   ```
+   npm run provision -- --host <droplet IP> --domain cards.example.com --start
+   ```
+
+   or with your settings in a JSON file (start from [`scripts/provision.example.json`](scripts/provision.example.json)):
+
+   ```
+   cp scripts/provision.example.json provision.json   # then edit it
+   npm run provision -- --config provision.json
+   ```
+
+   Arguments override the file. `--dry-run` prints what would run on the server without connecting, and `--help` lists every setting. Leave out `--domain` to serve plain HTTP on port 3000. The script is safe to run again, for example to change settings.
+
+5. Open https://cards.example.com. The first start downloads the card data, which takes a minute or so.
+
+The script ends by printing the values that GitHub Actions needs to deploy each push to `main`; the guide's [Continuous deployment](docs/self-hosting.md#continuous-deployment) section explains them.
+
 ## Decklist format
 
 One card per line, as exported by Arena, MTGO, Moxfield and most deck builders:

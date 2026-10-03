@@ -9,6 +9,17 @@ Run your own copy of MTG Fannable Cards with Docker: the web app, optionally beh
 - About 15 GB of disk: the card data (about 115 MB, plus working space) and the art cache, which is capped at 10 GB by default.
 - For HTTPS, a domain name whose DNS record points at the machine, and ports 80 and 443 open.
 
+## A new server in one step
+
+For a fresh Ubuntu server, such as a DigitalOcean droplet, `npm run provision` (in [`scripts/provision-vps.js`](../scripts/provision-vps.js)) does everything below over SSH, from a clone of this repository:
+
+- Installs updates (and automatic security updates), adds a swap file, and installs Docker.
+- Sets up the firewall: SSH, plus 80 and 443 with a domain, or 3000 without one.
+- Creates the `deploy` user, which can log in with your SSH keys and, optionally, the GitHub Actions deploy key.
+- Writes the app folder with `docker-compose.yml`, `Caddyfile` and `.env`, and with `--start` starts the app.
+
+Settings come from arguments or a JSON file (see [`scripts/provision.example.json`](../scripts/provision.example.json)); the README's "On a DigitalOcean droplet" section walks through it. Otherwise, set the server up by hand as follows.
+
 ## Start the app
 
 Make a folder and put three files from this repository in it: [`docker-compose.yml`](../docker-compose.yml), [`Caddyfile`](../Caddyfile) and [`.env.example`](../.env.example), renamed `.env`. Then:
@@ -96,7 +107,7 @@ Maintainers only: how the public instance is deployed (D30). Every push to `main
 
 To set it up:
 
-1. On the server, create a user in the `docker` group (e.g. `deploy`) and a folder for the app (e.g. `~/fannable`) with a `.env` that sets `FANNABLE_TAG=main`, the Caddy profile and the domain, and an `out/` folder.
+1. On the server, create a user in the `docker` group (e.g. `deploy`) and a folder for the app (e.g. `~/fannable`) with a `.env` that sets `FANNABLE_TAG=main`, the Caddy profile and the domain, and an `out/` folder. `npm run provision` does this; pass it the deploy key's public half with `--deploy-key` and it skips step 2's `authorized_keys` edit too.
 2. Make an SSH key pair for GitHub Actions and add the public key to that user's `~/.ssh/authorized_keys`.
 3. In the GitHub repository settings, under Secrets and variables → Actions:
    - Secrets: `DEPLOY_SSH_KEY` (the private key) and `DEPLOY_KNOWN_HOSTS` (the output of `ssh-keyscan <server>`).
