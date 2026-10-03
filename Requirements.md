@@ -117,7 +117,7 @@ Each requirement is tagged:
 
 ### 3.5 Output
 
-3.5.1 **[Confirmed]** Output format: **PNG, 750×1050 pixels (300 DPI for printing)**. Cards include a black border around the edges. All images bundled into a zip file named `cards`.
+3.5.1 **[Confirmed]** Output format: **PNG, 750×1050 pixels (300 DPI for printing)**. Cards include a black border around the edges. **[Confirmed]** The border is 36px (about 3 mm, like a printed card) on all four sides, outside the stat bar, frame and footer; it is one setting (`BORDER` in `src/config/layout.js`). The text box keeps its size and the art box is shorter to make room. The loyalty and defense badges straddle the bar's bottom edge into the border (5.7.7, 7.2.3). All images bundled into a zip file named `cards`.
 
 3.5.2 **[Confirmed]** File naming: `card-name.png` (e.g., `Lightning-Bolt.png`, `Counterspell.png`). Duplicate card names are handled by appending a counter if needed (e.g., `Counterspell-2.png`).
 

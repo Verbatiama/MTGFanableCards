@@ -132,7 +132,7 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     ctx.fillStyle = '#fff';
     ctx.textBaseline = 'top';
     ctx.font = LABEL(14);
-    ctx.fillText(`BACK FACE (${model.layout})`, BOX.x + 200, FOOTER.y + 52);
+    ctx.fillText(`BACK FACE (${model.layout})`, BOX.x + 200, FOOTER.y + 28);
   }
 }
 
@@ -199,7 +199,7 @@ async function drawLoyaltyCost(ctx, cost, cy, bandH) {
     assets,
     LOYALTY_BADGES[badge].icon,
     BADGE_COLOURS.loyalty,
-    BAR.width / 2,
+    BAR.x + BAR.width / 2,
     cy,
     size,
     cost,

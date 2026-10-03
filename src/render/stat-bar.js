@@ -38,7 +38,7 @@ export function statBarTop(model) {
   const n = shown.length;
   const gap = BAR_TOP.typeGap;
   const size = Math.min(BAR_TOP.typeRow, Math.floor((BAR.width - 4 - gap * (n - 1)) / n));
-  const left = (BAR.width - (size * n + gap * (n - 1))) / 2;
+  const left = BAR.x + (BAR.width - (size * n + gap * (n - 1))) / 2;
   const types = shown.map((type, i) => ({
     type,
     x: left + i * (size + gap),
@@ -50,12 +50,12 @@ export function statBarTop(model) {
   let indicator = null;
   if (model.colorIndicator) {
     const r = BAR_TOP.indicator;
-    indicator = { colours: model.colorIndicator, cx: BAR.width / 2, cy: y + r, r };
+    indicator = { colours: model.colorIndicator, cx: BAR.x + BAR.width / 2, cy: y + r, r };
     y += r * 2 + BAR_TOP.rowGap;
   }
 
   const mana = (model.manaCost ?? []).map(({ symbol, count }) => {
-    const row = { symbol, count, x: 8, y, size: BAR.icon };
+    const row = { symbol, count, x: BAR.x + 8, y, size: BAR.icon };
     y += BAR.icon + BAR.gap;
     return row;
   });
@@ -271,7 +271,7 @@ async function middleIcon(assets, { group, key, label }) {
  */
 export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
   const middle = statBarMiddle(model, bands);
-  const cx = BAR.width / 2;
+  const cx = BAR.x + BAR.width / 2;
   ctx.save();
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
@@ -287,7 +287,7 @@ export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
   if (middle.overflow) {
     // Still too long at the minimum size: flag it rather than hide anything.
     ctx.fillStyle = '#e33';
-    ctx.fillRect(0, middle.overflow.from, 4, middle.overflow.to - middle.overflow.from);
+    ctx.fillRect(BAR.x, middle.overflow.from, 4, middle.overflow.to - middle.overflow.from);
   }
   for (const { symbol, y, size } of middle.land) {
     await drawSymbol(ctx, assets, symbol, cx - size / 2, y, size);
@@ -351,7 +351,7 @@ function drawAsterisk(ctx, x, y, r, hollow) {
 function drawValue(ctx, value, y, hollow) {
   const { value: size, minValue } = BAR_BOTTOM.stats;
   const maxWidth = BAR.width - 10;
-  const cx = BAR.width / 2;
+  const cx = BAR.x + BAR.width / 2;
   if (!value.includes('*')) {
     fitFont(ctx, value, maxWidth, size, textFont, minValue);
     ctx.textAlign = 'center';
@@ -399,7 +399,7 @@ function drawIcon(ctx, assets, icon, x, y, size, hollow) {
 /** A value with its sword or shield underneath (5.7.1), or a text label without one. */
 async function drawStat(ctx, assets, stat, value, y, hollow) {
   const { value: size, icon: iconSize } = BAR_BOTTOM.stats;
-  const cx = BAR.width / 2;
+  const cx = BAR.x + BAR.width / 2;
   drawValue(ctx, value, y, hollow);
   const icon = await assets.icon(STAT_ICONS[stat].icon);
   if (icon) drawIcon(ctx, assets, icon, cx - iconSize / 2, y + size, iconSize, hollow);
@@ -418,7 +418,7 @@ async function drawStat(ctx, assets, stat, value, y, hollow) {
  */
 export async function drawStatBarBottom(ctx, model, { assets }) {
   const bottom = statBarBottom(model);
-  const cx = BAR.width / 2;
+  const cx = BAR.x + BAR.width / 2;
   ctx.save();
   ctx.fillStyle = '#fff';
   ctx.strokeStyle = '#fff';
@@ -426,7 +426,7 @@ export async function drawStatBarBottom(ctx, model, { assets }) {
   ctx.textBaseline = 'top';
   if (bottom.kind === 'stats') {
     await drawStat(ctx, assets, 'power', bottom.power, bottom.powerY, bottom.hollow);
-    const [x, w] = [18, BAR.width - 36];
+    const [x, w] = [BAR.x + 18, BAR.width - 36];
     if (bottom.hollow) {
       ctx.lineWidth = 1;
       ctx.strokeRect(x + 0.5, bottom.dividerY + 0.5, w - 1, 1);

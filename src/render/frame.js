@@ -1,5 +1,5 @@
 import { FRAME, LAND_FRAME } from '../config/frames.js';
-import { ART, BOX, CARD, NAME, TEXT, TEXT_SIZE, TYPE } from '../config/layout.js';
+import { ART, BOX, FOOTER, FRAME_TOP, NAME, TEXT, TEXT_SIZE, TYPE } from '../config/layout.js';
 import { fitFont, textFont } from './fonts.js';
 
 /**
@@ -223,7 +223,7 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   const width = BOX.right - BOX.x;
 
   // Border: colour (or the art showing through, for devoid) plus texture.
-  const frame = { x: BOX.x - 4, y: 4, w: width + 8, h: CARD.height - 8 - 80 };
+  const frame = { x: BOX.x - 4, y: FRAME_TOP, w: width + 8, h: FOOTER.y - FRAME_TOP };
   if (palette.devoid && art) drawCover(ctx, art, frame);
   ctx.fillStyle = fill.border;
   ctx.fillRect(frame.x, frame.y, frame.w, frame.h);

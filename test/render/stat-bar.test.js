@@ -33,8 +33,9 @@ test('one type icon at full size; several share one row in type-line order (5.1.
   assert.ok(three[0].size >= 25 && three[0].size <= 30);
   for (const row of [two, three]) {
     // Inside the bar, centred, all on one row.
-    assert.ok(row[0].x >= 0 && row.at(-1).x + row.at(-1).size <= BAR.width);
-    assert.ok(Math.abs(row[0].x - (BAR.width - row.at(-1).x - row.at(-1).size)) < 1);
+    const right = BAR.x + BAR.width;
+    assert.ok(row[0].x >= BAR.x && row.at(-1).x + row.at(-1).size <= right);
+    assert.ok(Math.abs(row[0].x - BAR.x - (right - row.at(-1).x - row.at(-1).size)) < 1);
     assert.equal(new Set(row.map((t) => t.y)).size, 1);
   }
 });
@@ -95,15 +96,15 @@ test('the mana block draws a symbol and its count on each row', async () => {
   const model = loadCardFixture('niv-mizzet-the-firemind');
   const canvas = await renderCardCanvas(model);
   for (const { x, y, size } of statBarTop(model).mana) {
-    const row = canvas.getContext('2d').getImageData(x, y, BAR.width - x, size).data;
+    const row = canvas.getContext('2d').getImageData(x, y, BAR.x + BAR.width - x, size).data;
     const lit = (from, to) => {
       for (let py = 0; py < size; py++)
         for (let px = from; px < to; px++)
-          if (row[(py * (BAR.width - x) + px) * 4] > 100) return true;
+          if (row[(py * (BAR.x + BAR.width - x) + px) * 4] > 100) return true;
       return false;
     };
     assert.ok(lit(0, size), 'symbol');
-    assert.ok(lit(size + 2, BAR.width - x), 'count');
+    assert.ok(lit(size + 2, BAR.x + BAR.width - x), 'count');
   }
 });
 
@@ -202,7 +203,9 @@ test('the middle stack is drawn beside the type line', async () => {
   const model = loadCardFixture('dark-depths');
   const canvas = await renderCardCanvas(model);
   const [legendary] = statBarMiddle(model, { from: statBarTop(model).bottom }).stack;
-  const data = canvas.getContext('2d').getImageData(0, legendary.y, BAR.width, legendary.size).data;
+  const data = canvas
+    .getContext('2d')
+    .getImageData(BAR.x, legendary.y, BAR.width, legendary.size).data;
   assert.ok(data.some((v, i) => i % 4 === 0 && v > 200));
 });
 
@@ -267,7 +270,8 @@ const lit = (canvas, x, y, w, h) =>
     .data.some((v, i) => i % 4 !== 3 && v > 128);
 
 test('stats, badges and labels are drawn; permanents with nothing leave the bottom empty', async () => {
-  const area = (canvas, top) => lit(canvas, 0, top, BAR.width, CARD.height - BAR_BOTTOM.edge - top);
+  const area = (canvas, top) =>
+    lit(canvas, BAR.x, top, BAR.width, CARD.height - BAR_BOTTOM.edge - top);
   for (const slug of [
     'tarmogoyf',
     'smugglers-copter',
@@ -288,7 +292,7 @@ test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", asyn
   const shield = async (m) =>
     (await renderCardCanvas(m))
       .getContext('2d')
-      .getImageData(BAR.width / 2 - icon / 2, toughnessY + value, icon, icon).data;
+      .getImageData(BAR.x + BAR.width / 2 - icon / 2, toughnessY + value, icon, icon).data;
   const hollow = await shield(model);
   const solid = await shield({ ...model, types: ['Artifact', 'Creature'] });
   let edge = 0;
