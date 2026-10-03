@@ -68,6 +68,10 @@ async function loadArt(model) {
   }
 }
 
+// Layout warnings for the card being drawn (D19, D20), printed after the run.
+let warnings = [];
+const warn = (message) => warnings.push(message);
+
 async function drawCard(model) {
   const art = await loadArt(model);
   const canvas = createCanvas(CARD.width, CARD.height);
@@ -87,11 +91,17 @@ async function drawStatBar(ctx, model, layout) {
   ctx.textBaseline = 'top';
 
   // Top: card type icons, colour indicator, mana, from the real renderer (T-B7).
-  const y = await drawStatBarTop(ctx, model, { assets, art: layout.art, type: layout.type });
+  const y = await drawStatBarTop(ctx, model, { assets, warn, art: layout.art, type: layout.type });
 
   // Middle: the stack hanging from the type line and the land mana symbols,
   // from the real renderer (T-B8).
-  await drawStatBarMiddle(ctx, model, { assets, from: y, type: layout.type, text: layout.text });
+  await drawStatBarMiddle(ctx, model, {
+    assets,
+    warn,
+    from: y,
+    type: layout.type,
+    text: layout.text,
+  });
 
   // Loyalty costs, each centred on its ability band (7.2.1, D22).
   for (const band of layout.pw?.bands ?? []) {
@@ -124,7 +134,7 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     if (mana) await drawSymbol(ctx, mana[1], BOX.x + width / 2 - 90, TEXT.y + TEXT.h / 2 - 90, 180);
   } else {
     if (pw) await drawAbilityBands(ctx, pw, BOX.x + 6, width - 12);
-    else await drawRulesText(ctx, model, assets, TEXT);
+    else await drawRulesText(ctx, model, assets, TEXT, warn);
   }
 
   // Footer from the real renderer (T-B6).
@@ -244,7 +254,9 @@ const changed = [];
 const cards = [];
 for (const [slug, model] of [...fixtures, ...stressModels(fixtures)]) {
   if (wanted.length && !wanted.includes(slug)) continue;
+  warnings = [];
   const canvas = await drawCard(model);
+  for (const message of warnings) console.warn(`${slug}: ${message}`);
   const file = path.join(dir, `${slug}.png`);
   const png = canvas.toBuffer('image/png');
   const previous = await readFile(file).catch(() => null);

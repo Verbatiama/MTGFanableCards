@@ -42,7 +42,9 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
  *   row sits on a black pill (`pill`) ending at the frame, so it reads over the
  *   art. The rows start a little below the art's top and are spread out so the
  *   art shows around them; they close up only as far as needed to fit above
- *   the type line (`BAR_TOP.mana`, 5.3.11).
+ *   the type line (`BAR_TOP.mana`, 5.3.11). `manaOverflow` is set when they
+ *   run past it even with the pills touching (the stack then starts below
+ *   them, 4.4).
  * - `bottom`: where the top section ends.
  *
  * @param {import('../model/card-model.js').CardModel} model
@@ -72,7 +74,7 @@ export function statBarTop(model, { art = ART, type = TYPE } = {}) {
   }
 
   const costs = model.manaCost ?? [];
-  if (!costs.length) return { types, indicator, mana: [], bottom: y };
+  if (!costs.length) return { types, indicator, mana: [], bottom: y, manaOverflow: false };
   const pad = BAR_TOP.pill;
   const pillH = BAR.icon + pad * 2;
   const start = Math.max(y, art.y + BAR_TOP.mana.top);
@@ -95,7 +97,9 @@ export function statBarTop(model, { art = ART, type = TYPE } = {}) {
     };
   });
   const last = mana.at(-1).pill;
-  return { types, indicator, mana, bottom: last.y + last.h };
+  const bottom = last.y + last.h;
+  const manaOverflow = bottom > type.y - BAR_TOP.mana.bottom + 0.01;
+  return { types, indicator, mana, bottom, manaOverflow };
 }
 
 /**
@@ -136,11 +140,12 @@ function drawIndicator(ctx, { colours, cx, cy, r }) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>,
- *   art?: { y: number }, type?: { y: number } }} options
+ *   art?: { y: number }, type?: { y: number }, warn?: (message: string) => void }} options
  * @returns {Promise<number>} Where the top section ends, for the middle stack.
  */
-export async function drawStatBarTop(ctx, model, { assets, ...bands }) {
+export async function drawStatBarTop(ctx, model, { assets, warn = () => {}, ...bands }) {
   const top = statBarTop(model, bands);
+  if (top.manaOverflow) warn('stat bar: the mana rows run past the type line');
   ctx.save();
   for (const { type, x, y, size } of top.types) {
     const { icon, placeholder } = CARD_TYPES[type];
@@ -245,8 +250,9 @@ export function bottomSectionTop(model, bands) {
  * A planeswalker's stack instead grows up from the bottom of the type line, as
  * far as the top section, since its loyalty costs use the bar beside the text
  * box (7.2.1). If the stack doesn't fit, its labels are dropped; if it still
- * doesn't, all icons shrink together, down to half size. Nothing is hidden:
- * `overflow` is set when it still doesn't fit.
+ * doesn't, all icons shrink together, down to half size. A mana block so long
+ * it runs past the type line pushes the hanging stack down below it. Nothing
+ * is hidden: `overflow` is set when the stack still doesn't fit (D19, 4.4).
  *
  * The land mana symbols are centred on the text box, pushed down to sit under
  * the stack when it reaches them.
@@ -264,7 +270,10 @@ export function statBarMiddle(model, { from, type = TYPE, text = TEXT }) {
   const upward = model.types.includes('Planeswalker');
   const room = upward
     ? { top: from + 4, bottom: type.y + type.h - 4 }
-    : { top: type.y, bottom: bottomSectionTop(model, { text }) - landHeight };
+    : {
+        top: Math.max(type.y, from + M.gap),
+        bottom: bottomSectionTop(model, { text }) - landHeight,
+      };
 
   const height = (labels, scale = 1) =>
     items.reduce((h, it) => h + (M.icon + (labels && it.label ? M.label : 0) + M.gap) * scale, 0);
@@ -310,9 +319,10 @@ async function middleIcon(assets, { group, key, label }) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>, from: number,
- *   type?: { y: number, h: number }, text?: { y: number, h: number } }} options
+ *   type?: { y: number, h: number }, text?: { y: number, h: number },
+ *   warn?: (message: string) => void }} options
  */
-export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
+export async function drawStatBarMiddle(ctx, model, { assets, warn = () => {}, ...bands }) {
   const middle = statBarMiddle(model, bands);
   const cx = BAR.x + BAR.width / 2;
   ctx.save();
@@ -327,11 +337,8 @@ export async function drawStatBarMiddle(ctx, model, { assets, ...bands }) {
       ctx.fillText(item.label, cx, item.y + item.size + BAR_MIDDLE.label * middle.scale);
     }
   }
-  if (middle.overflow) {
-    // Still too long at the minimum size: flag it rather than hide anything.
-    ctx.fillStyle = '#e33';
-    ctx.fillRect(BAR.x, middle.overflow.from, 4, middle.overflow.to - middle.overflow.from);
-  }
+  // Still too long at the minimum size: drawn anyway, never hidden.
+  if (middle.overflow) warn('stat bar: the middle stack does not fit, even at half size');
   for (const { symbol, y, size } of middle.land) {
     await drawSymbol(ctx, assets, symbol, cx - size / 2, y, size);
   }

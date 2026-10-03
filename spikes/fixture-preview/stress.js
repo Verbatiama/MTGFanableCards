@@ -14,6 +14,17 @@ const STRESS = {
       zoneSymbols: ['flash', 'hand', 'graveyard'],
     },
   ],
+  // Eleven mana rows: too many to fit above the type line even with the pills
+  // touching, so they close up fully, run past it, and push the LEGENDARY
+  // icon down below them (5.3.11, 4.4). Reported as a warning.
+  'stress-mana-rows': [
+    'niv-mizzet-the-firemind',
+    {
+      manaCost: ['W', 'U', 'B', 'R', 'G', 'W/U', 'B/R', 'G/W', 'S', 'X', 'generic'].map(
+        (symbol) => ({ symbol, count: 1 }),
+      ),
+    },
+  ],
   // Long rules text plus flavour text: the flavour text is dropped first, then
   // the rules text shrinks (D20, 6.4.8).
   'stress-drop-flavour': [

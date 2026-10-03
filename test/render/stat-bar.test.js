@@ -362,3 +362,19 @@ test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", asyn
   assert.ok(edge > 0, 'white outline');
   assert.ok(inside > 10, 'dark where the solid icon is white');
 });
+
+test('a mana block too long for the bar runs past the type line and pushes the stack below it (4.4)', () => {
+  const rows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'generic', count: i }));
+  assert.equal(top('niv-mizzet-the-firemind').manaOverflow, false);
+  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(10) }).manaOverflow, false);
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(11) };
+  const t = statBarTop(model);
+  assert.equal(t.manaOverflow, true);
+  // Pills touching, never overlapping.
+  assert.equal(t.mana[1].pill.y, t.mana[0].pill.y + t.mana[0].pill.h);
+  const [legendary] = statBarMiddle(model, { from: t.bottom }).stack;
+  assert.ok(legendary.y >= t.bottom + BAR_MIDDLE.gap);
+  // With room to spare, the stack still hangs from the type line.
+  const plain = loadCardFixture('niv-mizzet-the-firemind');
+  assert.equal(statBarMiddle(plain, { from: statBarTop(plain).bottom }).stack[0].y, TYPE.y);
+});

@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import { createCanvas } from 'canvas';
 import { ART, ART_FADE, BOX, CARD } from '../../src/config/layout.js';
 import { fitFont, textFont } from '../../src/render/fonts.js';
-import { registerFonts, renderCardCanvas, renderCardPng } from '../../src/render/node.js';
+import {
+  nodeAssets,
+  nodeEnv,
+  registerFonts,
+  renderCardCanvas,
+  renderCardPng,
+} from '../../src/render/node.js';
+import { renderCard } from '../../src/render/render-card.js';
 import { loadCardFixture, loadCardFixtures } from '../fixtures/cards.js';
 
 const pixel = (canvas, x, y) => [
@@ -57,6 +64,30 @@ test('the art fades in smoothly from its left edge to the card box', async () =>
   assert.ok(at(0) < 10, 'transparent at the left edge');
   assert.ok(Math.abs(at(0.5) - 128) < 12, 'half way');
   assert.deepEqual(pixel(canvas, ART_FADE.to + 2, y), [255, 0, 0]);
+});
+
+test('renderCard reports what does not fit, but still draws it (D19, D20)', async () => {
+  registerFonts();
+  const render = async (model) =>
+    (
+      await renderCard(createCanvas(CARD.width, CARD.height).getContext('2d'), model, {
+        env: nodeEnv,
+        assets: nodeAssets,
+      })
+    ).warnings;
+  for (const [slug, model] of loadCardFixtures()) assert.deepEqual(await render(model), [], slug);
+
+  const niv = loadCardFixture('niv-mizzet-the-firemind');
+  const warnings = await render({
+    ...niv,
+    manaCost: Array.from({ length: 11 }, (_, i) => ({ symbol: 'generic', count: i })),
+    zoneSymbols: Array(20).fill('flash'),
+    oracleText: 'Far too much rules text. '.repeat(120),
+  });
+  assert.equal(warnings.length, 3);
+  assert.ok(warnings.some((w) => w.includes('mana rows')));
+  assert.ok(warnings.some((w) => w.includes('middle stack')));
+  assert.ok(warnings.some((w) => w.includes('rules text')));
 });
 
 test('fitFont shrinks text to fit, down to the minimum', () => {

@@ -243,7 +243,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
   - All dimensions are configurable and can be fine-tuned during development.
   - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
-    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3. The mana rows' spacing is the one exception: it closes up when needed to fit above the type line (5.3.11).
+    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3. The mana rows' spacing is the one exception: it closes up when needed to fit above the type line (5.3.11). **[Confirmed]** (T-B10) A mana block too long to fit even with the pills touching runs on past the type line, and the hanging middle stack starts below it rather than overlapping it. Anything that still doesn't fit (the middle stack at half size, mana rows past the type line, rules text at the minimum size) is drawn anyway and reported as a warning by the renderer; nothing is marked on the card.
 
 ---
 

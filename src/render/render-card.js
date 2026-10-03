@@ -27,17 +27,22 @@ import { drawTextBox } from './text-box.js';
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
  * @param {RenderOptions} options
+ * @returns {Promise<{ warnings: string[] }>} Anything that didn't fit even at its
+ *   smallest (D19, D20). It is still drawn, never hidden.
  */
 export async function renderCard(ctx, model, { env, assets, art = null, setSymbol = null } = {}) {
+  const warnings = [];
+  const warn = (message) => warnings.push(message);
   ctx.save();
   // The whole card is black: its border and the stat bar (3.5.1, 4.1).
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CARD.width, CARD.height);
   drawFrame(ctx, model, { env, art, setSymbol });
-  await drawTextBox(ctx, model, { assets });
+  await drawTextBox(ctx, model, { assets, warn });
   await drawFooter(ctx, model, { assets });
-  const from = await drawStatBarTop(ctx, model, { assets });
-  await drawStatBarMiddle(ctx, model, { assets, from });
+  const from = await drawStatBarTop(ctx, model, { assets, warn });
+  await drawStatBarMiddle(ctx, model, { assets, from, warn });
   await drawStatBarBottom(ctx, model, { assets });
   ctx.restore();
+  return { warnings };
 }

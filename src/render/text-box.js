@@ -192,12 +192,16 @@ export function fitText(ctx, paragraphs, width, height) {
   return { size, layout };
 }
 
-/** Draws the rules and flavour text inside the text box band, fitted (6.4.1–6.4.8). */
-export async function drawRulesText(ctx, model, assets, box = TEXT) {
+/**
+ * Draws the rules and flavour text inside the text box band, fitted (6.4.1–6.4.8).
+ * @param {(message: string) => void} [warn] Told when the text overflows at the minimum size.
+ */
+export async function drawRulesText(ctx, model, assets, box = TEXT, warn = () => {}) {
   const x = BOX.x + TEXT_PADDING.x;
   const width = BOX.right - BOX.x - TEXT_PADDING.x * 2;
   const height = box.h - TEXT_PADDING.top - TEXT_PADDING.bottom;
   const { size, layout } = fitText(ctx, tokenizeCard(model), width, height);
+  if (layout.height > height) warn(`text box: the rules text does not fit, even at ${size}px`);
   await drawLines(ctx, assets, layout, x, box.y + TEXT_PADDING.top, width, size);
 }
 
@@ -205,12 +209,13 @@ export async function drawRulesText(ctx, model, assets, box = TEXT) {
  * Draws the text box contents over the frame's background.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>, box?: { y: number, h: number } }} options
+ * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>, box?: { y: number, h: number },
+ *   warn?: (message: string) => void }} options
  */
-export async function drawTextBox(ctx, model, { assets, box = TEXT }) {
+export async function drawTextBox(ctx, model, { assets, box = TEXT, warn }) {
   ctx.save();
   await drawWatermark(ctx, model, assets, box);
   const special = model.supertypes.includes('Basic') || model.types.includes('Planeswalker');
-  if (!special) await drawRulesText(ctx, model, assets, box);
+  if (!special) await drawRulesText(ctx, model, assets, box, warn);
   ctx.restore();
 }
