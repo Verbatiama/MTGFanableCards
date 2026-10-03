@@ -243,7 +243,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
   - All dimensions are configurable and can be fine-tuned during development.
   - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
-    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3.
+    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3. The mana rows' spacing is the one exception: it closes up when needed to fit above the type line (5.3.11).
 
 ---
 
@@ -320,6 +320,8 @@ The generic mana symbol is traced from `Examples/K3uIZAk.jpeg` and is used **onl
 5.3.9 **[Confirmed]** No maximum and no special rule (D19). Real costs have at most about six rows, which always fit, and a two-digit count such as Emrakul's {15} or Draco's {16} is one row with a slightly smaller number. The mana block never shrinks or wraps; when it meets the middle stack, the middle stack gives way (5.6.3).
 
 5.3.10 **[Confirmed]** Each mana row sits on a black pill covering the symbol and its count, so it reads over the art, which reaches under the bar (6.2.1). The count is centred half way between the symbol's right edge and the left edge of the name bar, type line and text box; the pill ends at the frame's left edge, so every pill has the same width.
+
+5.3.11 **[Confirmed]** The mana rows sit over the art: the first pill starts a little below the art's top edge (16px), or lower after a colour indicator, and the pills are spread out (10px apart) so the art shows above and between them. Only when every row wouldn't fit above the type line (with a 10px margin) do the gaps shrink, evenly and down to pills touching. The values are `BAR_TOP.mana` in `src/config/layout.js`.
 
 ### 5.4 Zone and timing symbols (middle)
 

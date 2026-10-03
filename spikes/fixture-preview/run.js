@@ -87,7 +87,7 @@ async function drawStatBar(ctx, model, layout) {
   ctx.textBaseline = 'top';
 
   // Top: card type icons, colour indicator, mana, from the real renderer (T-B7).
-  const y = await drawStatBarTop(ctx, model, { assets });
+  const y = await drawStatBarTop(ctx, model, { assets, art: layout.art, type: layout.type });
 
   // Middle: the stack hanging from the type line and the land mana symbols,
   // from the real renderer (T-B8).

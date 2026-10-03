@@ -2,7 +2,17 @@ import { CARD_TYPES, isPermanent } from '../config/card-types.js';
 import { INDICATOR } from '../config/frames.js';
 import { BADGE_COLOURS, DEFENSE_BADGE, LOYALTY_BADGES } from '../config/badges.js';
 import { LABELS } from '../config/labels.js';
-import { BAR, BAR_BOTTOM, BAR_MIDDLE, BAR_TOP, BOX, CARD, TEXT, TYPE } from '../config/layout.js';
+import {
+  ART,
+  BAR,
+  BAR_BOTTOM,
+  BAR_MIDDLE,
+  BAR_TOP,
+  BOX,
+  CARD,
+  TEXT,
+  TYPE,
+} from '../config/layout.js';
 import { STAT_ICONS } from '../config/text-symbols.js';
 import { LAND_TYPE_MANA, SUBTYPE_ICONS } from '../config/subtypes.js';
 import { SUPERTYPE_ICONS } from '../config/supertypes.js';
@@ -30,12 +40,16 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
  * - `mana`: one row per grouped symbol, with its count (5.3). The count is
  *   centred half way between the symbol and the card box's left edge, and the
  *   row sits on a black pill (`pill`) ending at the frame, so it reads over the
- *   art.
+ *   art. The rows start a little below the art's top and are spread out so the
+ *   art shows around them; they close up only as far as needed to fit above
+ *   the type line (`BAR_TOP.mana`, 5.3.11).
  * - `bottom`: where the top section ends.
  *
  * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ art?: { y: number }, type?: { y: number } }} [bands] The art box and
+ *   type line, which planeswalkers move (T-B11).
  */
-export function statBarTop(model) {
+export function statBarTop(model, { art = ART, type = TYPE } = {}) {
   let y = BAR_TOP.y;
   const shown = model.types.filter((t) => CARD_TYPES[t]);
   const n = shown.length;
@@ -57,22 +71,31 @@ export function statBarTop(model) {
     y += r * 2 + BAR_TOP.rowGap;
   }
 
-  const mana = (model.manaCost ?? []).map(({ symbol, count }) => {
-    const x = BAR.x + 8;
-    const pad = BAR_TOP.pill;
-    const row = {
+  const costs = model.manaCost ?? [];
+  if (!costs.length) return { types, indicator, mana: [], bottom: y };
+  const pad = BAR_TOP.pill;
+  const pillH = BAR.icon + pad * 2;
+  const start = Math.max(y, art.y + BAR_TOP.mana.top);
+  const room = type.y - BAR_TOP.mana.bottom - start;
+  const gaps = costs.length - 1;
+  const manaGap = gaps
+    ? Math.max(0, Math.min(BAR_TOP.mana.gap, (room - costs.length * pillH) / gaps))
+    : 0;
+  const x = BAR.x + 8;
+  const mana = costs.map(({ symbol, count }, i) => {
+    const top = start + i * (pillH + manaGap);
+    return {
       symbol,
       count,
       x,
-      y,
+      y: top + pad,
       size: BAR.icon,
       countX: (x + BAR.icon + BOX.x) / 2,
-      pill: { x: x - pad, y: y - pad, w: BOX.x - 4 - (x - pad), h: BAR.icon + pad * 2 },
+      pill: { x: x - pad, y: top, w: BOX.x - 4 - (x - pad), h: pillH },
     };
-    y += BAR.icon + BAR.gap;
-    return row;
   });
-  return { types, indicator, mana, bottom: y };
+  const last = mana.at(-1).pill;
+  return { types, indicator, mana, bottom: last.y + last.h };
 }
 
 /**
@@ -112,11 +135,12 @@ function drawIndicator(ctx, { colours, cx, cy, r }) {
  * Draws the top of the stat bar.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets> }} options
+ * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>,
+ *   art?: { y: number }, type?: { y: number } }} options
  * @returns {Promise<number>} Where the top section ends, for the middle stack.
  */
-export async function drawStatBarTop(ctx, model, { assets }) {
-  const top = statBarTop(model);
+export async function drawStatBarTop(ctx, model, { assets, ...bands }) {
+  const top = statBarTop(model, bands);
   ctx.save();
   for (const { type, x, y, size } of top.types) {
     const { icon, placeholder } = CARD_TYPES[type];
