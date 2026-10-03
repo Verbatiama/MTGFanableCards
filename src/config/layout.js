@@ -19,6 +19,9 @@ export const TYPE = { y: 522, h: 50 };
 export const TEXT = { y: 578, h: 380 };
 export const FOOTER = { y: 966 };
 
+/** Space between the text box edges and its text (6.4). */
+export const TEXT_PADDING = { x: 20, top: 14, bottom: 10 };
+
 /** Font families (D6). The renderer's environment loads them from res/fonts/. */
 export const FONTS = {
   text: { family: 'Beleren', weight: 'bold', file: 'Beleren2016-Bold.ttf' },

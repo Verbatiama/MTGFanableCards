@@ -22,6 +22,8 @@ import { pdfSheets } from '../../src/output/index.js';
 import { stressModels } from './stress.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { textFont, labelFont } from '../../src/render/fonts.js';
+import { drawSymbol as drawSymbolWith, textSymbolImage } from '../../src/render/symbols.js';
+import { drawLines, drawRulesText, drawWatermark, layoutText } from '../../src/render/text-box.js';
 import {
   ART,
   BAR,
@@ -39,8 +41,6 @@ import {
   STAT_ICONS,
   SUBTYPE_ICONS,
   SUPERTYPE_ICONS,
-  TEXT_SYMBOLS,
-  WATERMARKS,
   ZONE_SYMBOL_STYLE,
   isPermanent,
 } from '../../src/config/index.js';
@@ -73,8 +73,6 @@ for (const name of [
     .map((t) => t.icon),
   ...Object.values(STAT_ICONS).map((t) => t.icon),
   ...Object.values(SUBTYPE_ICONS).map((t) => t.icon),
-  ...Object.values(TEXT_SYMBOLS).map((t) => t.icon),
-  ...Object.values(WATERMARKS).map((t) => t.icon),
   ...Object.values(LOYALTY_BADGES).map((t) => t.icon),
   DEFENSE_BADGE.icon,
 ]) {
@@ -86,12 +84,9 @@ for (const name of [
   }
 }
 
-/** Scryfall symbol ('U', 'W/U', 'B/P', 'T', 'S', '12') → loaded sheet image, or null. */
-async function symbol(code) {
-  const image = await assets.symbol(code);
-  // Text-box icons (chaos, ticket, planeswalker) are white; tint them dark.
-  return image && TEXT_SYMBOLS[code.toUpperCase()] ? assets.tinted(image, '#111') : image;
-}
+// Symbols as the text box draws them (T-B5).
+const symbol = (code) => textSymbolImage(assets, code);
+const drawSymbol = (ctx, ...rest) => drawSymbolWith(ctx, assets, ...rest);
 
 /** A white icon recoloured, at 200×200 (cached by the asset loader). */
 function tinted(icon, colour, size = 200) {
@@ -119,27 +114,6 @@ function drawBadge(ctx, icon, colour, cx, cy, size, text) {
   ctx.font = FONT(fitSize(ctx, text, size * 0.62, Math.round(size * 0.42), FONT, 10));
   ctx.fillText(text, cx, cy + size * 0.03);
   ctx.restore();
-}
-
-/** Grey circle with text, for symbols the sheet doesn't have (e.g. G/U/P). */
-function drawFallbackSymbol(ctx, code, x, y, size) {
-  ctx.save();
-  ctx.fillStyle = '#bbb';
-  ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#000';
-  ctx.font = FONT(Math.round(size / (code.length > 2 ? 3.2 : 2)));
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(code, x + size / 2, y + size / 2 + 1);
-  ctx.restore();
-}
-
-async function drawSymbol(ctx, code, x, y, size) {
-  const img = await symbol(code);
-  if (img) ctx.drawImage(img, x, y, size, size);
-  else drawFallbackSymbol(ctx, code, x, y, size);
 }
 
 async function loadArt(model) {
@@ -546,34 +520,15 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
   });
   const width = BOX.right - BOX.x;
 
-  const watermark = ICONS.get(WATERMARKS[model.watermark]?.icon);
-  if (watermark) {
-    // Watermark icon, faint behind the text (6.4.3).
-    const size = Math.min(TEXT.h - 40, 300);
-    ctx.save();
-    ctx.globalAlpha = 0.12;
-    ctx.drawImage(
-      tinted(watermark, '#000', 400),
-      BOX.x + width / 2 - size / 2,
-      TEXT.y + TEXT.h / 2 - size / 2,
-      size,
-      size,
-    );
-    ctx.restore();
-  } else if (model.watermark) {
-    ctx.fillStyle = 'rgba(0,0,0,0.08)';
-    ctx.font = LABEL(60);
-    ctx.textAlign = 'center';
-    ctx.fillText(model.watermark.toUpperCase(), BOX.x + width / 2, TEXT.y + TEXT.h / 2);
-    ctx.textAlign = 'left';
-  }
+  // Watermark and rules text from the real renderer (T-B5).
+  await drawWatermark(ctx, model, assets, TEXT);
   const isBasic = model.supertypes.includes('Basic');
   if (isBasic) {
     const mana = /\{([WUBRGC])\}/.exec(model.oracleText);
     if (mana) await drawSymbol(ctx, mana[1], BOX.x + width / 2 - 90, TEXT.y + TEXT.h / 2 - 90, 180);
   } else {
     if (pw) await drawAbilityBands(ctx, pw, BOX.x + 6, width - 12);
-    else await drawTextBox(ctx, model, BOX.x + 20, TEXT.y + 14, width - 40, TEXT.h - 24);
+    else await drawRulesText(ctx, model, assets, TEXT);
   }
 
   // Footer.
@@ -640,7 +595,7 @@ async function drawAbilityBands(ctx, pw, x, width) {
       ctx.fillRect(x, band.top, width, band.h);
     }
     const top = band.top + (band.h - band.layout.height) / 2;
-    await drawLines(ctx, band.layout, x + 20, top, width - 40, pw.size);
+    await drawLines(ctx, assets, band.layout, x + 20, top, width - 40, pw.size);
   }
 }
 
@@ -653,139 +608,6 @@ function drawLoyaltyCost(ctx, cost, cy, bandH) {
   const badge = cost.startsWith('+') ? 'up' : cost.startsWith('−') ? 'down' : 'zero';
   const size = Math.min(70, bandH - 4);
   drawBadge(ctx, ICONS.get(LOYALTY_BADGES[badge].icon), '#3a3a3a', BAR.width / 2, cy, size, cost);
-}
-
-/**
- * Wraps oracle and flavour text with inline symbols (6.4.8, D20): if the text
- * doesn't fit at full size, flavour text is dropped first, then the rules text
- * shrinks to the minimum.
- */
-async function drawTextBox(ctx, model, x, y, width, height) {
-  const paragraphs = tokenizeCard(model);
-  const rules = paragraphs.filter((p) => p.kind === 'rules');
-  const flavor = paragraphs.filter((p) => p.kind === 'flavor');
-
-  let size = 26;
-  let layout = layoutText(ctx, [...rules, ...flavor], width, size);
-  if (layout.height > height) {
-    for (; size >= 12; size -= 1) {
-      layout = layoutText(ctx, rules, width, size);
-      if (layout.height <= height) break;
-    }
-  }
-
-  await drawLines(ctx, layout, x, y, width, size);
-}
-
-/** Draw lines from layoutText at (x, y). */
-async function drawLines(ctx, layout, x, y, width, size) {
-  for (const line of layout.lines) {
-    ctx.fillStyle = line.flavor ? '#3a3a3a' : '#111';
-    ctx.font = FONT(line.flavor ? size - 2 : size);
-    ctx.textBaseline = 'alphabetic';
-    let lx = x;
-    for (const token of line.tokens) {
-      if (token.pt) {
-        // Sword / shield after each number of a +N/+N or -N/-N modifier (6.4.5).
-        const s = Math.round(size * 0.95);
-        // The icons are white for the bar; tint them dark for the text box.
-        const icon = ICONS.get(STAT_ICONS[token.pt].icon);
-        if (icon) ctx.drawImage(tinted(icon, '#111'), lx + 1, y + line.y - s * 0.82, s, s);
-        else
-          drawFallbackSymbol(
-            ctx,
-            token.pt === 'power' ? 'P' : 'T',
-            lx + 1,
-            y + line.y - s * 0.82,
-            s,
-          );
-        ctx.fillStyle = line.flavor ? '#3a3a3a' : '#111';
-      } else if (token.symbol) {
-        const s = Math.round(size * 0.95);
-        await drawSymbol(ctx, token.symbol, lx + 1, y + line.y - s * 0.82, s);
-      } else {
-        ctx.font = FONT(line.flavor ? size - 2 : size);
-        if (token.italic) {
-          // Slant around the baseline (no italic cut in Beleren).
-          ctx.save();
-          ctx.translate(lx, y + line.y);
-          ctx.transform(1, 0, -0.2, 1, 0, 0);
-          ctx.fillText(token.text, 0, 0);
-          ctx.restore();
-        } else ctx.fillText(token.text, lx, y + line.y);
-      }
-      lx += token.width;
-    }
-    if (line.rule) {
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.fillRect(x, y + line.y - size * 1.25, width, 1.5);
-    }
-  }
-}
-
-function layoutText(ctx, paragraphs, width, size) {
-  const lineHeight = Math.round(size * 1.22);
-  const lines = [];
-  let cursor = 0;
-  paragraphs.forEach((p, pi) => {
-    const flavor = p.kind === 'flavor';
-    const textSize = flavor ? size - 2 : size;
-    ctx.font = FONT(textSize);
-    if (pi > 0) cursor += Math.round(size * (flavor ? 0.7 : 0.35));
-    const icon = { width: Math.round(size * 0.95) + 2 };
-    const measured = (text, italic) => ({ text, italic, width: ctx.measureText(text).width });
-    // Tokenizer output (T-A7) → words, spaces, symbols and sword/shield groups.
-    const tokens = [];
-    for (const t of p.tokens) {
-      if (t.type === 'symbol') {
-        tokens.push({ symbol: t.symbol, ...icon });
-      } else if (t.type === 'pt') {
-        tokens.push(
-          { ...measured(`${t.power} `, false), joined: true },
-          { pt: 'power', ...icon, joined: true },
-          { ...measured(` ${t.toughness} `, false), joined: true },
-          { pt: 'toughness', ...icon, joined: false },
-        );
-      } else {
-        for (const part of t.text.split(/(\s+)/).filter(Boolean)) {
-          // Text straight after a modifier (e.g. the "." in "+2/+2.") stays with it.
-          const last = tokens.at(-1);
-          if (last?.pt === 'toughness' && !/^\s/.test(part)) last.joined = true;
-          tokens.push({ ...measured(part, t.italic), space: /^\s+$/.test(part) });
-        }
-      }
-    }
-    let line = { tokens: [], flavor, rule: flavor && !lines.some((l) => l.flavor) };
-    let lineWidth = 0;
-    const push = () => {
-      while (line.tokens.at(-1)?.space) line.tokens.pop();
-      cursor += lineHeight;
-      line.y = cursor;
-      lines.push(line);
-      line = { tokens: [], flavor };
-      lineWidth = 0;
-    };
-    for (const [i, token] of tokens.entries()) {
-      // Wrap before a modifier group as a whole, never inside it.
-      const groupWidth =
-        token.joined && !tokens[i - 1]?.joined
-          ? tokens
-              .slice(i)
-              .reduce((w, t, j, rest) => (j && !rest[j - 1].joined ? w : w + t.width), 0)
-          : token.width;
-      if (tokens[i - 1]?.joined) {
-        line.tokens.push(token);
-        lineWidth += token.width;
-        continue;
-      }
-      if (lineWidth + groupWidth > width && line.tokens.length && !token.space) push();
-      if (token.space && !line.tokens.length) continue;
-      line.tokens.push(token);
-      lineWidth += token.width;
-    }
-    push();
-  });
-  return { lines, height: cursor + 6 };
 }
 
 function fitSize(ctx, text, maxWidth, size, font, min = 12) {
