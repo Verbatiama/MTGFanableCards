@@ -16,13 +16,13 @@ const STRESS = {
       zoneSymbols: ['flash', 'hand', 'graveyard'],
     },
   ],
-  // Nine mana rows: too many to fit above the type line even with the pills
+  // Eight mana rows: too many to fit above the type line even with the pills
   // touching, so they close up fully, run past it, and push the LEGENDARY
   // icon down below them (5.3.11, 4.4). Reported as a warning.
   'stress-mana-rows': [
     'niv-mizzet-the-firemind',
     {
-      manaCost: ['W', 'U', 'B', 'R', 'G', 'W/U', 'B/R', 'S', 'generic'].map((symbol) => ({
+      manaCost: ['W', 'U', 'B', 'R', 'G', 'W/U', 'S', 'generic'].map((symbol) => ({
         symbol,
         count: 1,
       })),
@@ -55,14 +55,14 @@ const STRESS = {
       ].join('\n'),
     },
   ],
-  // Creature land with a basic land type and two middle icons (Legendary,
-  // non-basic): too long for the room above its mockup-sized stats
+  // Creature land with a basic land type and the non-basic icon: too tall for
+  // the little room above its large stats
   // (T-S4, C1) even without labels, so the icons shrink, and the stack pushes
   // the land mana symbol down (D16 revised, D19).
   'stress-land-push': [
     'dryad-arbor',
     {
-      supertypes: ['Legendary'],
+      supertypes: [],
       zoneSymbols: [],
       manaCost: [
         { symbol: 'W', count: 1 },

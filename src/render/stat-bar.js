@@ -164,7 +164,7 @@ export async function drawStatBarTop(ctx, model, { assets, warn = () => {}, ...b
     await drawSymbol(ctx, assets, symbol, x, y, size);
     // Every symbol shows its count, X and {0} included (D11); two digits are smaller.
     ctx.fillStyle = '#fff';
-    ctx.font = textFont(count > 9 ? 24 : 30);
+    ctx.font = textFont(count > 9 ? 26 : 32);
     ctx.fillText(String(count), countX, y + size / 2 + 1);
   }
   ctx.restore();
@@ -255,7 +255,7 @@ export function bottomSectionTop(model, bands) {
  * mana symbols need. A planeswalker's stack stays beside the type line, since
  * its loyalty costs use the bar beside the text box (7.2.1). If the stack
  * doesn't fit, its labels are dropped; if it still
- * doesn't, all icons shrink together, down to half size. A mana block so long
+ * doesn't, all icons shrink together, down to BAR_MIDDLE.minScale. A mana block so long
  * it runs past the type line pushes the hanging stack down below it. Nothing
  * is hidden: `overflow` is set when the stack still doesn't fit (D19, 4.4).
  *
@@ -346,7 +346,7 @@ export async function drawStatBarMiddle(ctx, model, { assets, warn = () => {}, .
     }
   }
   // Still too long at the minimum size: drawn anyway, never hidden.
-  if (middle.overflow) warn('stat bar: the middle stack does not fit, even at half size');
+  if (middle.overflow) warn('stat bar: the middle stack does not fit, even at its smallest');
   for (const { symbol, y, size } of middle.land) {
     await drawSymbol(ctx, assets, symbol, cx - size / 2, y, size);
   }

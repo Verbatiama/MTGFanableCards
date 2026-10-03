@@ -17,7 +17,7 @@ export const BORDER = 36;
  * The stat bar (4.1–4.2): its left edge and width, mana symbol size and gap
  * between rows.
  */
-export const BAR = { x: BORDER, width: 90, icon: 50, gap: 6 };
+export const BAR = { x: BORDER, width: 90, icon: 56, gap: 6 };
 
 /**
  * Top of the stat bar (5.1–5.3): where it starts, the type icon row (full-size
@@ -32,9 +32,9 @@ export const BAR = { x: BORDER, width: 90, icon: 50, gap: 6 };
  */
 export const BAR_TOP = {
   y: BORDER + 10,
-  typeRow: 64,
+  typeRow: 80,
   typeGap: 3,
-  indicator: 18,
+  indicator: 22,
   rowGap: 8,
   pill: 2,
   mana: { top: 16, gap: 10, bottom: 10 },
@@ -44,7 +44,9 @@ export const BAR_TOP = {
  * Middle of the stat bar (5.4–5.6): icon size, label height and largest label
  * text size, gap after each item, and how far icons may shrink (D19).
  */
-export const BAR_MIDDLE = { icon: 50, label: 18, labelSize: 15, gap: 6, minScale: 0.5 };
+// minScale keeps the smallest icon about 26px, so a planeswalker's crown and
+// FLASH still fit beside its type line.
+export const BAR_MIDDLE = { icon: 64, label: 20, labelSize: 17, gap: 6, minScale: 0.4 };
 
 /**
  * Bottom of the stat bar (5.7), measured up from its bottom edge, `edge`
@@ -60,8 +62,8 @@ export const BAR_BOTTOM = {
   edge: BORDER,
   gap: 8,
   // Mockup-sized (T-S4, C1): the values and sword/shield fill the bottom of the bar.
-  stats: { power: 272, divider: 144, toughness: 128, value: 60, minValue: 14, icon: 50 },
-  badge: { centre: 8, loyalty: 76, defense: 70 },
+  stats: { power: 302, divider: 156, toughness: 142, value: 72, minValue: 14, icon: 64 },
+  badge: { centre: 8, loyalty: 90, defense: 84 },
   label: { size: 18, step: 21 },
 };
 
@@ -105,7 +107,7 @@ export const TEXT = { y: textTop, h: FOOTER.y - 8 - textTop };
  * Planeswalker ability bands (7.2, D22): space above and below each ability's
  * text, the shade on every other band, and the largest loyalty cost badge.
  */
-export const ABILITY_BAND = { padding: 18, shade: 'rgba(0,0,0,0.09)', cost: 70 };
+export const ABILITY_BAND = { padding: 18, shade: 'rgba(0,0,0,0.09)', cost: 84 };
 
 /**
  * Full-art basic lands (6.4.4, T-S4 C21), placed as in the mockup's Forest:

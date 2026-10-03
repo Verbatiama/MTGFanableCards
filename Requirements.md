@@ -248,7 +248,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
   - All dimensions are configurable and can be fine-tuned during development.
   - **Mirrored bar:** Not required for v1; single left-edge stat bar only.
 
-    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3. The mana rows' spacing is the one exception: it closes up when needed to fit above the type line (5.3.11). **[Confirmed]** (T-B10) A mana block too long to fit even with the pills touching runs on past the type line, and the hanging middle stack starts below it rather than overlapping it. Anything that still doesn't fit (the middle stack at half size, mana rows past the type line, rules text at the minimum size) is drawn anyway and reported as a warning by the renderer; nothing is marked on the card.
+    4.4 **[Confirmed]** Collision and overflow rules (D19): the top section (type icons, colour indicator, mana) and the bottom section never move or shrink. Only the middle stack gives way, as set out in 5.6.3. The mana rows' spacing is the one exception: it closes up when needed to fit above the type line (5.3.11). **[Confirmed]** (T-B10) A mana block too long to fit even with the pills touching runs on past the type line, and the hanging middle stack starts below it rather than overlapping it. Anything that still doesn't fit (the middle stack at its smallest size, mana rows past the type line, rules text at the minimum size) is drawn anyway and reported as a warning by the renderer; nothing is marked on the card.
 
 ---
 
@@ -272,7 +272,7 @@ The card has two regions: the **stat bar** on the left and the **card box** on t
 
 5.1.2 **[Confirmed]** Multi-type cards show one icon per type, side by side in a single row (Wurmcoil Engine shows artifact + creature). Kindred counts as a type and gets its own icon, so Bitterblossom shows Kindred + Enchantment (D14).
 
-5.1.3 **[Confirmed]** Icons appear in type-line order, which Wizards already standardises (Kindred, then Artifact/Enchantment/Land, then Creature): Wurmcoil Engine = Artifact, Creature; Dryad Arbor = Land, Creature (D14). Icons shrink so the row always fits the bar width: one icon at full size (64px), two at about 40px, three at about 28px. **[Confirmed]** The bar's symbols fill its 90px width better (after T-S4): mana symbols and land mana symbols 50px with 30px counts, middle-stack icons 50px, colour indicator radius 18px. The top of the bar keeps a fixed height, so the mana block does not move down. As of this decision no real (non-Un) card face has more than two card types, so the three-icon case is future-proofing.
+5.1.3 **[Confirmed]** Icons appear in type-line order, which Wizards already standardises (Kindred, then Artifact/Enchantment/Land, then Creature): Wurmcoil Engine = Artifact, Creature; Dryad Arbor = Land, Creature (D14). Icons shrink so the row always fits the bar width: one icon at full size (80px), two at about 40px, three at about 28px. **[Confirmed]** The column's symbols reach nearly from the border to the text box (after T-S4): type icon 80px, mana and land mana symbols 56px with 32px counts, middle-stack icons 64px (17px labels), colour indicator radius 22px, loyalty and defense badges 90px and 84px, loyalty cost badges up to 84px. The top of the bar keeps a fixed height, so the mana block does not move down. As of this decision no real (non-Un) card face has more than two card types, so the three-icon case is future-proofing.
 
 5.1.4 **[Confirmed]** Battle and Kindred (formerly Tribal) get new icons (D14). Dungeon, Plane, Phenomenon, Scheme, Conspiracy and Vanguard are out of scope for v1: if one is requested it renders with no type icon, and its type still appears in the type line.
 
@@ -432,13 +432,13 @@ Every other subtype gets no icon and shows only in the type line, including the 
 5.6.3 **[Confirmed]** Collision rule (D19, revised in T-B8). The stack may run down to the top of the bottom section (stats, defense badge, NON-PERMANENT), less the room the land mana symbols need (5.5.8), which it pushes down ahead of it. A planeswalker's stack may run down only to the top of the text box. When it doesn't fit, these steps apply in order, stopping at the first that fits:
 
 1. **Drop the labels** under zone/timing icons.
-2. **Shrink the icons**, all together, down to a minimum of half size.
+2. **Shrink the icons**, all together, down to a minimum of half size; **[Confirmed]** 40% since the icons grew to 64px, so the smallest stays about 26px and a planeswalker's crown and FLASH still fit beside its type line.
 
 Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, real cards never reach step 1: a legendary creature with flash and flashback fits beside the text box with room to spare. The preview spike has synthetic stress cases for each step (`spikes/fixture-preview/stress.js`).
 
 ### 5.7 Bottom section
 
-5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon. **[Confirmed]** Mockup-sized (T-S4, C1): 60px values and 50px icons filling the bottom of the bar (`BAR_BOTTOM.stats`). The middle stack has correspondingly less room on creatures, so long stacks shrink sooner (5.6.3), and land mana symbols rise to stay clear of the stats (5.5.8).
+5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon. **[Confirmed]** Mockup-sized (T-S4, C1), then enlarged to fill the column: 72px values and 64px icons filling the bottom of the bar (`BAR_BOTTOM.stats`). The middle stack has correspondingly less room on creatures, so long stacks shrink sooner (5.6.3), and land mana symbols rise to stay clear of the stats (5.5.8).
 
 5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line). **[Confirmed]** The label ends level with the bottom of the text box, not the bottom of the bar. The middle stack stops above it, so an instant with both FLASH and SPLIT SECOND (Krosan Grip) shows them without labels (5.6.3).
 

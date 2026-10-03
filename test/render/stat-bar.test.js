@@ -85,7 +85,9 @@ test('one mana row per grouped symbol, in model order; no cost means no rows (5.
 
 test('the mana rows start below the top of the art and spread out over it (5.3.11)', () => {
   const [first, second] = top('niv-mizzet-the-firemind').mana;
-  assert.equal(first.pill.y, ART.y + BAR_TOP.mana.top);
+  // Below the art's top edge, or below the type icon row when that reaches lower.
+  const typeRowEnd = BAR_TOP.y + BAR_TOP.typeRow + BAR_TOP.rowGap;
+  assert.equal(first.pill.y, Math.max(ART.y + BAR_TOP.mana.top, typeRowEnd));
   assert.equal(second.pill.y - (first.pill.y + first.pill.h), BAR_TOP.mana.gap);
 });
 
@@ -97,16 +99,16 @@ test('the mana rows close up only when they would not fit above the type line (5
   assert.equal(spread[1].pill.y - spread[0].pill.y, pillH + BAR_TOP.mana.gap);
   assert.ok(spread.at(-1).pill.y + pillH <= limit);
 
-  const many = top('niv-mizzet-the-firemind', { manaCost: rows(8) }).mana;
+  const many = top('niv-mizzet-the-firemind', { manaCost: rows(7) }).mana;
   const step = many[1].pill.y - many[0].pill.y;
   assert.ok(step < pillH + BAR_TOP.mana.gap && step >= pillH);
   assert.ok(Math.abs(many.at(-1).pill.y + pillH - limit) < 0.01);
 
   // A type line moved up (planeswalkers, T-B11) closes them up too.
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(5) };
-  const raised = statBarTop(model, { type: { y: TYPE.y - 180 } }).mana;
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(4) };
+  const raised = statBarTop(model, { type: { y: TYPE.y - 200 } }).mana;
   assert.ok(raised[1].pill.y - raised[0].pill.y < pillH + BAR_TOP.mana.gap);
-  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 180 - BAR_TOP.mana.bottom + 0.01);
+  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 200 - BAR_TOP.mana.bottom + 0.01);
 });
 
 test('each mana row sits on a black pill; its count is centred between the symbol and the card box', async () => {
@@ -208,9 +210,10 @@ test('the stack hangs from the top of the type line, in order (4.2, 5.6.2)', () 
 });
 
 test("a planeswalker's stack stays beside the type line, below the art (5.6.2)", () => {
-  const { stack, labels, scale } = middle('ajani-sleeper-agent');
+  const { stack, overflow, bottom } = middle('ajani-sleeper-agent');
   assert.equal(stack[0].y, TYPE.y);
-  assert.ok(labels && scale === 1);
+  // The crown alone fits beside the type line (a little smaller than full size).
+  assert.ok(!overflow && bottom <= TEXT.y + 0.01);
   // More than fits beside the type line shrinks rather than reaching the ability bands.
   const two = middle('ajani-sleeper-agent', { zoneSymbols: ['flash'] });
   assert.equal(two.labels, false);
@@ -227,7 +230,7 @@ test('the Legendary crown has no label, and every stack starts below the art (5.
   }
 });
 
-test('a stack too long drops its labels, then shrinks to at most half size, never hidden (5.6.3)', () => {
+test('a stack too long drops its labels, then shrinks to its smallest, never hidden (5.6.3)', () => {
   const lots = {
     supertypes: ['Legendary', 'Snow', 'World'],
     zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
@@ -275,9 +278,10 @@ test('land mana symbols are centred on the text box, pushed down by a long stack
   assert.ok(Math.abs(centre - (TEXT.y + TEXT.h / 2 - BAR_MIDDLE.gap / 2)) < 1);
 
   const pushed = middle('breeding-pool', {
-    supertypes: ['Legendary', 'Snow', 'World'],
-    zoneSymbols: ['flash', 'split-second', 'hand', 'library', 'graveyard'],
+    supertypes: ['Legendary', 'Snow'],
+    zoneSymbols: ['flash', 'hand'],
   });
+  assert.equal(pushed.overflow, null);
   assert.ok(pushed.land[0].y >= pushed.bottom + BAR_MIDDLE.gap - 0.01);
   // A creature land's stats reach above the text box's middle: its land symbol
   // rises to stay clear of them.
@@ -401,8 +405,8 @@ test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", asyn
 test('a mana block too long for the bar runs past the type line and pushes the stack below it (4.4)', () => {
   const rows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'generic', count: i }));
   assert.equal(top('niv-mizzet-the-firemind').manaOverflow, false);
-  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(8) }).manaOverflow, false);
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(9) };
+  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(7) }).manaOverflow, false);
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(8) };
   const t = statBarTop(model);
   assert.equal(t.manaOverflow, true);
   // Pills touching, never overlapping.
