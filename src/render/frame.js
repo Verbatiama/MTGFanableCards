@@ -3,8 +3,6 @@ import {
   ART,
   ART_FADE,
   BOX,
-  FOOTER,
-  FRAME_TOP,
   FULL_ART_BASIC,
   NAME,
   TEXT,
@@ -33,20 +31,14 @@ import { fitFont, textFont } from './fonts.js';
  * - Other multicolour: gold, with pinlines in the card's two colours (gold for
  *   three or more).
  * - Colourless: the artifact frame for artifacts, the colourless frame
- *   otherwise. Devoid shows its art through a translucent border tinted by
- *   its mana.
+ *   otherwise. Devoid (no colour, but coloured mana in its cost) has its
+ *   own pale pinlines, grey bars and grey-beige text box.
  *
  * @param {import('../model/card-model.js').CardModel} model
- * @returns {{ border: string[], pin: string[], bar: string, text: string[], devoid: boolean }}
+ * @returns {{ pin: string[], bar: string, text: string[] }}
  */
 export function framePalette(model) {
-  const one = (p) => ({
-    border: [p.border],
-    pin: [p.pin],
-    bar: p.bar,
-    text: [p.text],
-    devoid: false,
-  });
+  const one = (p) => ({ pin: [p.pin], bar: p.bar, text: [p.text] });
 
   if (model.types.includes('Land')) {
     const colours = model.colors.length ? model.colors : producedColours(model);
@@ -57,11 +49,9 @@ export function framePalette(model) {
           text: mix(LAND_FRAME.text, p.text, 0.5),
         }));
     return {
-      border: ['#000'],
       pin: parts.map((p) => p.pin),
       bar: LAND_FRAME.bar,
       text: parts.map((p) => p.text),
-      devoid: false,
     };
   }
 
@@ -75,11 +65,9 @@ export function framePalette(model) {
         .slice(0, 2)
         .map((c) => FRAME[c]);
       return {
-        border: sides.map((s) => s.border),
         pin: sides.map((s) => s.pin),
         bar: FRAME.hybridBar,
         text: sides.map((s) => mix(s.text, FRAME.hybridText, 0.5)),
-        devoid: false,
       };
     }
     const printed = manaColours(model).filter((c) => colors.includes(c));
@@ -88,21 +76,11 @@ export function framePalette(model) {
   }
   if (colors.length > 2) return one(FRAME.gold);
 
-  const tints = manaColours(model);
-  if (tints.length) {
-    const tint = tints.length > 2 ? FRAME.gold.border : FRAME[tints[0]].border;
-    return {
-      border: [hexAlpha(mix('#c8c0a8', tint, 0.3), 0.5)],
-      pin: [FRAME.devoid.pin],
-      bar: FRAME.devoid.bar,
-      text: [FRAME.devoid.text],
-      devoid: true,
-    };
-  }
+  if (manaColours(model).length) return one(FRAME.devoid);
   return one(model.types.includes('Artifact') ? FRAME.artifact : FRAME.colourless);
 }
 
-/** Colours in a mana cost, in printed order (a devoid card's tint). */
+/** Colours in a mana cost, in printed order. */
 export function manaColours(model) {
   const found = (model.manaCost ?? []).flatMap((m) => m.symbol.match(/[WUBRG]/g) ?? []);
   return [...new Set(found)];
@@ -129,11 +107,6 @@ export function mix(a, b, amount) {
   const channel = (shift) =>
     Math.round(((x >> shift) & 255) * (1 - amount) + ((y >> shift) & 255) * amount);
   return `#${[16, 8, 0].map((sh) => channel(sh).toString(16).padStart(2, '0')).join('')}`;
-}
-
-function hexAlpha(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
 /** One colour, or a left-to-right blend across the card box. */
@@ -278,23 +251,11 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
   const text = layout.text ?? TEXT;
   const palette = framePalette(model);
   const fill = {
-    border: acrossBox(ctx, palette.border),
     pin: acrossBox(ctx, palette.pin),
     text: acrossBox(ctx, palette.text),
   };
   const width = BOX.right - BOX.x;
   const fullArt = isFullArt(model);
-
-  // Black around the panels (C18); a devoid card's art shows through a
-  // translucent, textured border instead.
-  if (palette.devoid && art) {
-    const frame = { x: BOX.x - 4, y: FRAME_TOP, w: width + 8, h: FOOTER.y - FRAME_TOP };
-    drawCover(ctx, art, frame);
-    ctx.fillStyle = fill.border;
-    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
-    ctx.fillStyle = texture(ctx, env);
-    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
-  }
 
   // Art box (3.4), fading in from the left (ART_FADE). A full-art basic land's
   // art runs down to the bottom of the text box (C21).

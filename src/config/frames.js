@@ -6,22 +6,22 @@
  * Feral Invocation (G), Niv-Mizzet (gold, whose pinlines are its two colours)
  * and Sword of Fire and Ice / Wurmcoil Engine (artifact). The colourless,
  * three-colour gold pinline and hybrid values aren't in the mockups and are
- * chosen to match. `border` only tints devoid cards' translucent border.
+ * chosen to match.
  */
 export const FRAME = {
-  W: { border: '#e8e4d4', pin: '#f2f1ea', bar: '#f6f5ee', text: '#eaeae2' },
-  U: { border: '#3a78d8', pin: '#0a55cf', bar: '#86b2e4', text: '#b3c0db' },
-  B: { border: '#5a5257', pin: '#2b2729', bar: '#887b84', text: '#a7a4a5' },
-  R: { border: '#c0402f', pin: '#b8302a', bar: '#ed8b5e', text: '#dccbbb' },
-  G: { border: '#3c8a50', pin: '#1f7d3d', bar: '#b0d49f', text: '#bbdab0' },
-  gold: { border: '#c9a640', pin: '#c9a640', bar: '#e3cc50', text: '#d6dbb4' },
-  artifact: { border: '#a8a8a8', pin: '#c4c4c4', bar: '#cdcdcd', text: '#e9e9e9' },
-  colourless: { border: '#9a908a', pin: '#a8a09c', bar: '#c4bcba', text: '#dedad6' },
+  W: { pin: '#f2f1ea', bar: '#f6f5ee', text: '#eaeae2' },
+  U: { pin: '#0a55cf', bar: '#86b2e4', text: '#b3c0db' },
+  B: { pin: '#2b2729', bar: '#887b84', text: '#a7a4a5' },
+  R: { pin: '#b8302a', bar: '#ed8b5e', text: '#dccbbb' },
+  G: { pin: '#1f7d3d', bar: '#b0d49f', text: '#bbdab0' },
+  gold: { pin: '#c9a640', bar: '#e3cc50', text: '#d6dbb4' },
+  artifact: { pin: '#c4c4c4', bar: '#cdcdcd', text: '#e9e9e9' },
+  colourless: { pin: '#a8a09c', bar: '#c4bcba', text: '#dedad6' },
   // Hybrid cards: grey bars, and a text box paler than either colour's.
   hybridBar: '#d0cccb',
   hybridText: '#efefec',
-  // Devoid: the art shows through a translucent border and text box.
-  devoid: { pin: '#e2e1c3', bar: '#a69c97', text: 'rgba(211, 209, 197, 0.88)' },
+  // Devoid: pale pinlines, grey bars, grey-beige text box.
+  devoid: { pin: '#e2e1c3', bar: '#a69c97', text: '#d3d1c5' },
 };
 
 /**

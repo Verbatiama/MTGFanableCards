@@ -82,8 +82,8 @@ test('mana symbols named in the config exist in the symbol sheet', () => {
 });
 
 test('frame palettes have every colour and every part', () => {
-  for (const key of ['W', 'U', 'B', 'R', 'G', 'gold', 'artifact', 'colourless']) {
-    assert.deepEqual(Object.keys(FRAME[key]).sort(), ['bar', 'border', 'pin', 'text'], key);
+  for (const key of ['W', 'U', 'B', 'R', 'G', 'gold', 'artifact', 'colourless', 'devoid']) {
+    assert.deepEqual(Object.keys(FRAME[key]).sort(), ['bar', 'pin', 'text'], key);
   }
   assert.deepEqual(Object.keys(LAND_FRAME).sort(), ['bar', 'pin', 'text']);
   assert.deepEqual(Object.keys(INDICATOR), ['W', 'U', 'B', 'R', 'G']);
