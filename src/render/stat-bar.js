@@ -164,7 +164,7 @@ export async function drawStatBarTop(ctx, model, { assets, warn = () => {}, ...b
     await drawSymbol(ctx, assets, symbol, x, y, size);
     // Every symbol shows its count, X and {0} included (D11); two digits are smaller.
     ctx.fillStyle = '#fff';
-    ctx.font = textFont(count > 9 ? 20 : 24);
+    ctx.font = textFont(count > 9 ? 24 : 30);
     ctx.fillText(String(count), countX, y + size / 2 + 1);
   }
   ctx.restore();

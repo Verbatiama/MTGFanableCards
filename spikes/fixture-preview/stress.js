@@ -5,24 +5,27 @@
  * and each name says it is a stress case.
  */
 const STRESS = {
-  // Five mana rows + five labelled middle icons: a long stack hanging from the
-  // type line still fits beside the text box with its labels (D19, 5.6.2).
+  // Five mana rows + five labelled middle icons on a card with nothing at the
+  // bottom of the bar: a long stack hanging from the type line still fits
+  // beside the text box with its labels (D19, 5.6.2).
   'stress-long-stack': [
-    'atraxa-grand-unifier',
+    'concordant-crossroads',
     {
+      manaCost: ['W', 'U', 'B', 'R', 'G'].map((symbol) => ({ symbol, count: 1 })),
       supertypes: ['Legendary', 'Snow'],
       zoneSymbols: ['flash', 'hand', 'graveyard'],
     },
   ],
-  // Eleven mana rows: too many to fit above the type line even with the pills
+  // Nine mana rows: too many to fit above the type line even with the pills
   // touching, so they close up fully, run past it, and push the LEGENDARY
   // icon down below them (5.3.11, 4.4). Reported as a warning.
   'stress-mana-rows': [
     'niv-mizzet-the-firemind',
     {
-      manaCost: ['W', 'U', 'B', 'R', 'G', 'W/U', 'B/R', 'G/W', 'S', 'X', 'generic'].map(
-        (symbol) => ({ symbol, count: 1 }),
-      ),
+      manaCost: ['W', 'U', 'B', 'R', 'G', 'W/U', 'B/R', 'S', 'generic'].map((symbol) => ({
+        symbol,
+        count: 1,
+      })),
     },
   ],
   // Long rules text plus flavour text: the flavour text is dropped first, then
@@ -52,15 +55,15 @@ const STRESS = {
       ].join('\n'),
     },
   ],
-  // Creature land with a basic land type and three middle icons (Legendary,
-  // non-basic, flash): too long for the room above its mockup-sized stats
+  // Creature land with a basic land type and two middle icons (Legendary,
+  // non-basic): too long for the room above its mockup-sized stats
   // (T-S4, C1) even without labels, so the icons shrink, and the stack pushes
   // the land mana symbol down (D16 revised, D19).
   'stress-land-push': [
     'dryad-arbor',
     {
       supertypes: ['Legendary'],
-      zoneSymbols: ['flash'],
+      zoneSymbols: [],
       manaCost: [
         { symbol: 'W', count: 1 },
         { symbol: 'U', count: 1 },

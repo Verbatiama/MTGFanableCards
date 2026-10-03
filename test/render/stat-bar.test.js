@@ -97,15 +97,16 @@ test('the mana rows close up only when they would not fit above the type line (5
   assert.equal(spread[1].pill.y - spread[0].pill.y, pillH + BAR_TOP.mana.gap);
   assert.ok(spread.at(-1).pill.y + pillH <= limit);
 
-  const many = top('niv-mizzet-the-firemind', { manaCost: rows(10) }).mana;
+  const many = top('niv-mizzet-the-firemind', { manaCost: rows(8) }).mana;
   const step = many[1].pill.y - many[0].pill.y;
   assert.ok(step < pillH + BAR_TOP.mana.gap && step >= pillH);
   assert.ok(Math.abs(many.at(-1).pill.y + pillH - limit) < 0.01);
 
   // A type line moved up (planeswalkers, T-B11) closes them up too.
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(6) };
-  const raised = statBarTop(model, { type: { y: TYPE.y - 150 } }).mana;
-  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 150 - BAR_TOP.mana.bottom + 0.01);
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(5) };
+  const raised = statBarTop(model, { type: { y: TYPE.y - 180 } }).mana;
+  assert.ok(raised[1].pill.y - raised[0].pill.y < pillH + BAR_TOP.mana.gap);
+  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 180 - BAR_TOP.mana.bottom + 0.01);
 });
 
 test('each mana row sits on a black pill; its count is centred between the symbol and the card box', async () => {
@@ -400,8 +401,8 @@ test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", asyn
 test('a mana block too long for the bar runs past the type line and pushes the stack below it (4.4)', () => {
   const rows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'generic', count: i }));
   assert.equal(top('niv-mizzet-the-firemind').manaOverflow, false);
-  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(10) }).manaOverflow, false);
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(11) };
+  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(8) }).manaOverflow, false);
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(9) };
   const t = statBarTop(model);
   assert.equal(t.manaOverflow, true);
   // Pills touching, never overlapping.

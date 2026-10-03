@@ -17,7 +17,7 @@ export const BORDER = 36;
  * The stat bar (4.1–4.2): its left edge and width, mana symbol size and gap
  * between rows.
  */
-export const BAR = { x: BORDER, width: 90, icon: 40, gap: 6 };
+export const BAR = { x: BORDER, width: 90, icon: 50, gap: 6 };
 
 /**
  * Top of the stat bar (5.1–5.3): where it starts, the type icon row (full-size
@@ -32,9 +32,9 @@ export const BAR = { x: BORDER, width: 90, icon: 40, gap: 6 };
  */
 export const BAR_TOP = {
   y: BORDER + 10,
-  typeRow: 44,
+  typeRow: 64,
   typeGap: 3,
-  indicator: 14,
+  indicator: 18,
   rowGap: 8,
   pill: 2,
   mana: { top: 16, gap: 10, bottom: 10 },
@@ -44,7 +44,7 @@ export const BAR_TOP = {
  * Middle of the stat bar (5.4–5.6): icon size, label height and largest label
  * text size, gap after each item, and how far icons may shrink (D19).
  */
-export const BAR_MIDDLE = { icon: 40, label: 16, labelSize: 13, gap: 6, minScale: 0.5 };
+export const BAR_MIDDLE = { icon: 50, label: 18, labelSize: 15, gap: 6, minScale: 0.5 };
 
 /**
  * Bottom of the stat bar (5.7), measured up from its bottom edge, `edge`
