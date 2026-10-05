@@ -7,7 +7,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
   pull_request:
 
 jobs:
@@ -75,9 +75,13 @@ jobs:
   # Off until the VPS exists: set the repository variable DEPLOY_HOST (and
   # DEPLOY_USER, DEPLOY_PATH) and the secrets DEPLOY_SSH_KEY and
   # DEPLOY_KNOWN_HOSTS (docs/self-hosting.md, "Continuous deployment").
+  # End the head commit's message with [skip deploy] to publish the image
+  # without deploying it.
   deploy:
     needs: image
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_HOST != ''
+    if: >-
+      github.ref == 'refs/heads/main' && vars.DEPLOY_HOST != '' &&
+      !endsWith(github.event.head_commit.message, '[skip deploy]')
     runs-on: ubuntu-latest
     concurrency: deploy
     env:
