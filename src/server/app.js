@@ -8,7 +8,7 @@ import fastifyStatic from '@fastify/static';
 import swagger from '@fastify/swagger';
 import { cacheFileName } from '../art/art-cache.js';
 import { resolveDecklist } from '../data/resolve.js';
-import { generateCards } from '../generate.js';
+import { generateCards, planDeck } from '../generate.js';
 import { mapCard, UnsupportedLayoutError } from '../model/from-scryfall.js';
 import { pdfSheets, zipImages, zipImagesToFile } from '../output/index.js';
 import { parseDecklist } from '../parse/decklist.js';
@@ -24,6 +24,12 @@ import { createJobQueue } from './jobs.js';
  * symbols) for the browser's live previews; the fonts and symbol files under
  * /assets/; the OpenAPI description at /api/docs. The built frontend (web/dist,
  * T-C2) is served at / when present.
+ *
+ * With FRONTEND_RENDER (T-S14) the server renders nothing: jobs are off, and
+ * POST /api/decks gives the browser a whole decklist's card models to render
+ * and bundle itself. Either way the browser only ever talks to this server:
+ * models carry no Scryfall URLs, art comes by id from /api/art/, and the
+ * Content-Security-Policy header lets pages connect to this origin only.
  *
  * @typedef {object} Services
  * @property {import('../data/card-database.js').CardDatabase | null} db Current card data;
@@ -76,27 +82,58 @@ export async function buildApp({
   const limit = (max, timeWindow) => (max > 0 ? { rateLimit: { max, timeWindow } } : {});
   const jobLimit = limit(config.rateLimitJobsPerHour, '1 hour');
   const previewLimit = limit(config.rateLimitPreviewPerMinute, '1 minute');
+  const assetLimit = limit(config.rateLimitAssetsPerMinute, '1 minute');
+
+  app.addHook('onSend', async (request, reply) => {
+    reply.header('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  });
+
+  /** Jobs only when the server renders; /api/decks only when the browser does. */
+  const onlyWhen = (enabled, message) => async (request, reply) => {
+    if (!enabled) return reply.code(404).send(error(404, message));
+  };
+  const serverRenders = onlyWhen(
+    !config.frontendRender,
+    'Batch jobs are off: this server has cards rendered in the browser (FRONTEND_RENDER)',
+  );
+  const browserRenders = onlyWhen(
+    config.frontendRender,
+    'Decklists are rendered on this server: use /api/jobs (FRONTEND_RENDER is off)',
+  );
+
+  /** The decklist's problem with the limits, as an error reply, or null. */
+  function checkDecklist(decklist) {
+    const { entries } = parseDecklist(decklist);
+    const cards = entries.reduce((sum, e) => sum + e.quantity, 0);
+    if (!cards) return error(400, 'The decklist has no cards');
+    if (config.maxCardsPerJob && cards > config.maxCardsPerJob) {
+      return error(400, `The decklist has ${cards} cards; the limit is ${config.maxCardsPerJob}`);
+    }
+    return null;
+  }
 
   app.get('/api/health', { schema: { tags: ['status'], response: { 200: HEALTH } } }, async () => ({
     status: 'ok',
     data: services.db ? 'ready' : 'loading',
   }));
 
+  app.get(
+    '/api/config',
+    { schema: { tags: ['status'], response: { 200: CLIENT_CONFIG } } },
+    async () => ({ frontendRender: config.frontendRender, maxCardsPerJob: config.maxCardsPerJob }),
+  );
+
   app.post(
     '/api/jobs',
-    { config: jobLimit, schema: { tags: ['jobs'], body: JOB_REQUEST, response: { 202: JOB } } },
+    {
+      config: jobLimit,
+      preHandler: serverRenders,
+      schema: { tags: ['jobs'], body: JOB_REQUEST, response: { 202: JOB } },
+    },
     async (request, reply) => {
       const { decklist, format } = request.body;
-      const { entries } = parseDecklist(decklist);
-      const cards = entries.reduce((sum, e) => sum + e.quantity, 0);
-      if (!cards) return reply.code(400).send(error(400, 'The decklist has no cards'));
-      if (config.maxCardsPerJob && cards > config.maxCardsPerJob) {
-        return reply
-          .code(400)
-          .send(
-            error(400, `The decklist has ${cards} cards; the limit is ${config.maxCardsPerJob}`),
-          );
-      }
+      const invalid = checkDecklist(decklist);
+      if (invalid) return reply.code(invalid.statusCode).send(invalid);
       if (!jobs.accepting) {
         return reply.code(503).send(error(503, 'The server is shutting down; try again shortly'));
       }
@@ -107,7 +144,10 @@ export async function buildApp({
 
   app.get(
     '/api/jobs/:id',
-    { schema: { tags: ['jobs'], params: JOB_ID, response: { 200: JOB } } },
+    {
+      preHandler: serverRenders,
+      schema: { tags: ['jobs'], params: JOB_ID, response: { 200: JOB } },
+    },
     async (request, reply) => {
       const job = jobs.get(request.params.id);
       if (!job) return reply.code(404).send(error(404, 'No such job, or it has expired'));
@@ -118,6 +158,7 @@ export async function buildApp({
   app.get(
     '/api/jobs/:id/download',
     {
+      preHandler: serverRenders,
       schema: {
         tags: ['jobs'],
         params: JOB_ID,
@@ -150,10 +191,38 @@ export async function buildApp({
     },
   );
 
+  app.post(
+    '/api/decks',
+    {
+      config: jobLimit,
+      preHandler: browserRenders,
+      schema: {
+        tags: ['preview'],
+        description:
+          'A whole decklist resolved into card models, for the browser to render and bundle (FRONTEND_RENDER).',
+        body: DECK_REQUEST,
+        response: { 200: DECK },
+      },
+    },
+    async (request, reply) => {
+      const invalid = checkDecklist(request.body.decklist);
+      if (invalid) return reply.code(invalid.statusCode).send(invalid);
+      if (!services.db) return reply.code(503).send(error(503, 'The card data is still loading'));
+      const { lines, report } = planDeck(services.db, request.body.decklist);
+      return {
+        lines: lines.map(({ faces, ...line }) => ({
+          ...line,
+          faces: faces.map(({ model }) => publicFace(model)),
+        })),
+        ...report,
+      };
+    },
+  );
+
   app.get(
     '/api/art/:id',
     {
-      config: previewLimit,
+      config: assetLimit,
       schema: { tags: ['preview'], params: ART_ID, produces: ['image/jpeg'] },
     },
     async (request, reply) => {
@@ -166,7 +235,7 @@ export async function buildApp({
   app.get(
     '/api/set-symbols/:code',
     {
-      config: previewLimit,
+      config: assetLimit,
       schema: { tags: ['preview'], params: SET_CODE, produces: ['image/svg+xml'] },
     },
     async (request, reply) => {
@@ -259,7 +328,25 @@ function jobView(job, jobs) {
   };
 }
 
-/** Scryfall art URL for an art id: `front-<uuid>.jpg` (the art cache's file name, T-A10). */
+/**
+ * Pages may load scripts, styles, fonts, images and data from this server only
+ * (plus images and SVG the page makes itself), so the browser can't reach
+ * Scryfall even by mistake (T-S14).
+ */
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "img-src 'self' blob: data:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+/**
+ * Scryfall art URL for an art id: `front-<uuid>.jpg` (the art cache's file
+ * name, T-A10). The id's pattern allows nothing but a Scryfall art crop, so
+ * /api/art/ can't be used to fetch anything else.
+ */
 function artUrl(id) {
   const [, face, uuid] = /^(front|back)-([0-9a-f-]{36})\.jpg$/.exec(id);
   return `https://cards.scryfall.io/art_crop/${face}/${uuid[0]}/${uuid[1]}/${uuid}.jpg`;
@@ -272,6 +359,18 @@ function artPath(url) {
   } catch {
     return null;
   }
+}
+
+/**
+ * A face as the browser gets it: the model without its Scryfall art URL, and
+ * the API paths of its art and set symbol (T-S14).
+ */
+function publicFace(model) {
+  return {
+    model: { ...model, artUrl: null },
+    art: artPath(model.artUrl),
+    setSymbol: `/api/set-symbols/${model.setCode.toLowerCase()}`,
+  };
 }
 
 /** Preview data for one decklist line (D27). */
@@ -294,11 +393,7 @@ function previewLine(db, line) {
   return {
     status: 'ok',
     ...base,
-    faces: models.map((model) => ({
-      model,
-      art: artPath(model.artUrl),
-      setSymbol: `/api/set-symbols/${model.setCode.toLowerCase()}`,
-    })),
+    faces: models.map(publicFace),
   };
 }
 
@@ -307,6 +402,20 @@ function previewLine(db, line) {
 const HEALTH = {
   type: 'object',
   properties: { status: { const: 'ok' }, data: { enum: ['ready', 'loading'] } },
+};
+
+const CLIENT_CONFIG = {
+  type: 'object',
+  properties: {
+    frontendRender: {
+      type: 'boolean',
+      description: 'Batches are rendered in the browser from POST /api/decks; jobs are off',
+    },
+    maxCardsPerJob: {
+      type: 'integer',
+      description: 'Cards per batch, counting copies; 0 for no limit',
+    },
+  },
 };
 
 const JOB_REQUEST = {
@@ -381,6 +490,50 @@ const JOB = {
   },
 };
 
+const DECK_REQUEST = {
+  type: 'object',
+  required: ['decklist'],
+  additionalProperties: false,
+  properties: { decklist: JOB_REQUEST.properties.decklist },
+};
+
+const FACE = {
+  type: 'object',
+  properties: {
+    model: {
+      type: 'object',
+      additionalProperties: true,
+      description: 'Card model (S1); artUrl is always null',
+    },
+    art: { type: ['string', 'null'], description: 'Path under /api/art/' },
+    setSymbol: { type: 'string', description: 'Path under /api/set-symbols/' },
+  },
+};
+
+const DECK = {
+  type: 'object',
+  properties: {
+    lines: {
+      type: 'array',
+      description: 'Matched lines in decklist order; lines with the same key share images',
+      items: {
+        type: 'object',
+        properties: {
+          ...LINE,
+          key: { type: 'string' },
+          name: { type: 'string' },
+          quantity: { type: 'integer' },
+          faces: { type: 'array', items: FACE },
+        },
+      },
+    },
+    errors: JOB.properties.errors,
+    unmatched: JOB.properties.unmatched,
+    fallbacks: JOB.properties.fallbacks,
+    skipped: JOB.properties.skipped,
+  },
+};
+
 const CARD_QUERY = {
   type: 'object',
   required: ['line'],
@@ -396,17 +549,7 @@ const CARD_PREVIEW = {
     warning: { type: ['string', 'null'] },
     message: { type: 'string' },
     suggestions: { type: 'array', items: { type: 'string' } },
-    faces: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          model: { type: 'object', additionalProperties: true, description: 'Card model (S1)' },
-          art: { type: ['string', 'null'] },
-          setSymbol: { type: 'string' },
-        },
-      },
-    },
+    faces: { type: 'array', items: FACE },
   },
 };
 

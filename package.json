@@ -28,6 +28,7 @@
     "cli": "node src/cli.js",
     "web:dev": "vite --config web/vite.config.js",
     "web:build": "vite build --config web/vite.config.js",
+    "web:check": "node scripts/check-web-build.js",
     "mockups:compare": "node scripts/compare-mockups.js",
     "visual:update": "node scripts/update-visual.js",
     "perf": "node --expose-gc scripts/perf-run.js",

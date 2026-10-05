@@ -27,6 +27,8 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run web:build
+      # The browser must never call Scryfall itself (T-S14).
+      - run: npm run web:check
 
   image:
     needs: check

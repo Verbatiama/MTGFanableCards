@@ -10,6 +10,13 @@ case "$LOW_MEMORY" in
   *) heap=1536 ;;
 esac
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=$heap}"
+# Frontend-render mode (T-S14): batches render in the browser, which still
+# gets everything from this server. A misspelt value stops here, before the
+# card data starts loading.
+case "${FRONTEND_RENDER:-false}" in
+  true | 1 | false | 0) ;;
+  *) echo "FRONTEND_RENDER must be true or false: $FRONTEND_RENDER" >&2; exit 1 ;;
+esac
 case "$1" in
   server) exec node src/server/index.js ;;
   cli) shift; exec node src/cli.js "$@" ;;

@@ -72,18 +72,11 @@ To put the app on the internet, `npm run provision` sets up a fresh Ubuntu serve
 
 The script ends by printing the values that GitHub Actions needs to deploy each push to `main`; the guide's [Continuous deployment](docs/self-hosting.md#continuous-deployment) section explains them.
 
-### Frontend rendering flag
+### Rendering in the browser
 
-To move rendering and bundling into the browser (so the frontend performs Canvas drawing and creates the zip/pdf), set the environment variable `FRONTEND_RENDER=true` before starting the server or add it to your `.env` / Docker Compose environment. Example:
+By default the server renders every batch. With `FRONTEND_RENDER=true` in the server's `.env` (or `npm run provision -- --env FRONTEND_RENDER=true`), visitors' browsers render the cards and build `cards.zip` or `cards.pdf` themselves, with the same drawing code, so the server only looks up cards and serves art. The files have the same names, order and layout as the server's; the pictures can differ from a server render by a little anti-aliasing. Server batch jobs (`/api/jobs`) are off in this mode; the CLI is unaffected.
 
-```
-FRONTEND_RENDER=true
-docker compose up -d
-```
-
-When `FRONTEND_RENDER` is enabled the frontend performs rendering and bundling, but it must never call Scryfall (or any third-party bulk-data endpoint) directly. The browser must request card models, art and set symbols only from the backend API (for example `/api/cards`, `/api/art/:id`, `/api/set-symbols/:code`) and fetch fonts/symbol assets from `/assets/*`. The backend continues to enforce caching, rate-limiting and access controls.
-
-If you provision a server with `npm run provision`, pass the flag to your provisioning step or add `FRONTEND_RENDER=true` to the generated `.env` before starting the Compose stack.
+The browser still never contacts Scryfall: it gets card data from `/api/decks` and `/api/cards`, art by id from `/api/art/:id`, set symbols from `/api/set-symbols/:code`, and fonts and symbols from `/assets/`, so the server keeps its caching and rate limits. The app's Content-Security-Policy only lets pages connect to the app itself, and CI fails if a Scryfall address appears in the built frontend (`npm run web:check`). See [Rendering in the browser](docs/self-hosting.md#rendering-in-the-browser) in the self-hosting guide.
 
 ## Decklist format
 

@@ -186,6 +186,9 @@ test('GET /api/cards previews one decklist line (D27)', () =>
       ],
     );
     assert.equal(delver.faces[1].model.power, '3');
+    // The browser gets art by id only, never a Scryfall URL (T-S14).
+    assert.equal(delver.faces[0].model.artUrl, null);
+    assert.doesNotMatch(JSON.stringify(delver), /scryfall/i);
 
     const fallback = (await get(a, '/api/cards?line=Lightning%20Bolt%20(XXX)')).json();
     assert.match(fallback.warning, /no printing in set XXX/);
@@ -235,6 +238,104 @@ test('art and set symbols are served from the caches (3.4, 6.3)', async () => {
   });
 });
 
+test('FRONTEND_RENDER turns jobs off and POST /api/decks on (T-S14)', async () => {
+  await withApp({}, async (a) => {
+    assert.deepEqual((await get(a, '/api/config')).json(), {
+      frontendRender: false,
+      maxCardsPerJob: 250,
+    });
+    const deck = await a.inject({
+      method: 'POST',
+      url: '/api/decks',
+      payload: { decklist: 'Lightning Bolt' },
+    });
+    assert.equal(deck.statusCode, 404);
+    assert.match(deck.json().message, /use \/api\/jobs/);
+  });
+
+  await withApp({ env: { FRONTEND_RENDER: 'true', MAX_CARDS_PER_JOB: '6' } }, async (a) => {
+    assert.equal((await get(a, '/api/config')).json().frontendRender, true);
+    const job = await post(a, { decklist: 'Lightning Bolt' });
+    assert.equal(job.statusCode, 404);
+    assert.match(job.json().message, /rendered in the browser/);
+    assert.equal((await get(a, '/api/jobs/00000000-0000-4000-8000-000000000000')).statusCode, 404);
+
+    const decks = (decklist) =>
+      a.inject({ method: 'POST', url: '/api/decks', payload: { decklist } });
+    const res = await decks('2 Delver of Secrets\nLightnig Bolt\nFire // Ice\n2 Delver of Secrets');
+    assert.equal(res.statusCode, 200);
+    const deck = res.json();
+    assert.deepEqual(
+      deck.lines.map((l) => [l.lineNumber, l.name, l.quantity, l.faces.length]),
+      [
+        [1, 'Delver of Secrets // Insectile Aberration', 2, 2],
+        [4, 'Delver of Secrets // Insectile Aberration', 2, 2],
+      ],
+    );
+    assert.equal(deck.lines[0].key, deck.lines[1].key, 'the same printing shares its images');
+    assert.deepEqual(
+      deck.lines[0].faces.map((f) => [f.model.artUrl, f.art, f.setSymbol]),
+      [
+        [null, '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg', '/api/set-symbols/tst'],
+        [null, '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg', '/api/set-symbols/tst'],
+      ],
+    );
+    assert.deepEqual(
+      deck.unmatched.map((u) => u.name),
+      ['Lightnig Bolt'],
+    );
+    assert.deepEqual(
+      deck.skipped.map((s) => s.name),
+      ['Fire // Ice'],
+    );
+    assert.doesNotMatch(res.body, /scryfall/i);
+
+    assert.equal((await decks('7 Lightning Bolt')).statusCode, 400, 'the job limits apply');
+    assert.equal((await decks('Sideboard')).statusCode, 400);
+  });
+
+  await withApp(
+    {
+      env: { FRONTEND_RENDER: 'true' },
+      services: { db: null, loaded: () => new Promise(() => {}) },
+    },
+    async (a) => {
+      const res = await a.inject({
+        method: 'POST',
+        url: '/api/decks',
+        payload: { decklist: 'Lightning Bolt' },
+      });
+      assert.equal(res.statusCode, 503);
+    },
+  );
+});
+
+test('/api/art/ serves Scryfall art crops by id only: no URL passes through (T-S14)', async () => {
+  const requested = [];
+  const services = { fetchArt: async (url) => (requested.push(url), null) };
+  await withApp({ services }, async (a) => {
+    for (const id of [
+      'https%3A%2F%2Fexample.com%2Fx.jpg',
+      'front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.png',
+      'front-11bf83bb.jpg',
+      'side-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
+      '..%2Fsecret',
+    ]) {
+      assert.equal((await get(a, `/api/art/${id}`)).statusCode, 400, id);
+    }
+    assert.deepEqual(requested, []);
+  });
+});
+
+test('pages may only reach this server: Content-Security-Policy (T-S14)', () =>
+  withApp({}, async (a) => {
+    for (const url of ['/api/health', '/assets/symbols/generic.svg', '/nowhere']) {
+      const csp = (await get(a, url)).headers['content-security-policy'];
+      assert.match(csp, /default-src 'self'/, url);
+      assert.match(csp, /img-src 'self' blob: data:/, url);
+    }
+  }));
+
 test('fonts and symbol files are served under /assets/ (D27)', () =>
   withApp({}, async (a) => {
     assert.equal((await get(a, '/assets/fonts/Beleren2016-Bold.ttf')).statusCode, 200);
@@ -248,7 +349,14 @@ test('GET /api/docs is the OpenAPI description', () =>
   withApp({}, async (a) => {
     const docs = (await get(a, '/api/docs')).json();
     assert.match(docs.openapi, /^3\./);
-    for (const route of ['/api/jobs', '/api/jobs/{id}', '/api/jobs/{id}/download', '/api/cards']) {
+    for (const route of [
+      '/api/jobs',
+      '/api/jobs/{id}',
+      '/api/jobs/{id}/download',
+      '/api/cards',
+      '/api/decks',
+      '/api/config',
+    ]) {
       assert.ok(docs.paths[route], route);
     }
   }));
@@ -273,6 +381,8 @@ test('per-IP rate limits return 429; 0 turns them off (3.6.5)', async () => {
     for (let i = 0; i < 4; i++)
       previews.push((await get(a, '/api/cards?line=Lightning%20Bolt')).statusCode);
     assert.deepEqual(previews, [200, 200, 200, 429]);
+    const art = await get(a, '/api/set-symbols/m10');
+    assert.notEqual(art.statusCode, 429, 'art and set symbols have their own limit');
     assert.equal((await get(a, '/api/health')).statusCode, 200, 'health checks are never limited');
   });
 });
@@ -286,6 +396,13 @@ test('configuration comes from environment variables with the documented default
   assert.equal(config.jobTtlMs, 3_600_000);
   assert.equal(config.rateLimitJobsPerHour, 10);
   assert.equal(config.rateLimitPreviewPerMinute, 120);
+  assert.equal(config.rateLimitAssetsPerMinute, 600);
+  assert.equal(config.frontendRender, false);
+  for (const value of ['true', '1'])
+    assert.equal(loadConfig({ FRONTEND_RENDER: value }).frontendRender, true);
+  for (const value of ['', 'false', '0'])
+    assert.equal(loadConfig({ FRONTEND_RENDER: value }).frontendRender, false);
+  assert.throws(() => loadConfig({ FRONTEND_RENDER: 'yes' }), /FRONTEND_RENDER/);
   assert.equal(loadConfig({ MAX_BODY_KB: '0' }).maxBodyBytes, Number.MAX_SAFE_INTEGER);
   assert.equal(loadConfig({ TRUST_PROXY: 'false' }).trustProxy, false);
   assert.throws(() => loadConfig({ MAX_RUNNING_JOBS: 'two' }), /MAX_RUNNING_JOBS/);

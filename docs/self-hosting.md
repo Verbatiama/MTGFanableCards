@@ -51,22 +51,23 @@ The app trusts Caddy's forwarded headers for client IPs (for the rate limits) be
 
 Everything is optional, set in `.env`. Limits set to `0` are turned off.
 
-| Variable                        | Default | Purpose                                                                                                                                                                                                                                                                                                                            |
-| ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FANNABLE_TAG`                  | latest  | Image version                                                                                                                                                                                                                                                                                                                      |
-| `APP_PORT`                      | 3000    | Host port (or `address:port`) for the app                                                                                                                                                                                                                                                                                          |
-| `COMPOSE_PROFILES`, `DOMAIN`    |         | `caddy` and your domain for HTTPS                                                                                                                                                                                                                                                                                                  |
-| `ART_CACHE_MAX_GB`              | 10      | Art cache cap; the least-used quarter is dropped when reached                                                                                                                                                                                                                                                                      |
-| `MAX_BODY_KB`                   | 64      | Largest decklist accepted                                                                                                                                                                                                                                                                                                          |
-| `MAX_CARDS_PER_JOB`             | 250     | Cards per batch, counting copies                                                                                                                                                                                                                                                                                                   |
-| `MAX_RUNNING_JOBS`              | 2       | Batches rendering at once; others queue (1 with `LOW_MEMORY`)                                                                                                                                                                                                                                                                      |
-| `JOB_TTL_MINUTES`               | 60      | How long finished downloads are kept                                                                                                                                                                                                                                                                                               |
-| `SCRYFALL_REFRESH_HOURS`        | 24      | How often to check Scryfall for new card data                                                                                                                                                                                                                                                                                      |
-| `RATE_LIMIT_JOBS_PER_HOUR`      | 10      | New batches per visitor IP per hour                                                                                                                                                                                                                                                                                                |
-| `RATE_LIMIT_PREVIEW_PER_MINUTE` | 120     | Preview requests per visitor IP per minute                                                                                                                                                                                                                                                                                         |
-| `LOW_MEMORY`                    | false   | `true` fits the app on a 1 GB server; see [1 GB servers](#1-gb-servers)                                                                                                                                                                                                                                                            |
-| `TRUST_PROXY`                   | private | Proxies whose forwarded headers are trusted: `true`, `false`, or addresses and CIDR ranges; by default loopback and private networks                                                                                                                                                                                               |
-| `FRONTEND_RENDER`               | false   | When `true`, the frontend performs Canvas rendering and bundling; the browser must still obtain card models, art and set symbols only from the backend API (`/api/cards`, `/api/art/:id`, `/api/set-symbols/:code`) and fetch fonts/symbol assets from `/assets/*`. This preserves caching, rate-limiting and provenance controls. |
+| Variable                        | Default | Purpose                                                                                                                              |
+| ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `FANNABLE_TAG`                  | latest  | Image version                                                                                                                        |
+| `APP_PORT`                      | 3000    | Host port (or `address:port`) for the app                                                                                            |
+| `COMPOSE_PROFILES`, `DOMAIN`    |         | `caddy` and your domain for HTTPS                                                                                                    |
+| `ART_CACHE_MAX_GB`              | 10      | Art cache cap; the least-used quarter is dropped when reached                                                                        |
+| `MAX_BODY_KB`                   | 64      | Largest decklist accepted                                                                                                            |
+| `MAX_CARDS_PER_JOB`             | 250     | Cards per batch, counting copies                                                                                                     |
+| `MAX_RUNNING_JOBS`              | 2       | Batches rendering at once; others queue (1 with `LOW_MEMORY`)                                                                        |
+| `JOB_TTL_MINUTES`               | 60      | How long finished downloads are kept                                                                                                 |
+| `SCRYFALL_REFRESH_HOURS`        | 24      | How often to check Scryfall for new card data                                                                                        |
+| `RATE_LIMIT_JOBS_PER_HOUR`      | 10      | New batches per visitor IP per hour                                                                                                  |
+| `RATE_LIMIT_PREVIEW_PER_MINUTE` | 120     | Card previews per visitor IP per minute                                                                                              |
+| `RATE_LIMIT_ASSETS_PER_MINUTE`  | 600     | Art and set symbol requests per visitor IP per minute                                                                                |
+| `LOW_MEMORY`                    | false   | `true` fits the app on a 1 GB server; see [1 GB servers](#1-gb-servers)                                                              |
+| `FRONTEND_RENDER`               | false   | `true` renders batches in visitors' browsers; see [Rendering in the browser](#rendering-in-the-browser)                              |
+| `TRUST_PROXY`                   | private | Proxies whose forwarded headers are trusted: `true`, `false`, or addresses and CIDR ranges; by default loopback and private networks |
 
 Change `.env`, then `docker compose up -d` to apply it.
 
@@ -83,6 +84,18 @@ With `LOW_MEMORY=true` in `.env` (or `npm run provision -- --low-memory`), the a
 Measured on a 100-card deck, the app peaks at about 0.6 GB of memory in this mode instead of 1 GB, at the same speed.
 
 The CLI follows the same setting, but it still loads its own copy of the card data, so stop the app before running it on a 1 GB server.
+
+## Rendering in the browser
+
+With `FRONTEND_RENDER=true` in `.env` (or `npm run provision -- --env FRONTEND_RENDER=true`), batches render in each visitor's browser instead of on the server. The browser draws the cards with the same code the server uses and builds `cards.zip` or `cards.pdf` itself, so the server's CPU and memory go only to looking up cards and serving art. The files have the same names, order and page layout as the server's; the images can differ from a server render by a little anti-aliasing. In this mode:
+
+- `POST /api/jobs` answers 404, so nothing renders on the server; the CLI still works.
+- The page asks `POST /api/decks` for the whole decklist's card models once (it counts against `RATE_LIMIT_JOBS_PER_HOUR` and `MAX_CARDS_PER_JOB`, like a batch), then fetches each card's art and set symbol, which count against `RATE_LIMIT_ASSETS_PER_MINUTE`. A 100-card deck needs up to about 200 of those requests; the page waits and retries if it hits the limit.
+- Large decks take longer on slow phones, and the browser holds every image until the download is built.
+
+**The browser never calls Scryfall.** It only asks this server: card data from `/api/decks` and `/api/cards`, art by id from `/api/art/:id`, set symbols from `/api/set-symbols/:code`, fonts and symbols from `/assets/`. Card models carry no Scryfall URLs; an art id names one cached Scryfall art crop and can't be used to fetch anything else. The app sends a Content-Security-Policy that lets pages connect only to the app, and CI fails if a Scryfall address appears in the built frontend (`npm run web:check`). So the art cache, rate limits and Scryfall's request etiquette stay with the server.
+
+A value other than `true`, `1`, `false` or `0` stops the container at start-up with a message.
 
 ## The command line
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createJob, jobStatus, previewLine } from './api.js';
+import { clientConfig, createJob, jobStatus, previewLine } from './api.js';
 import { renderFace } from './browser-render.js';
 import { isPreviewable, lineAt, lineStart, replaceInLine, reportProblems } from './decklist.js';
 
@@ -7,8 +7,9 @@ import { isPreviewable, lineAt, lineStart, replaceInLine, reportProblems } from 
  * The frontend (T-C2, D27; Requirements 3.1.2, 3.2.6, 3.6.2, 10.2): decklist
  * input, a live preview of the line the cursor is on (rendered in the
  * browser), generation with progress, the unmatched-name report, the zip/PDF
- * download and the Fan Content notice. Batches render on the server; the UI
- * shows no thumbnails of them.
+ * download and the Fan Content notice. Batches render on the server, or in
+ * the browser when the server has FRONTEND_RENDER on (T-S14); the UI shows no
+ * thumbnails of them.
  */
 
 const EXAMPLE = `4 Lightning Bolt
@@ -30,8 +31,17 @@ function storedDecklist() {
 
 export function App() {
   const [decklist, setDecklist] = useState(storedDecklist);
+  // Server rendering until the server says otherwise.
+  const [frontendRender, setFrontendRender] = useState(false);
   const [cursor, setCursor] = useState({ index: 0, text: '' });
   const editor = useRef(null);
+
+  useEffect(() => {
+    clientConfig().then(
+      (config) => setFrontendRender(config.frontendRender),
+      () => {}, // an older server: it renders batches itself
+    );
+  }, []);
 
   useEffect(() => {
     try {
@@ -91,7 +101,7 @@ export function App() {
             onKeyUp={updateCursor}
             onClick={updateCursor}
           />
-          <Generate decklist={decklist} onLine={goToLine} />
+          <Generate decklist={decklist} inBrowser={frontendRender} onLine={goToLine} />
         </section>
 
         <section className="preview" aria-live="polite">
@@ -243,16 +253,26 @@ function CardCanvas({ face }) {
   );
 }
 
-/** Format choice, the job's progress and report, and the download (3.5.3, 3.6.1). */
-function Generate({ decklist, onLine }) {
+/**
+ * Format choice, the job's progress and report, and the download (3.5.3,
+ * 3.6.1). `inBrowser` renders the batch here instead of in a server job
+ * (T-S14), with the same progress, report and download.
+ */
+function Generate({ decklist, inBrowser, onLine }) {
   const [format, setFormat] = useState('zip');
   const [job, setJob] = useState(null);
   const [error, setError] = useState(null);
   const [starting, setStarting] = useState(false);
   const active = job && (job.status === 'queued' || job.status === 'running');
 
+  // A finished browser batch is held as an object URL until the next one.
+  const download = job?.status === 'done' && job.local ? job.downloadUrl : null;
+  useEffect(() => (download ? () => URL.revokeObjectURL(download) : undefined), [download]);
+
+  // Server jobs are polled; a browser batch reports as it goes.
+  const polling = active && !job.local;
   useEffect(() => {
-    if (!active) return undefined;
+    if (!polling) return undefined;
     const timer = setInterval(async () => {
       try {
         setJob(await jobStatus(job.id));
@@ -264,19 +284,38 @@ function Generate({ decklist, onLine }) {
       }
     }, POLL_MS);
     return () => clearInterval(timer);
-  }, [active, job?.id]);
+  }, [polling, job?.id]);
 
   async function start() {
     setStarting(true);
     setError(null);
     setJob(null);
     try {
-      setJob(await createJob(decklist, format));
+      if (inBrowser) await renderHere();
+      else setJob(await createJob(decklist, format));
     } catch (e) {
+      setJob(null);
       setError(e.message);
     } finally {
       setStarting(false);
     }
+  }
+
+  /** Renders and bundles the batch in this browser, reporting like a job. */
+  async function renderHere() {
+    const { generateInBrowser } = await import('./browser-batch.js');
+    setJob({ local: true, status: 'running', format, total: 0, done: 0 });
+    const { blob, count, report } = await generateInBrowser(decklist, format, ({ done, total }) =>
+      setJob((j) => ({ ...j, done, total })),
+    );
+    setJob({
+      local: true,
+      format,
+      ...report,
+      ...(blob
+        ? { status: 'done', done: count, total: count, downloadUrl: URL.createObjectURL(blob) }
+        : { status: 'failed', error: 'No cards were generated' }),
+    });
   }
 
   return (
@@ -337,7 +376,8 @@ function JobStatus({ job, onLine }) {
             Download cards.{job.format}
           </a>{' '}
           <span className="muted">
-            {job.done} cards. Kept until {new Date(job.expiresAt).toLocaleTimeString()}.
+            {job.done} cards.
+            {job.expiresAt && ` Kept until ${new Date(job.expiresAt).toLocaleTimeString()}.`}
           </span>
         </p>
       )}

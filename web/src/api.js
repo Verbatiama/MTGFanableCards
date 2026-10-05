@@ -28,3 +28,14 @@ export const createJob = (decklist, format) =>
   });
 
 export const jobStatus = (id) => request(`/api/jobs/${id}`);
+
+/** Whether batches render in the browser (FRONTEND_RENDER, T-S14), and the card limit. */
+export const clientConfig = () => request('/api/config');
+
+/** A whole decklist's card models, for rendering in the browser (T-S14). */
+export const createDeck = (decklist) =>
+  request('/api/decks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ decklist }),
+  });
