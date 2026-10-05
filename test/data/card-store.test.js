@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { CardDatabase } from '../../src/data/card-database.js';
 import { createCardStore } from '../../src/data/card-store.js';
 import { downloadBulkData } from '../../src/data/scryfall-bulk.js';
 import { fakeScryfall, jsonlGz, quietLog, scryfallCard } from './helpers.js';
@@ -99,11 +100,22 @@ test('low-memory mode uses only Default Cards and drops the old data during a re
   assert.deepEqual(await readdir(dir), ['bulk-meta.json', 'default-cards.jsonl.gz']);
   assert.equal(await store.loaded(), store.db);
 
+  // Hold the new load open, so the gap with no database can be checked.
+  const fromFiles = CardDatabase.fromFiles;
+  let release;
+  const gate = new Promise((resolve) => (release = resolve));
+  const load = t.mock.method(CardDatabase, 'fromFiles', async (...args) => {
+    await gate;
+    return fromFiles(...args);
+  });
+
   Object.assign(versions, { default_cards: 'v2' });
   Object.assign(data, files([bolt, shock]));
   const refreshing = store.refresh();
-  await until(() => store.db === null);
+  await until(() => load.mock.callCount() === 1);
+  assert.equal(store.db, null, 'the old database is dropped before the new one loads');
   const loaded = store.loaded();
+  release();
   await refreshing;
   assert.equal((await loaded).lookup('Shock')?.name, 'Shock');
   assert.equal(await loaded, store.db);
