@@ -166,5 +166,7 @@ Code in `src/render/`, `src/model/`, `src/config/` and `web/` must not use Node-
 ### Thanks and mentions
 
 To Richard Garfield and all of the employees of Wizards of the Coast past and present for making this great game
+
 Mark Rosewater particularly for his many articles, including [the source inspiration for this project](https://magic.wizards.com/en/news/making-magic/starting-over-2015-12-21)
+
 and [Reddit user OspreyDawn](https://www.reddit.com/user/OspreyDawn/) for a [great post and design work](https://www.reddit.com/r/magicTCG/comments/2u4ouo/after_reading_about_how_maro_would_change_the/) based on that article many years ago
