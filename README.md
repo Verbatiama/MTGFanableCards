@@ -72,6 +72,19 @@ To put the app on the internet, `npm run provision` sets up a fresh Ubuntu serve
 
 The script ends by printing the values that GitHub Actions needs to deploy each push to `main`; the guide's [Continuous deployment](docs/self-hosting.md#continuous-deployment) section explains them.
 
+### Frontend rendering flag
+
+To move rendering and bundling into the browser (so the frontend performs Canvas drawing and creates the zip/pdf), set the environment variable `FRONTEND_RENDER=true` before starting the server or add it to your `.env` / Docker Compose environment. Example:
+
+```
+FRONTEND_RENDER=true
+docker compose up -d
+```
+
+When `FRONTEND_RENDER` is enabled the frontend performs rendering and bundling, but it must never call Scryfall (or any third-party bulk-data endpoint) directly. The browser must request card models, art and set symbols only from the backend API (for example `/api/cards`, `/api/art/:id`, `/api/set-symbols/:code`) and fetch fonts/symbol assets from `/assets/*`. The backend continues to enforce caching, rate-limiting and access controls.
+
+If you provision a server with `npm run provision`, pass the flag to your provisioning step or add `FRONTEND_RENDER=true` to the generated `.env` before starting the Compose stack.
+
 ## Decklist format
 
 One card per line, as exported by Arena, MTGO, Moxfield and most deck builders:
