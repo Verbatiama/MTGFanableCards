@@ -95,6 +95,9 @@ export function createJobQueue({
     job.status = 'running';
     const started = now();
     const workDir = path.join(dir, `${job.id}.work`);
+    // Settled only after the work directory is removed, so a finished
+    // status means the job has fully ended.
+    let failure = null;
     try {
       // Synchronous, so the job starts running before create() returns.
       mkdirSync(workDir, { recursive: true });
@@ -107,16 +110,17 @@ export function createJobQueue({
       if (bytes || write) {
         job.file = path.join(dir, `${job.id}.${job.format}`);
         await (write ? write(job.file) : writeFile(job.file, bytes));
-        job.status = 'done';
       } else {
-        fail(job, error ?? 'No cards were generated');
+        failure = error ?? 'No cards were generated';
       }
     } catch (error) {
       log.error(error);
-      fail(job, `Generation failed: ${error.message}`);
+      failure = `Generation failed: ${error.message}`;
     } finally {
       await rm(workDir, { recursive: true, force: true });
     }
+    if (failure) fail(job, failure);
+    else job.status = 'done';
     const seconds = ((now() - started) / 1000).toFixed(1);
     log.info(`job ${job.id} ${job.status}: ${job.done} cards in ${seconds} s`);
     expireLater(job);
