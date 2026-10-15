@@ -1,7 +1,7 @@
 /**
  * Throwaway preview of the card-model fixtures (T-A2), so their data can be
  * checked by eye before the real renderer (T-B2 onwards) exists. Not the
- * renderer: no icons for types/stats, fixed dimensions. Art crops are
+ * renderer: no icons for types/stats, fixed dimensions. Art (WebP) is
  * downloaded from Scryfall by the art fetcher (src/art/, T-A10); pass --no-art to skip them.
  *
  *   node spikes/fixture-preview/run.js [--no-art] [slug ...]
@@ -13,7 +13,7 @@
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { createCanvas, loadImage, registerFont } from 'canvas';
+import { createCanvas, registerFont } from 'canvas';
 import { FONT_DIR, OUT_DIR } from '../../src/paths.js';
 import { decodeSetSymbol, nodeAssets as assets, nodeEnv } from '../../src/render/node.js';
 import { drawFrame } from '../../src/render/frame.js';
@@ -47,7 +47,7 @@ async function loadArt(model) {
   const bytes = await artFetcher.fetchArt(model.artUrl);
   if (!bytes) return null;
   try {
-    return await loadImage(bytes);
+    return await nodeEnv.loadImage(bytes); // converts Scryfall's WebP for node-canvas
   } catch (error) {
     console.warn(`art: ${model.name} could not be decoded (${error.message}); using placeholder`);
     return null;

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
+import sharp from 'sharp';
 import { CARD, FONTS } from '../config/layout.js';
 import { FONT_DIR, SYMBOL_DIR } from '../paths.js';
 import { createAssets } from './assets.js';
@@ -15,7 +16,7 @@ import { sizeSvg } from './svg.js';
 /** Environment for renderCard and the asset loader: node-canvas and res/symbols/ on disk. */
 export const nodeEnv = {
   createCanvas,
-  loadImage: (bytes) => loadImage(Buffer.from(bytes)),
+  loadImage: async (bytes) => loadImage(await canvasReadable(bytes)),
   loadAsset: (file) => loadImage(path.join(SYMBOL_DIR, file)),
   readAsset: (file) => readFile(path.join(SYMBOL_DIR, file), 'utf8'),
   loadSvg: (svg) => loadImage(Buffer.from(svg)),
@@ -34,11 +35,23 @@ export function registerFonts() {
   fontsRegistered = true;
 }
 
+const isWebp = (bytes) =>
+  bytes.toString('latin1', 0, 4) === 'RIFF' && bytes.toString('latin1', 8, 12) === 'WEBP';
+
+/**
+ * Bytes node-canvas can load: Scryfall art is WebP, which node-canvas can't
+ * read, so it's converted to PNG here; anything else passes through.
+ */
+async function canvasReadable(bytes) {
+  const buffer = Buffer.from(bytes);
+  return isWebp(buffer) ? sharp(buffer).png().toBuffer() : buffer;
+}
+
 /** Decodes image bytes, or null when they're missing or can't be decoded. */
 export async function decode(bytes) {
   if (!bytes) return null;
   try {
-    return await loadImage(Buffer.from(bytes));
+    return await loadImage(await canvasReadable(bytes));
   } catch {
     return null;
   }

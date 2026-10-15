@@ -55,7 +55,7 @@ export function parseTypeLine(typeLine) {
 
 const wubrg = (colors) => COLORS.filter((c) => colors.includes(c));
 
-const artOf = (source) => source.art_crop ?? source.image_uris?.art_crop ?? null;
+const artOf = (source) => source.art ?? source.image_uris?.art ?? null;
 
 /**
  * @param {object} card Scryfall printing (slim or raw).

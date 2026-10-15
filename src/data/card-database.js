@@ -86,14 +86,14 @@ function pick(source, fields) {
   return out;
 }
 
-/** The fields kept for one printing, with only the art crop of each image. */
+/** The fields kept for one printing, with only the art of each image. */
 export function slimCard(card) {
   const slim = pick(card, CARD_FIELDS);
-  if (card.image_uris?.art_crop) slim.art_crop = card.image_uris.art_crop;
+  if (card.image_uris?.art) slim.art = card.image_uris.art;
   if (card.card_faces) {
     slim.card_faces = card.card_faces.map((face) => {
       const f = pick(face, FACE_FIELDS);
-      if (face.image_uris?.art_crop) f.art_crop = face.image_uris.art_crop;
+      if (face.image_uris?.art) f.art = face.image_uris.art;
       return f;
     });
   }
@@ -101,7 +101,7 @@ export function slimCard(card) {
 }
 
 // Different on (almost) every printing, so not worth sharing.
-const UNSHARED_FIELDS = new Set(['id', 'art_crop', 'illustration_id']);
+const UNSHARED_FIELDS = new Set(['id', 'art', 'illustration_id']);
 
 /**
  * Low-memory mode (T-S13): returns a function that makes a slim card share

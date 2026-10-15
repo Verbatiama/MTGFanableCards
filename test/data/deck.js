@@ -35,8 +35,7 @@ export function deckDatabase() {
           toughness: '1',
           oracle_text: '',
           image_uris: {
-            art_crop:
-              'https://cards.scryfall.io/art_crop/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg?1',
+            art: 'https://cards.scryfall.io/art/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp?1',
           },
         },
         {
@@ -48,8 +47,7 @@ export function deckDatabase() {
           toughness: '2',
           oracle_text: 'Flying',
           image_uris: {
-            art_crop:
-              'https://cards.scryfall.io/art_crop/back/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg?1',
+            art: 'https://cards.scryfall.io/art/back/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp?1',
           },
         },
       ],

@@ -41,7 +41,7 @@
  * @property {string} oracleText Rules text in Scryfall formatting; may be ''.
  * @property {string | null} flavorText
  * @property {string | null} watermark Scryfall watermark name, e.g. 'izzet'.
- * @property {string | null} artUrl Scryfall art crop; null renders the black placeholder (3.4.1).
+ * @property {string | null} artUrl Scryfall art (WebP); null renders the black placeholder (3.4.1).
  * @property {string} artist
  * @property {string} collectorNumber
  * @property {'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus'} rarity

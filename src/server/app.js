@@ -223,12 +223,12 @@ export async function buildApp({
     '/api/art/:id',
     {
       config: assetLimit,
-      schema: { tags: ['preview'], params: ART_ID, produces: ['image/jpeg'] },
+      schema: { tags: ['preview'], params: ART_ID, produces: ['image/webp'] },
     },
     async (request, reply) => {
       const bytes = await services.fetchArt(artUrl(request.params.id));
       if (!bytes) return reply.code(404).send(error(404, 'Art not available'));
-      return reply.type('image/jpeg').header('Cache-Control', 'public, max-age=86400').send(bytes);
+      return reply.type('image/webp').header('Cache-Control', 'public, max-age=86400').send(bytes);
     },
   );
 
@@ -343,13 +343,13 @@ const CONTENT_SECURITY_POLICY = [
 ].join('; ');
 
 /**
- * Scryfall art URL for an art id: `front-<uuid>.jpg` (the art cache's file
- * name, T-A10). The id's pattern allows nothing but a Scryfall art crop, so
+ * Scryfall art URL for an art id: `front-<uuid>.webp` (the art cache's file
+ * name, T-A10). The id's pattern allows nothing but Scryfall card art, so
  * /api/art/ can't be used to fetch anything else.
  */
 function artUrl(id) {
-  const [, face, uuid] = /^(front|back)-([0-9a-f-]{36})\.jpg$/.exec(id);
-  return `https://cards.scryfall.io/art_crop/${face}/${uuid[0]}/${uuid[1]}/${uuid}.jpg`;
+  const [, face, uuid] = /^(front|back)-([0-9a-f-]{36})\.webp$/.exec(id);
+  return `https://cards.scryfall.io/art/${face}/${uuid[0]}/${uuid[1]}/${uuid}.webp`;
 }
 
 /** The preview URL for a card model's art, or null without Scryfall art. */
@@ -555,7 +555,7 @@ const CARD_PREVIEW = {
 
 const ART_ID = {
   type: 'object',
-  properties: { id: { type: 'string', pattern: '^(front|back)-[0-9a-f-]{36}\\.jpg$' } },
+  properties: { id: { type: 'string', pattern: '^(front|back)-[0-9a-f-]{36}\\.webp$' } },
 };
 
 const SET_CODE = {

@@ -17,7 +17,7 @@ export function scryfallCard(fields) {
     colors: [],
     image_uris: {
       normal: 'https://example.test/normal.jpg',
-      art_crop: 'https://example.test/art.jpg',
+      art: 'https://example.test/art.jpg',
     },
     ...fields,
   };

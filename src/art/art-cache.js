@@ -7,7 +7,7 @@ import { ART_CACHE_DIR } from '../paths.js';
 /**
  * Art fetcher with a capped cache (T-A10, D10, D29; Requirements 3.4).
  *
- * - Art crops are cached on disk, so each image is downloaded once.
+ * - Art is cached on disk, so each image is downloaded once.
  * - Network requests start at least 100ms apart, to respect Scryfall. Cache hits
  *   don't count, and simultaneous requests for the same art share one download.
  * - Any failure returns null, and the renderer draws the black placeholder.
@@ -21,7 +21,7 @@ const HEADERS = { 'User-Agent': 'MTGFannableCards/0.1', Accept: 'image/*' };
 const INDEX_FILE = 'index.json';
 const EVICT_FRACTION = 0.25;
 
-/** `.../art_crop/front/6/7/67f4….jpg?123` → `front-67f4….jpg` */
+/** `.../art/front/6/7/67f4….webp?123` → `front-67f4….webp` */
 export function cacheFileName(url) {
   const { pathname } = new URL(url);
   const [, face, file] = /\/(front|back)\/\w\/\w\/([^/]+)$/.exec(pathname) ?? [];
@@ -131,7 +131,7 @@ export function createArtFetcher({
   }
 
   /**
-   * @param {string | null} url Scryfall art crop URL from the card model.
+   * @param {string | null} url Scryfall art URL from the card model.
    * @returns {Promise<Buffer | null>} Image bytes, or null for the placeholder.
    */
   async function fetchArt(url) {
