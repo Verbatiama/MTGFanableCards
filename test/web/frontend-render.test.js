@@ -5,6 +5,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { createCanvas } from 'canvas';
 import { unzipSync } from 'fflate';
 import { PDFDocument } from 'pdf-lib';
+import sharp from 'sharp';
 import { findScryfallUrls, scanBuild } from '../../scripts/check-web-build.js';
 import { CardDatabase } from '../../src/data/card-database.js';
 import { pdfSheets } from '../../src/output/index.js';
@@ -25,10 +26,10 @@ import { loadArt, loadSetSymbol } from '../../web/src/browser-render.js';
 const PRINTINGS = JSON.parse(
   readFileSync(new URL('../fixtures/scryfall/printings.json', import.meta.url), 'utf8'),
 );
-/** A stored (slim) printing as Scryfall sends it, so the database keeps its art crops. */
-const withImages = ({ art_crop, ...card }) => ({
+/** A stored (slim) printing as Scryfall sends it, so the database keeps its art. */
+const withImages = ({ art, ...card }) => ({
   ...card,
-  ...(art_crop && { image_uris: { art_crop } }),
+  ...(art && { image_uris: { art } }),
   ...(card.card_faces && { card_faces: card.card_faces.map(withImages) }),
 });
 const db = await CardDatabase.build(PRINTINGS.map((p) => ({ object: 'card', ...withImages(p) })));
@@ -40,7 +41,7 @@ const DECKLIST = [
 ].join('\n');
 
 /**
- * A small JPEG per artwork, so art goes through /api/art/ and shows in the
+ * A small WebP per artwork, as Scryfall sends it, so art goes through /api/art/ and shows in the
  * images. Keyed by the URL's path: the server drops Scryfall's ?timestamp.
  */
 function fakeArt(url) {
@@ -49,7 +50,7 @@ function fakeArt(url) {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = `hsl(${[...url].reduce((h, c) => h + c.charCodeAt(0), 0) % 360}, 60%, 50%)`;
   ctx.fillRect(0, 0, 64, 48);
-  return canvas.toBuffer('image/jpeg');
+  return sharp(canvas.toBuffer('image/png')).webp().toBuffer();
 }
 const SET_SYMBOL = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5"/></svg>',
@@ -148,7 +149,7 @@ test('the browser path gives the same zip, PDF and report as a server job (T-S14
     assert.deepEqual(findScryfallUrls(body), []);
     assert.doesNotMatch(body, /scryfall/i);
     for (const url of requested) assert.match(url, /^\/api\/(decks$|art\/|set-symbols\/)/, url);
-    assert.ok(requested.some((url) => /^\/api\/art\/front-[0-9a-f-]{36}\.jpg$/.test(url)));
+    assert.ok(requested.some((url) => /^\/api\/art\/front-[0-9a-f-]{36}\.webp$/.test(url)));
   } finally {
     await Promise.all([server.close(), browser.close()]);
   }
@@ -193,7 +194,7 @@ test('the build check finds Scryfall addresses but allows the home page link (T-
   assert.deepEqual(findScryfallUrls('fetch("https://api.scryfall.com/cards/named")'), [
     'api.scryfall.com',
   ]);
-  assert.deepEqual(findScryfallUrls('"https://cards.scryfall.io/art_crop/front/x.jpg"'), [
+  assert.deepEqual(findScryfallUrls('"https://cards.scryfall.io/art/front/x.webp"'), [
     'cards.scryfall.io',
   ]);
   assert.deepEqual(findScryfallUrls('"//scryfall.com/search?q=bolt"'), [

@@ -28,7 +28,7 @@ const cards = [
       {
         name: 'Delver of Secrets',
         type_line: 'Creature — Human Wizard',
-        image_uris: { art_crop: 'https://example.test/front.jpg' },
+        image_uris: { art: 'https://example.test/front.jpg' },
       },
       {
         name: 'Insectile Aberration',
@@ -71,11 +71,11 @@ test('printings are sorted oldest first, so the first printing is the default (3
 
 test('printings keep only the fields later stages need', () => {
   const [lea] = db.lookup('Lightning Bolt').printings;
-  assert.equal(lea.art_crop, 'https://example.test/art.jpg');
+  assert.equal(lea.art, 'https://example.test/art.jpg');
   assert.equal(lea.image_uris, undefined);
   assert.equal(lea.object, undefined);
   const delver = db.lookup('Delver of Secrets').printings[0];
-  assert.equal(delver.card_faces[0].art_crop, 'https://example.test/front.jpg');
+  assert.equal(delver.card_faces[0].art, 'https://example.test/front.jpg');
   assert.deepEqual(delver.card_faces[1].color_indicator, ['U']);
 });
 

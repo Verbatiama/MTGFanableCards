@@ -175,12 +175,12 @@ test('GET /api/cards previews one decklist line (D27)', () =>
       [
         [
           'Delver of Secrets',
-          '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
+          '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp',
           '/api/set-symbols/tst',
         ],
         [
           'Insectile Aberration',
-          '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
+          '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp',
           '/api/set-symbols/tst',
         ],
       ],
@@ -213,20 +213,20 @@ test('art and set symbols are served from the caches (3.4, 6.3)', async () => {
   const services = {
     fetchArt: async (url) => (
       requested.push(url),
-      url.includes('/back/') ? null : Buffer.from('jpeg')
+      url.includes('/back/') ? null : Buffer.from('webp')
     ),
     fetchSetSymbol: async (code) => (code === 'm10' ? Buffer.from('<svg/>') : null),
   };
   await withApp({ services }, async (a) => {
-    const art = await get(a, '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg');
+    const art = await get(a, '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp');
     assert.equal(art.statusCode, 200);
-    assert.equal(art.headers['content-type'], 'image/jpeg');
-    assert.equal(art.body, 'jpeg');
+    assert.equal(art.headers['content-type'], 'image/webp');
+    assert.equal(art.body, 'webp');
     assert.deepEqual(requested, [
-      'https://cards.scryfall.io/art_crop/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
+      'https://cards.scryfall.io/art/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp',
     ]);
     assert.equal(
-      (await get(a, '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg')).statusCode,
+      (await get(a, '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp')).statusCode,
       404,
     );
     assert.equal((await get(a, '/api/art/..%2F..%2Fetc%2Fpasswd')).statusCode, 400);
@@ -276,8 +276,8 @@ test('FRONTEND_RENDER turns jobs off and POST /api/decks on (T-S14)', async () =
     assert.deepEqual(
       deck.lines[0].faces.map((f) => [f.model.artUrl, f.art, f.setSymbol]),
       [
-        [null, '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg', '/api/set-symbols/tst'],
-        [null, '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg', '/api/set-symbols/tst'],
+        [null, '/api/art/front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp', '/api/set-symbols/tst'],
+        [null, '/api/art/back-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp', '/api/set-symbols/tst'],
       ],
     );
     assert.deepEqual(
@@ -310,13 +310,14 @@ test('FRONTEND_RENDER turns jobs off and POST /api/decks on (T-S14)', async () =
   );
 });
 
-test('/api/art/ serves Scryfall art crops by id only: no URL passes through (T-S14)', async () => {
+test('/api/art/ serves Scryfall art by id only: no URL passes through (T-S14)', async () => {
   const requested = [];
   const services = { fetchArt: async (url) => (requested.push(url), null) };
   await withApp({ services }, async (a) => {
     for (const id of [
       'https%3A%2F%2Fexample.com%2Fx.jpg',
       'front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.png',
+      'front-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
       'front-11bf83bb.jpg',
       'side-11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg',
       '..%2Fsecret',

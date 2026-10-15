@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCanvas } from 'canvas';
+import sharp from 'sharp';
 import { ART, ART_FADE, BOX, CARD } from '../../src/config/layout.js';
 import { fitFont, textFont } from '../../src/render/fonts.js';
 import {
@@ -47,6 +48,16 @@ test('art fills the art box; no art leaves it black (3.4.1)', async () => {
   assert.deepEqual(pixel(without, ...artCentre), [0, 0, 0]);
   const broken = await renderCardCanvas(model, { art: Buffer.from('not an image') });
   assert.deepEqual(pixel(broken, ...artCentre), [0, 0, 0]);
+});
+
+test("Scryfall's WebP art is drawn although node-canvas can't read WebP", async () => {
+  const webp = await sharp({
+    create: { width: 40, height: 30, channels: 3, background: '#ff0000' },
+  })
+    .webp({ lossless: true })
+    .toBuffer();
+  const canvas = await renderCardCanvas(loadCardFixture('lightning-strike'), { art: webp });
+  assert.deepEqual(pixel(canvas, ...artCentre), [255, 0, 0]);
 });
 
 test('the art fades in smoothly from its left edge to the card box', async () => {

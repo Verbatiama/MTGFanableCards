@@ -8,7 +8,7 @@ import { performance } from 'node:perf_hooks';
 import { cacheFileName, createArtFetcher } from '../../src/art/art-cache.js';
 
 const quiet = { warn() {} };
-const art = (id, face = 'front') => `https://cards.scryfall.io/art_crop/${face}/a/b/${id}.jpg?123`;
+const art = (id, face = 'front') => `https://cards.scryfall.io/art/${face}/a/b/${id}.webp?123`;
 
 async function tempDir(t) {
   const dir = await mkdtemp(path.join(tmpdir(), 'fannable-art-'));
@@ -28,8 +28,8 @@ function fakeFetch({ size = 10, fail = new Set() } = {}) {
 }
 
 test('cache file names keep the face and Scryfall file name', () => {
-  assert.equal(cacheFileName(art('abc')), 'front-abc.jpg');
-  assert.equal(cacheFileName(art('abc', 'back')), 'back-abc.jpg');
+  assert.equal(cacheFileName(art('abc')), 'front-abc.webp');
+  assert.equal(cacheFileName(art('abc', 'back')), 'back-abc.webp');
   assert.throws(() => cacheFileName('https://example.test/x.jpg'), /Unexpected Scryfall art URL/);
 });
 
@@ -51,7 +51,7 @@ test('simultaneous requests for the same art share one download', async (t) => {
   assert.equal(calls.length, 1);
   await fetcher.flush();
   const index = JSON.parse(await readFile(path.join(dir, 'index.json'), 'utf8'));
-  assert.equal(index['front-a.jpg'].uses, 2);
+  assert.equal(index['front-a.webp'].uses, 2);
 });
 
 test('network requests start at least 100ms apart (D10)', async (t) => {
@@ -92,7 +92,7 @@ test('at the cap, the least-used 25% is deleted, least recent first among ties (
   // The ninth goes over the cap: 9 × 25% → the 3 least used (d, e, f: used once,
   // oldest) are deleted.
   await fetcher.fetchArt(art('i'));
-  const left = 'abcdefghi'.split('').filter((id) => existsSync(path.join(dir, `front-${id}.jpg`)));
+  const left = 'abcdefghi'.split('').filter((id) => existsSync(path.join(dir, `front-${id}.webp`)));
   assert.deepEqual(left, ['a', 'b', 'c', 'g', 'h', 'i']);
   assert.equal(fetcher.stats.evicted, 3);
 });
@@ -103,7 +103,7 @@ test('the usage index survives a restart, and files it never saw are picked up',
   const first = createArtFetcher({ dir, fetch, spacingMs: 0, log: quiet });
   await first.fetchArt(art('a'));
   await first.flush();
-  await writeFile(path.join(dir, 'front-old.jpg'), Buffer.alloc(5));
+  await writeFile(path.join(dir, 'front-old.webp'), Buffer.alloc(5));
 
   const second = createArtFetcher({ dir, fetch, spacingMs: 0, log: quiet });
   await second.fetchArt(art('a'));
@@ -111,9 +111,9 @@ test('the usage index survives a restart, and files it never saw are picked up',
   assert.equal(calls.length, 1, 'both served from disk');
   await second.flush();
   const index = JSON.parse(await readFile(path.join(dir, 'index.json'), 'utf8'));
-  assert.equal(index['front-a.jpg'].uses, 2);
+  assert.equal(index['front-a.webp'].uses, 2);
   assert.deepEqual(
-    { uses: index['front-old.jpg'].uses, size: index['front-old.jpg'].size },
+    { uses: index['front-old.webp'].uses, size: index['front-old.webp'].size },
     { uses: 1, size: 5 },
   );
 });

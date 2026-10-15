@@ -29,7 +29,7 @@
         "colors": ["B"],
         "artist": "Dmitry Burmak",
         "illustration_id": "9c4fd66b-b125-4e63-a0ee-d49ec58fc381",
-        "art_crop": "https://cards.scryfall.io/art_crop/front/6/7/67f4c93b-080c-4196-b095-6a120a221988.jpg?1783929388"
+        "art": "https://cards.scryfall.io/art/front/6/7/67f4c93b-080c-4196-b095-6a120a221988.webp?1783929388"
       },
       {
         "name": "Agadeem, the Undercrypt",
@@ -40,7 +40,7 @@
         "colors": [],
         "artist": "Dmitry Burmak",
         "illustration_id": "259cbafd-c75a-45b1-9b1e-a428796aa977",
-        "art_crop": "https://cards.scryfall.io/art_crop/back/6/7/67f4c93b-080c-4196-b095-6a120a221988.jpg?1783929388"
+        "art": "https://cards.scryfall.io/art/back/6/7/67f4c93b-080c-4196-b095-6a120a221988.webp?1783929388"
       }
     ]
   },
@@ -69,7 +69,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/7/6/7641f4d9-4614-41c8-87f5-4845bd78e9b3.jpg?1783921289"
+    "art": "https://cards.scryfall.io/art/front/7/6/7641f4d9-4614-41c8-87f5-4845bd78e9b3.webp?1783921289"
   },
   {
     "id": "bccedc4d-38c7-4bf3-9ca7-4febd6c49d3d",
@@ -96,7 +96,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/c/bccedc4d-38c7-4bf3-9ca7-4febd6c49d3d.jpg?1783943248"
+    "art": "https://cards.scryfall.io/art/front/b/c/bccedc4d-38c7-4bf3-9ca7-4febd6c49d3d.webp?1783943248"
   },
   {
     "id": "4a1f905f-1d55-4d02-9d24-e58070793d3f",
@@ -125,7 +125,7 @@
     "frame": "2015",
     "frame_effects": ["legendary"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/4/a/4a1f905f-1d55-4d02-9d24-e58070793d3f.jpg?1783918003"
+    "art": "https://cards.scryfall.io/art/front/4/a/4a1f905f-1d55-4d02-9d24-e58070793d3f.webp?1783918003"
   },
   {
     "id": "8fed056f-a8f5-41ec-a7d2-a80a238872d1",
@@ -157,7 +157,7 @@
         "colors": ["G"],
         "artist": "Diego Gisbert",
         "illustration_id": "f66d58dc-39f5-4488-8812-66b00e730468",
-        "art_crop": "https://cards.scryfall.io/art_crop/front/8/f/8fed056f-a8f5-41ec-a7d2-a80a238872d1.jpg?1783916973"
+        "art": "https://cards.scryfall.io/art/front/8/f/8fed056f-a8f5-41ec-a7d2-a80a238872d1.webp?1783916973"
       },
       {
         "name": "Awakened Skyclave",
@@ -171,7 +171,7 @@
         "color_indicator": ["G"],
         "artist": "Diego Gisbert",
         "illustration_id": "4e2cd51a-4d1b-4652-8c9e-e2735a483cc6",
-        "art_crop": "https://cards.scryfall.io/art_crop/back/8/f/8fed056f-a8f5-41ec-a7d2-a80a238872d1.jpg?1783916973"
+        "art": "https://cards.scryfall.io/art/back/8/f/8fed056f-a8f5-41ec-a7d2-a80a238872d1.webp?1783916973"
       }
     ]
   },
@@ -200,7 +200,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/8/1/8145fed6-6b51-420a-84cf-4ea5e0aa1883.jpg?1783942795"
+    "art": "https://cards.scryfall.io/art/front/8/1/8145fed6-6b51-420a-84cf-4ea5e0aa1883.webp?1783942795"
   },
   {
     "id": "63870c81-63bf-4a9a-aeb5-74c6eaded9f1",
@@ -228,7 +228,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/6/3/63870c81-63bf-4a9a-aeb5-74c6eaded9f1.jpg?1783942155"
+    "art": "https://cards.scryfall.io/art/front/6/3/63870c81-63bf-4a9a-aeb5-74c6eaded9f1.webp?1783942155"
   },
   {
     "id": "bb54233c-0844-4965-9cde-e8a4ef3e11b8",
@@ -256,7 +256,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/b/bb54233c-0844-4965-9cde-e8a4ef3e11b8.jpg?1783933618"
+    "art": "https://cards.scryfall.io/art/front/b/b/bb54233c-0844-4965-9cde-e8a4ef3e11b8.webp?1783933618"
   },
   {
     "id": "459042ef-0d5b-480f-9b8a-520e13ae9217",
@@ -283,7 +283,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/4/5/459042ef-0d5b-480f-9b8a-520e13ae9217.jpg?1783939958"
+    "art": "https://cards.scryfall.io/art/front/4/5/459042ef-0d5b-480f-9b8a-520e13ae9217.webp?1783939958"
   },
   {
     "id": "7d94e878-6c49-4420-9d34-f9ee64e811ba",
@@ -311,7 +311,7 @@
     "frame": "2015",
     "frame_effects": ["devoid"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/7/d/7d94e878-6c49-4420-9d34-f9ee64e811ba.jpg?1783938206"
+    "art": "https://cards.scryfall.io/art/front/7/d/7d94e878-6c49-4420-9d34-f9ee64e811ba.webp?1783938206"
   },
   {
     "id": "c9a26f51-5bff-4f06-abaa-6fbb56a8b5b6",
@@ -338,7 +338,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/c/9/c9a26f51-5bff-4f06-abaa-6fbb56a8b5b6.jpg?1783921872"
+    "art": "https://cards.scryfall.io/art/front/c/9/c9a26f51-5bff-4f06-abaa-6fbb56a8b5b6.webp?1783921872"
   },
   {
     "id": "1774d0a8-1cd3-4582-ace0-1caff92af0e7",
@@ -365,7 +365,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/1/7/1774d0a8-1cd3-4582-ace0-1caff92af0e7.jpg?1783940958"
+    "art": "https://cards.scryfall.io/art/front/1/7/1774d0a8-1cd3-4582-ace0-1caff92af0e7.webp?1783940958"
   },
   {
     "id": "26c68473-70ca-40ba-b5c6-71ec30f88a2c",
@@ -392,7 +392,7 @@
     "frame": "2003",
     "frame_effects": ["colorshifted"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/2/6/26c68473-70ca-40ba-b5c6-71ec30f88a2c.jpg?1783943151"
+    "art": "https://cards.scryfall.io/art/front/2/6/26c68473-70ca-40ba-b5c6-71ec30f88a2c.webp?1783943151"
   },
   {
     "id": "3a8b11ad-d077-40b6-988c-0462e118fe3d",
@@ -419,7 +419,7 @@
     "frame": "2015",
     "frame_effects": ["legendary", "snow"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/3/a/3a8b11ad-d077-40b6-988c-0462e118fe3d.jpg?1783918406"
+    "art": "https://cards.scryfall.io/art/front/3/a/3a8b11ad-d077-40b6-988c-0462e118fe3d.webp?1783918406"
   },
   {
     "id": "01e3c2e9-d8df-4a7a-be86-7be8c6254fa2",
@@ -447,7 +447,7 @@
     "frame": "1997",
     "frame_effects": ["tombstone"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/0/1/01e3c2e9-d8df-4a7a-be86-7be8c6254fa2.jpg?1783945162"
+    "art": "https://cards.scryfall.io/art/front/0/1/01e3c2e9-d8df-4a7a-be86-7be8c6254fa2.webp?1783945162"
   },
   {
     "id": "11bf83bb-c95b-4b4f-9a56-ce7a1816307a",
@@ -481,7 +481,7 @@
         "colors": ["U"],
         "artist": "Nils Hamm",
         "illustration_id": "1c2fee9b-89ea-4ab1-a751-451c3cd65a88",
-        "art_crop": "https://cards.scryfall.io/art_crop/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg?1783940984"
+        "art": "https://cards.scryfall.io/art/front/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp?1783940984"
       },
       {
         "name": "Insectile Aberration",
@@ -495,7 +495,7 @@
         "color_indicator": ["U"],
         "artist": "Nils Hamm",
         "illustration_id": "c2b5f731-771b-4949-90f3-0ad40d676100",
-        "art_crop": "https://cards.scryfall.io/art_crop/back/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.jpg?1783940984"
+        "art": "https://cards.scryfall.io/art/back/1/1/11bf83bb-c95b-4b4f-9a56-ce7a1816307a.webp?1783940984"
       }
     ]
   },
@@ -525,7 +525,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/0/6/064dfdeb-485f-473e-9fa0-8fdb7638cdc6.jpg?1783941314"
+    "art": "https://cards.scryfall.io/art/front/0/6/064dfdeb-485f-473e-9fa0-8fdb7638cdc6.webp?1783941314"
   },
   {
     "id": "8cee476d-42e1-4997-87af-73e18f542167",
@@ -555,7 +555,7 @@
     "oversized": false,
     "frame": "future",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/8/c/8cee476d-42e1-4997-87af-73e18f542167.jpg?1783943089"
+    "art": "https://cards.scryfall.io/art/front/8/c/8cee476d-42e1-4997-87af-73e18f542167.webp?1783943089"
   },
   {
     "id": "67600383-bbb8-411c-b8e6-2296650bc747",
@@ -583,7 +583,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/6/7/67600383-bbb8-411c-b8e6-2296650bc747.jpg?1783942013"
+    "art": "https://cards.scryfall.io/art/front/6/7/67600383-bbb8-411c-b8e6-2296650bc747.webp?1783942013"
   },
   {
     "id": "190ad379-1a0f-4598-b5b1-453955846597",
@@ -610,7 +610,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/1/9/190ad379-1a0f-4598-b5b1-453955846597.jpg?1783930365"
+    "art": "https://cards.scryfall.io/art/front/1/9/190ad379-1a0f-4598-b5b1-453955846597.webp?1783930365"
   },
   {
     "id": "5cfb0f4a-e273-4ffb-91cd-dd1a7b6f6a8f",
@@ -638,7 +638,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/c/5cfb0f4a-e273-4ffb-91cd-dd1a7b6f6a8f.jpg?1783939944"
+    "art": "https://cards.scryfall.io/art/front/5/c/5cfb0f4a-e273-4ffb-91cd-dd1a7b6f6a8f.webp?1783939944"
   },
   {
     "id": "b52ff177-bafe-4e0a-a6c3-2cf012b1319f",
@@ -664,7 +664,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/5/b52ff177-bafe-4e0a-a6c3-2cf012b1319f.jpg?1783934492"
+    "art": "https://cards.scryfall.io/art/front/b/5/b52ff177-bafe-4e0a-a6c3-2cf012b1319f.webp?1783934492"
   },
   {
     "id": "4e5c2be0-76ab-4873-a1fc-9ff65a9347c7",
@@ -691,7 +691,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/4/e/4e5c2be0-76ab-4873-a1fc-9ff65a9347c7.jpg?1783930148"
+    "art": "https://cards.scryfall.io/art/front/4/e/4e5c2be0-76ab-4873-a1fc-9ff65a9347c7.webp?1783930148"
   },
   {
     "id": "48d73cb5-22ac-43df-9c4b-0c860bb80b3e",
@@ -720,7 +720,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/4/8/48d73cb5-22ac-43df-9c4b-0c860bb80b3e.jpg?1783940829"
+    "art": "https://cards.scryfall.io/art/front/4/8/48d73cb5-22ac-43df-9c4b-0c860bb80b3e.webp?1783940829"
   },
   {
     "id": "b2671c36-96fa-49e3-90dc-52820b2c8a62",
@@ -749,7 +749,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/2/b2671c36-96fa-49e3-90dc-52820b2c8a62.jpg?1783933074"
+    "art": "https://cards.scryfall.io/art/front/b/2/b2671c36-96fa-49e3-90dc-52820b2c8a62.webp?1783933074"
   },
   {
     "id": "0e606072-a3aa-4300-ba90-ec92a721fa76",
@@ -776,7 +776,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/0/e/0e606072-a3aa-4300-ba90-ec92a721fa76.jpg?1783942061"
+    "art": "https://cards.scryfall.io/art/front/0/e/0e606072-a3aa-4300-ba90-ec92a721fa76.webp?1783942061"
   },
   {
     "id": "7d203208-8a21-4c68-afa2-4efd8726f026",
@@ -805,7 +805,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/7/d/7d203208-8a21-4c68-afa2-4efd8726f026.jpg?1783942717"
+    "art": "https://cards.scryfall.io/art/front/7/d/7d203208-8a21-4c68-afa2-4efd8726f026.webp?1783942717"
   },
   {
     "id": "59b524bb-5a18-4dda-9c45-26ce9ff0f0c1",
@@ -832,7 +832,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/9/59b524bb-5a18-4dda-9c45-26ce9ff0f0c1.jpg?1783943211"
+    "art": "https://cards.scryfall.io/art/front/5/9/59b524bb-5a18-4dda-9c45-26ce9ff0f0c1.webp?1783943211"
   },
   {
     "id": "084b7337-c06f-4cbf-8fc0-0b20c221f1dc",
@@ -859,7 +859,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/0/8/084b7337-c06f-4cbf-8fc0-0b20c221f1dc.jpg?1783934547"
+    "art": "https://cards.scryfall.io/art/front/0/8/084b7337-c06f-4cbf-8fc0-0b20c221f1dc.webp?1783934547"
   },
   {
     "id": "7b215968-93a6-4278-ac61-4e3e8c3c3943",
@@ -893,7 +893,7 @@
         "colors": ["B", "R", "U"],
         "artist": "Svetlin Velinov",
         "illustration_id": "54fcf679-5332-4614-999d-7e0dbafbd116",
-        "art_crop": "https://cards.scryfall.io/art_crop/front/7/b/7b215968-93a6-4278-ac61-4e3e8c3c3943.jpg?1783934524"
+        "art": "https://cards.scryfall.io/art/front/7/b/7b215968-93a6-4278-ac61-4e3e8c3c3943.webp?1783934524"
       },
       {
         "name": "Nicol Bolas, the Arisen",
@@ -905,7 +905,7 @@
         "color_indicator": ["B", "R", "U"],
         "artist": "Svetlin Velinov",
         "illustration_id": "98df1d4c-6b8a-4336-8df3-7bc560a5d2c0",
-        "art_crop": "https://cards.scryfall.io/art_crop/back/7/b/7b215968-93a6-4278-ac61-4e3e8c3c3943.jpg?1783934524"
+        "art": "https://cards.scryfall.io/art/back/7/b/7b215968-93a6-4278-ac61-4e3e8c3c3943.webp?1783934524"
       }
     ]
   },
@@ -937,7 +937,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/9/5994d98a-090b-4203-b44f-b6517b6a83ea.jpg?1783943476"
+    "art": "https://cards.scryfall.io/art/front/5/9/5994d98a-090b-4203-b44f-b6517b6a83ea.webp?1783943476"
   },
   {
     "id": "ee98e86c-ac16-4159-8982-ed14d282811a",
@@ -966,7 +966,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/e/e/ee98e86c-ac16-4159-8982-ed14d282811a.jpg?1783939157"
+    "art": "https://cards.scryfall.io/art/front/e/e/ee98e86c-ac16-4159-8982-ed14d282811a.webp?1783939157"
   },
   {
     "id": "502740bf-0bff-4358-8996-1a27e5f0343f",
@@ -995,7 +995,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/0/502740bf-0bff-4358-8996-1a27e5f0343f.jpg?1783942710"
+    "art": "https://cards.scryfall.io/art/front/5/0/502740bf-0bff-4358-8996-1a27e5f0343f.webp?1783942710"
   },
   {
     "id": "7832abb5-5107-4603-904e-491b221bd3e3",
@@ -1023,7 +1023,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/7/8/7832abb5-5107-4603-904e-491b221bd3e3.jpg?1783937147"
+    "art": "https://cards.scryfall.io/art/front/7/8/7832abb5-5107-4603-904e-491b221bd3e3.webp?1783937147"
   },
   {
     "id": "ca17acea-f079-4e53-8176-a2f5c5c408a1",
@@ -1050,7 +1050,7 @@
     "frame": "2015",
     "frame_effects": ["snow"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/c/a/ca17acea-f079-4e53-8176-a2f5c5c408a1.jpg?1783928164"
+    "art": "https://cards.scryfall.io/art/front/c/a/ca17acea-f079-4e53-8176-a2f5c5c408a1.webp?1783928164"
   },
   {
     "id": "672e2815-bbcc-4338-a8ba-9aa97142ea69",
@@ -1079,7 +1079,7 @@
     "oversized": false,
     "frame": "future",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/6/7/672e2815-bbcc-4338-a8ba-9aa97142ea69.jpg?1783943108"
+    "art": "https://cards.scryfall.io/art/front/6/7/672e2815-bbcc-4338-a8ba-9aa97142ea69.webp?1783943108"
   },
   {
     "id": "8eb613ee-8b8b-4a34-886c-6592b27672b3",
@@ -1105,7 +1105,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/8/e/8eb613ee-8b8b-4a34-886c-6592b27672b3.jpg?1783944417"
+    "art": "https://cards.scryfall.io/art/front/8/e/8eb613ee-8b8b-4a34-886c-6592b27672b3.webp?1783944417"
   },
   {
     "id": "b6876d9e-0908-43ac-8542-09c7aa02b5ba",
@@ -1133,7 +1133,7 @@
     "oversized": false,
     "frame": "future",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/6/b6876d9e-0908-43ac-8542-09c7aa02b5ba.jpg?1783943094"
+    "art": "https://cards.scryfall.io/art/front/b/6/b6876d9e-0908-43ac-8542-09c7aa02b5ba.webp?1783943094"
   },
   {
     "id": "5cb76266-ae50-4bbc-8f96-d98f309b02d3",
@@ -1160,7 +1160,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/c/5cb76266-ae50-4bbc-8f96-d98f309b02d3.jpg?1783933384"
+    "art": "https://cards.scryfall.io/art/front/5/c/5cb76266-ae50-4bbc-8f96-d98f309b02d3.webp?1783933384"
   },
   {
     "id": "0982ea7e-05a4-4e40-98ab-ea9aa6c7342e",
@@ -1187,7 +1187,7 @@
     "frame": "2003",
     "frame_effects": ["miracle"],
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/0/9/0982ea7e-05a4-4e40-98ab-ea9aa6c7342e.jpg?1783940727"
+    "art": "https://cards.scryfall.io/art/front/0/9/0982ea7e-05a4-4e40-98ab-ea9aa6c7342e.webp?1783940727"
   },
   {
     "id": "bffc360e-db41-48f3-9365-680d55046e04",
@@ -1215,7 +1215,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/b/f/bffc360e-db41-48f3-9365-680d55046e04.jpg?1783937929"
+    "art": "https://cards.scryfall.io/art/front/b/f/bffc360e-db41-48f3-9365-680d55046e04.webp?1783937929"
   },
   {
     "id": "58c1e824-c8a9-4312-8e4c-a29a26d189a4",
@@ -1242,7 +1242,7 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/5/8/58c1e824-c8a9-4312-8e4c-a29a26d189a4.jpg?1783938716"
+    "art": "https://cards.scryfall.io/art/front/5/8/58c1e824-c8a9-4312-8e4c-a29a26d189a4.webp?1783938716"
   },
   {
     "id": "99ff731b-8399-40c8-b539-ba6ba5783771",
@@ -1269,7 +1269,7 @@
     "oversized": false,
     "frame": "1997",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/9/9/99ff731b-8399-40c8-b539-ba6ba5783771.jpg?1783946594"
+    "art": "https://cards.scryfall.io/art/front/9/9/99ff731b-8399-40c8-b539-ba6ba5783771.webp?1783946594"
   },
   {
     "id": "33672990-4860-4aa6-ac1b-f9da66f5da59",
@@ -1298,7 +1298,7 @@
     "oversized": false,
     "frame": "2003",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/3/3/33672990-4860-4aa6-ac1b-f9da66f5da59.jpg?1783941691"
+    "art": "https://cards.scryfall.io/art/front/3/3/33672990-4860-4aa6-ac1b-f9da66f5da59.webp?1783941691"
   },
   {
     "id": "9ace282a-5901-4d36-ad21-17eb88bc5138",
@@ -1326,6 +1326,6 @@
     "oversized": false,
     "frame": "2015",
     "border_color": "black",
-    "art_crop": "https://cards.scryfall.io/art_crop/front/9/a/9ace282a-5901-4d36-ad21-17eb88bc5138.jpg?1783905915"
+    "art": "https://cards.scryfall.io/art/front/9/a/9ace282a-5901-4d36-ad21-17eb88bc5138.webp?1783905915"
   }
 ]
