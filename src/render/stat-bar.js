@@ -209,11 +209,11 @@ export function middleItems(model) {
  * power and toughness (`stats`, hollow unless the card is a creature: vehicles
  * and spacecraft, 5.7.7), the starting loyalty badge (7.2.3), the defense
  * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
- * or nothing. The label flows past the text box and ends on the bar's bottom
- * edge (`base`, D36), like the loyalty badge; the rest sit on that edge too.
- * With at most one item in the middle stack, the label grows (size and step
- * together) to fill the bar below room for one labelled icon (FLASH) hanging
- * from the type line, kept free even when the card has no such icon.
+ * or nothing. The label is one line reading up the bar from its bottom edge
+ * (`base`, D36), like the loyalty badge sits on that edge; the rest sit there
+ * too. With at most one item in the middle stack, it runs further up, to just
+ * below room for one labelled icon (FLASH) hanging from the type line, kept
+ * free even when the card has no such icon.
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ type?: { y: number } }} [bands] The type line band.
  */
@@ -242,18 +242,13 @@ export function statBarBottom(model, { type = TYPE } = {}) {
   if (model.loyalty !== null) return badge('loyalty', model.loyalty);
   if (model.defense !== null) return badge('defense', model.defense);
   if (!isPermanent(model.types)) {
-    const letters = [...LABELS.nonPermanent];
     const base = edge;
-    let { size, step } = B.label;
-    if (middleItems(model).length <= 1) {
-      const M = BAR_MIDDLE;
-      const from = type.y + M.icon + M.label + M.gap + B.gap;
-      const ratio = step / size;
-      const fill = Math.floor((base - from) / ((letters.length - 1) * ratio + 1));
-      if (fill > size) [size, step] = [fill, fill * ratio];
-    }
-    const top = base - (letters.length - 1) * step - size;
-    return { kind: 'label', letters, base, top, size, step };
+    const M = BAR_MIDDLE;
+    const top =
+      middleItems(model).length <= 1
+        ? type.y + M.icon + M.label + M.gap + B.gap
+        : base - B.label.length;
+    return { kind: 'label', text: LABELS.nonPermanent, base, top };
   }
   return { kind: null, top: edge };
 }
@@ -514,12 +509,15 @@ export async function drawStatBarBottom(ctx, model, { assets, ...bands }) {
     const colour = BADGE_COLOURS[bottom.kind];
     await drawBadge(ctx, assets, shape, colour, cx, bottom.cy, bottom.size, bottom.value);
   } else if (bottom.kind === 'label') {
-    const { size, step } = bottom;
-    ctx.font = labelFont(size);
+    // One line reading up the bar, as large as fits between its top and base.
+    const { text, base, top } = bottom;
+    fitFont(ctx, text, base - top, BAR_BOTTOM.label.size, labelFont);
+    ctx.translate(cx, (top + base) / 2);
+    ctx.rotate(-Math.PI / 2);
     ctx.textAlign = 'center';
-    // Capitals sit on the baseline, so the last letter ends on the text box's edge.
+    // Centred on the bar by its capitals, from the alphabetic baseline (T-B1).
     ctx.textBaseline = 'alphabetic';
-    [...bottom.letters].reverse().forEach((ch, i) => ctx.fillText(ch, cx, bottom.base - i * step));
+    ctx.fillText(text, 0, ctx.measureText(text).actualBoundingBoxAscent / 2);
   }
   ctx.restore();
 }

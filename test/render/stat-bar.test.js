@@ -339,7 +339,7 @@ test('the bottom shows stats, loyalty, defense, NON-PERMANENT, or nothing (5.7, 
   for (const slug of ['lightning-strike', 'damnation', 'ancestral-vision']) {
     const label = bottom(slug);
     assert.equal(label.kind, 'label', slug);
-    assert.equal(label.letters.join(''), 'NON-PERMANENT');
+    assert.equal(label.text, 'NON-PERMANENT');
   }
   // Permanents never get a label (5.7.3–5.7.4).
   for (const slug of [
@@ -371,27 +371,25 @@ test('the bottom section is anchored to the bottom of the bar; the middle stack 
     const model = loadCardFixture(slug);
     assert.equal(bottomSectionTop(model), statBarBottom(model).top - BAR_BOTTOM.gap, slug);
   }
-  // NON-PERMANENT flows past the text box and ends on the bar's bottom edge
-  // (5.7.2, D36); its first letter is its top.
+  // NON-PERMANENT reads up the bar from its bottom edge, past the text box
+  // (5.7.2, D36).
   const label = bottom('lightning-strike');
   assert.equal(label.base, edge);
   assert.ok(label.base > TEXT.y + TEXT.h);
   // Krosan Grip's FLASH and SPLIT SECOND stay full size above it (D36).
   const grip = loadCardFixture('krosan-grip');
   assert.equal(statBarMiddle(grip, { from: statBarTop(grip).bottom }).scale, 1);
-  // With at most one middle icon, it grows to fill the bar below room for a
+  assert.equal(bottom('krosan-grip').top, edge - BAR_BOTTOM.label.length);
+  // With at most one middle icon, it runs up to just below room for a
   // labelled FLASH, the same with or without one.
   const damnation = bottom('damnation');
-  assert.ok(damnation.size > BAR_BOTTOM.label.size);
-  assert.equal(damnation.step / damnation.size, BAR_BOTTOM.label.step / BAR_BOTTOM.label.size);
-  assert.deepEqual(label, { ...damnation, letters: label.letters });
+  assert.ok(damnation.top < edge - BAR_BOTTOM.label.length);
+  assert.deepEqual(label, damnation);
   const strike = loadCardFixture('lightning-strike');
   const flash = statBarMiddle(strike, { from: statBarTop(strike).bottom });
   assert.equal(flash.scale, 1);
   assert.equal(flash.labels, true);
-  assert.ok(label.top - BAR_BOTTOM.gap - flash.bottom < damnation.step);
-  assert.equal(bottom('krosan-grip').size, BAR_BOTTOM.label.size);
-  assert.equal(label.top, label.base - 12 * label.step - label.size);
+  assert.equal(label.top - BAR_BOTTOM.gap, flash.bottom);
   // Nothing at the bottom: the stack may run to the bar's bottom edge.
   assert.equal(bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')), edge);
 });

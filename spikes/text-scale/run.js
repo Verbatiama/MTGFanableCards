@@ -1,15 +1,13 @@
 /**
- * Spike: how far can the card's text be scaled up? Three parts, each scaled on
- * its own with the others left as they are:
+ * Spike: how far can the card's text be scaled up? Two parts, each scaled on
+ * its own with the other left as it is (the NON-PERMANENT label was measured
+ * here too while it was stacked letters; it is one line since T-B18):
  *
  * - name: the card name in the name bar (TEXT_SIZE.name), shrunk by fitFont
  *   when it doesn't fit the bar's width (6.1);
  * - rules: the text box's starting size (TEXT_SIZE.rules), which drops the
  *   flavour text and then shrinks to fit, down to TEXT_SIZE.minRules (6.4.8);
- *   planeswalkers' ability bands grow into the art instead (7.2.6);
- * - label: the vertical NON-PERMANENT label (BAR_BOTTOM.label size and step,
- *   5.7.2), which ends level with the bottom of the text box and pushes the
- *   middle stack (labels drop, then icons shrink, 5.6.3).
+ *   planeswalkers' ability bands grow into the art instead (7.2.6).
  *
  *   node spikes/text-scale/run.js [--no-art] [--no-db]
  *
@@ -21,7 +19,7 @@
  * runs), and measures every English card in the local Scryfall data
  * (cache/scryfall; --no-db skips it) the same way, without drawing.
  *
- * Writes out/text-scale/: name.png, rules.png and label.png (cards down,
+ * Writes out/text-scale/: name.png and rules.png (cards down,
  * scales across) and report.md (the measurements).
  */
 import { createReadStream } from 'node:fs';
@@ -32,10 +30,9 @@ import zlib from 'node:zlib';
 import { createCanvas } from 'canvas';
 import { DATA_DIR, OUT_DIR } from '../../src/paths.js';
 import { registerFonts, renderCardCanvas } from '../../src/render/node.js';
-import { fitFont, labelFont, textFont } from '../../src/render/fonts.js';
+import { fitFont, textFont } from '../../src/render/fonts.js';
 import { layoutText } from '../../src/render/text-box.js';
 import { cardLayout } from '../../src/render/planeswalker.js';
-import { statBarBottom, statBarMiddle, statBarTop } from '../../src/render/stat-bar.js';
 import { isFullArt } from '../../src/render/frame.js';
 import { tokenizeCard } from '../../src/parse/oracle-text.js';
 import { mapCard } from '../../src/model/from-scryfall.js';
@@ -43,33 +40,18 @@ import { BULK_FILES } from '../../src/data/scryfall-bulk.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
 import { createSetSymbolFetcher } from '../../src/art/set-symbols.js';
 import { loadCardFixtures } from '../../test/fixtures/cards.js';
-import {
-  BAR,
-  BAR_BOTTOM,
-  BOX,
-  CARD,
-  NAME,
-  TEXT,
-  TEXT_PADDING,
-  TEXT_SIZE,
-  TYPE,
-  isPermanent,
-} from '../../src/config/index.js';
+import { BOX, CARD, NAME, TEXT, TEXT_PADDING, TEXT_SIZE, TYPE } from '../../src/config/index.js';
 
 const SCALES = [1, 1.1, 1.2, 1.3, 1.4, 1.5];
 const BASE = {
   name: TEXT_SIZE.name,
   rules: TEXT_SIZE.rules,
-  label: { ...BAR_BOTTOM.label },
 };
 
 /** Sets one part to `scale` × its current size, the others back to theirs. */
 function setScale(part, scale) {
   TEXT_SIZE.name = part === 'name' ? Math.round(BASE.name * scale) : BASE.name;
   TEXT_SIZE.rules = part === 'rules' ? Math.round(BASE.rules * scale) : BASE.rules;
-  const s = part === 'label' ? scale : 1;
-  BAR_BOTTOM.label.size = Math.round(BASE.label.size * s);
-  BAR_BOTTOM.label.step = Math.round(BASE.label.step * s);
 }
 
 registerFonts();
@@ -141,30 +123,6 @@ function measureRules(model) {
     dropped: fit.hasFlavour,
     shrunk: size < start,
     overflow: best < TEXT_SIZE.minRules,
-  };
-}
-
-/**
- * NON-PERMANENT: where the label's top lands, how wide its widest letter is,
- * and what it does to the middle stack (labels dropped, icons shrunk).
- */
-function measureLabel(model) {
-  if (isPermanent(model.types) || model.power !== null || model.loyalty !== null) return null;
-  const bottom = statBarBottom(model);
-  if (bottom.kind !== 'label') return null;
-  const top = statBarTop(model);
-  const middle = statBarMiddle(model, { from: top.bottom });
-  ctx.font = labelFont(BAR_BOTTOM.label.size);
-  const widest = Math.max(...bottom.letters.map((ch) => ctx.measureText(ch).width));
-  return {
-    top: bottom.top,
-    besideType: bottom.top < TYPE.y + TYPE.h,
-    widest,
-    items: middle.stack.length,
-    labelsDropped: middle.stack.length > 0 && !middle.labels,
-    iconsShrunk: middle.scale < 1,
-    overflow: Boolean(middle.overflow),
-    hitsMana: bottom.top < top.bottom,
   };
 }
 
@@ -265,28 +223,6 @@ function rulesTable(models) {
   ].join('\n');
 }
 
-function labelTable(models) {
-  const rows = SCALES.map((scale) => {
-    setScale('label', scale);
-    const fits = models.map(measureLabel).filter(Boolean);
-    const withStack = fits.filter((f) => f.items > 0);
-    const top = Math.round(fits[0]?.top ?? 0);
-    const widest = Math.round(Math.max(...fits.map((f) => f.widest)));
-    return (
-      `| ${scale}× | ${BAR_BOTTOM.label.size}/${BAR_BOTTOM.label.step}px | ${top} ` +
-      `| ${fits[0]?.besideType ? 'yes' : 'no'} | ${widest} / ${BAR.width}px ` +
-      `| ${withStack.length} | ${pct(withStack.filter((f) => f.labelsDropped).length, withStack.length)} ` +
-      `| ${pct(withStack.filter((f) => f.iconsShrunk).length, withStack.length)} ` +
-      `| ${fits.filter((f) => f.overflow).length} | ${fits.filter((f) => f.hitsMana).length} |`
-    );
-  });
-  return [
-    '| Scale | Size/step | Label top (y) | Reaches beside the type line | Widest letter / bar | Cards with a middle stack | Stack labels dropped | Stack icons shrunk | Stack overflow | Label hits mana |',
-    '| ----- | --------- | ------------- | ---------------------------- | ------------------- | ------------------------- | -------------------- | ------------------ | -------------- | --------------- |',
-    ...rows,
-  ].join('\n');
-}
-
 // ---- Renders -------------------------------------------------------------
 
 /** A grid: one row per card, one column per scale, each a crop of the card. */
@@ -307,12 +243,7 @@ async function sheet(part, models, crop, scaleDown) {
   out.textAlign = 'center';
   for (const [col, scale] of SCALES.entries()) {
     setScale(part, scale);
-    const size =
-      part === 'name'
-        ? `${TEXT_SIZE.name}px`
-        : part === 'rules'
-          ? `${TEXT_SIZE.rules}px`
-          : `${BAR_BOTTOM.label.size}px`;
+    const size = `${part === 'name' ? TEXT_SIZE.name : TEXT_SIZE.rules}px`;
     out.fillText(`${scale}× (${size})`, left + 10 + col * (w + 10) + w / 2, 22);
     for (const [row, [, model]] of models.entries()) {
       const card = await renderCardCanvas(model, await inputs(model));
@@ -347,7 +278,6 @@ const report = ['# Text scale spike', ''];
 const sections = [
   ['Name bar', 'name', nameTable],
   ['Text box', 'rules', rulesTable],
-  ['NON-PERMANENT label', 'label', labelTable],
 ];
 let database = [];
 if (!args.includes('--no-db')) {
@@ -365,8 +295,7 @@ for (const [title, , table] of sections) {
 setScale(null, 1);
 await writeFile(path.join(dir, 'report.md'), report.join('\n'));
 
-// Cards for each sheet: the longest names, the wordiest text boxes, and every
-// non-permanent (with and without a middle stack).
+// Cards for each sheet: the longest names and a spread of text boxes.
 const byName = [...fixtures].sort((a, b) => b[1].name.length - a[1].name.length).slice(0, 6);
 // Text boxes from short to long (with flavour where there is one), spread
 // evenly; planeswalkers are in the report (their bands are already shrunk).
@@ -377,7 +306,6 @@ const withText = fixtures
 const byText = [0, 0.3, 0.5, 0.7, 0.85, 1].map(
   (q) => withText[Math.round(q * (withText.length - 1))],
 );
-const nonPermanents = fixtures.filter(([, m]) => measureLabel(m)).slice(0, 8);
 
 await writeFile(
   path.join(dir, 'name.png'),
@@ -394,11 +322,5 @@ await writeFile(
     )
   ).toBuffer('image/png'),
 );
-await writeFile(
-  path.join(dir, 'label.png'),
-  (await sheet('label', nonPermanents, { x: 0, y: 0, w: 150, h: CARD.height }, 0.5)).toBuffer(
-    'image/png',
-  ),
-);
 console.log(report.join('\n'));
-console.log(`\nWrote name.png, rules.png, label.png and report.md to ${dir}`);
+console.log(`\nWrote name.png, rules.png and report.md to ${dir}`);

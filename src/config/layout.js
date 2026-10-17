@@ -69,9 +69,10 @@ export const BAR_MIDDLE = { icon: 64, label: 20, labelSize: 17, gap: 6, minScale
  *   smallest when shrunk to fit), and the sword/shield under each value.
  * - `badge`: the loyalty and defense badges' centre and size. They straddle
  *   the bar's bottom edge, overlapping the border (5.7.7, 7.2.3).
- * - `label`: NON-PERMANENT, one letter per line: text size and line step. It
- *   ends on the bar's bottom edge (D36); 20px on a 20px step is the largest
- *   that leaves Krosan Grip's FLASH and SPLIT SECOND at full size.
+ * - `label`: NON-PERMANENT, one line of text reading up the bar (D36): how far
+ *   up from the bar's bottom edge it runs (260px leaves Krosan Grip's FLASH
+ *   and SPLIT SECOND at full size) and its largest size; it shrinks to fit
+ *   its length.
  */
 export const BAR_BOTTOM = {
   edge: BORDER,
@@ -79,7 +80,7 @@ export const BAR_BOTTOM = {
   // Mockup-sized (T-S4, C1): the values and sword/shield fill the bottom of the bar.
   stats: { power: 302, divider: 156, toughness: 142, value: 72, minValue: 14, icon: 64 },
   badge: { centre: 8, loyalty: 90, defense: 84 },
-  label: { size: 20, step: 20 },
+  label: { length: 260, size: 40 },
 };
 
 /**

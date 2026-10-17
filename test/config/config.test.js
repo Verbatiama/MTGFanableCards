@@ -140,7 +140,7 @@ test('every word the renderer adds to a card comes from the config, so it can be
   ZONE_SYMBOL_STYLE.flash.label = 'DESTELLO';
 
   const strike = loadCardFixture('lightning-strike');
-  assert.equal(statBarBottom(strike).letters.join(''), 'NO PERMANENTE');
+  assert.equal(statBarBottom(strike).text, 'NO PERMANENTE');
   assert.ok(middleItems(strike).some((i) => i.label === 'DESTELLO'));
   assert.equal(copyrightLine(2031), '™ y © 2031 Wizards');
 });
