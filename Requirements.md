@@ -500,7 +500,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.1.2 **[Confirmed]** (D33) Full-width name bar, on every card: the name bar runs the full width of the card, across the top of the stat bar as well as the card box, and the stat bar's top section (type icons, colour indicator, mana) starts below it instead of beside it. The type icons sit straight over the art's faded left edge, with no pill behind them (unlike the mana rows), and the row and the colour indicator below it are centred on the mana symbols' centre line (x 72) rather than the bar's (x 81); a row of several icons shrinks so it stays inside the border (two icons about 34px instead of 41px). The mana block keeps its rules (5.3.11, 4.4): it has 58px less room above the type line, so long costs close up sooner. Prototyped in `spikes/full-width-name/` (removed once built in, T-B15; see the D33 commits): name bar from x 40 (as far in from the left edge as the frame is from the right) to the frame's right edge, same height; type icon row 8px below the name bar's pinline, over the art (y 44 → 116); the mana block starts below it, with 58px less room above the type line. This replaces the type icon row's place beside the name bar (5.1.3); implemented in T-B15 (`NAME.x`/`NAME.right` and `BAR_TOP.y`/`BAR_TOP.manaInset` in `src/config/layout.js`). With the less room, Niv-Mizzet's bar fits six mana rows spread out and seven run past the type line (eight before).
 
-6.1.3 **[Confirmed]** (D34) The card name is 1.5× its original size: 51px (`TEXT_SIZE.name`, was 34px). A name too wide for the full-width bar shrinks to fit (in practice never below 34px). In the text scale spike (`spikes/text-scale/`), 458 of 33,430 real card faces (1.4%) shrink at 51px.
+6.1.3 **[Confirmed]** (D34, revised) The card name is 1.3× its original size: 44px (`TEXT_SIZE.name`, was 34px). A name too wide for the full-width bar shrinks to fit. ~~1.5×: 51px; in the text scale spike (`spikes/text-scale/`), 458 of 33,430 real card faces (1.4%) shrank at 51px.~~ At 1.3× no fixture name shrinks, and fewer real names shrink than at 1.5×.
 
 ### 6.2 Art box
 
@@ -810,7 +810,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 35. Is the symbol + count pill used for all mana in rules text? [6.4.6] — **Answered:** no, rules text shows symbols as printed (D11).
 36. Which additional text symbols are needed? [6.4.7] — **Answered:** all of them (D20).
 37. What are the text-fitting rules? [6.4.8] — **Answered:** drop flavour text, then shrink (D20).
-55. How large are the card name and rules text? [6.1.3, 6.4.8] — **Answered:** name 1.5× (51px, D34); rules text starts at 1.4× (36px, D35).
+55. How large are the card name and rules text? [6.1.3, 6.4.8] — **Answered:** name 1.3× (44px, D34, revised from 1.5×); rules text starts at 1.4× (36px, D35).
 56. Where does NON-PERMANENT end, and how large is it? [5.7.2] — **Answered:** on the bar's bottom edge, below the text box; the largest size that keeps Krosan Grip's middle stack full size, 20px letters on a 20px step (D36).
 57. Should the reminder text and flavour text checkboxes be on by default, where are they offered (UI, API, CLI), are they remembered, and what counts as reminder text? [6.4.9, 6.4.10] (D37)
 38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3] — **Answered:** the year the image is generated; no holo stamp (D20).

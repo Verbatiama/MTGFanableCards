@@ -9,7 +9,7 @@
  *   flavour text and then shrinks to fit, down to TEXT_SIZE.minRules (6.4.8);
  *   planeswalkers' ability bands grow into the art instead (7.2.6).
  *
- *   node spikes/text-scale/run.js [--no-art] [--no-db]
+ *   node spikes/text-scale/run.js [--no-art] [--no-db] [--original]
  *
  * About 7 minutes with the card data (laying out ~33,000 text boxes), about
  * 12 seconds with --no-db.
@@ -20,7 +20,9 @@
  * (cache/scryfall; --no-db skips it) the same way, without drawing.
  *
  * Writes out/text-scale/: name.png and rules.png (cards down,
- * scales across) and report.md (the measurements).
+ * scales across) and report.md (the measurements). --original scales from the
+ * sizes before D34 and D35 (name 34px, rules 26px), recreating the grids those
+ * decisions were made from with today's renderer, into out/text-scale/original/.
  */
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -43,10 +45,16 @@ import { loadCardFixtures } from '../../test/fixtures/cards.js';
 import { BOX, CARD, NAME, TEXT, TEXT_PADDING, TEXT_SIZE, TYPE } from '../../src/config/index.js';
 
 const SCALES = [1, 1.1, 1.2, 1.3, 1.4, 1.5];
-const BASE = {
-  name: TEXT_SIZE.name,
-  rules: TEXT_SIZE.rules,
-};
+/** The sizes D34 and D35 scaled from. */
+const ORIGINAL = { name: 34, rules: 26 };
+const args = process.argv.slice(2);
+const original = args.includes('--original');
+const BASE = original
+  ? ORIGINAL
+  : {
+      name: TEXT_SIZE.name,
+      rules: TEXT_SIZE.rules,
+    };
 
 /** Sets one part to `scale` × its current size, the others back to theirs. */
 function setScale(part, scale) {
@@ -257,7 +265,6 @@ async function sheet(part, models, crop, scaleDown) {
   return canvas;
 }
 
-const args = process.argv.slice(2);
 const noArt = args.includes('--no-art');
 const artFetcher = createArtFetcher();
 const setSymbols = createSetSymbolFetcher();
@@ -271,7 +278,7 @@ async function inputs(model) {
 
 const fixtures = [...loadCardFixtures(), ...(await edgeCaseModels())];
 const fixtureModels = fixtures.map(([, m]) => m);
-const dir = path.join(OUT_DIR, 'text-scale');
+const dir = path.join(OUT_DIR, 'text-scale', ...(original ? ['original'] : []));
 await mkdir(dir, { recursive: true });
 
 const report = ['# Text scale spike', ''];
