@@ -15,8 +15,7 @@
  * here, without touching src/: `BAR_TOP.y` is moved below the name bar before
  * rendering, and the wider name bar is painted over the normal one afterwards
  * (nothing from the stat bar is left in its band once the top section has
- * moved down). The type icons get a black pill like the mana rows (D33), drawn
- * over the art and then the icons again on top of it.
+ * moved down).
  *
  * Writes out/full-width-name/<slug>.png (current | spike, side by side) and a
  * contact sheet of the spike renders (_all.png). Prints the layout warnings
@@ -26,8 +25,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas } from 'canvas';
 import { OUT_DIR } from '../../src/paths.js';
-import { nodeAssets, nodeEnv, registerFonts, renderCardCanvas } from '../../src/render/node.js';
-import { statBarTop } from '../../src/render/stat-bar.js';
+import { nodeEnv, registerFonts, renderCardCanvas } from '../../src/render/node.js';
 import { framePalette } from '../../src/render/frame.js';
 import { fitFont, textFont } from '../../src/render/fonts.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
@@ -39,16 +37,7 @@ import { selectPrinting } from '../../src/data/resolve.js';
 import { DATA_DIR } from '../../src/paths.js';
 import { fixtureSlug, loadCardFixtures } from '../../test/fixtures/cards.js';
 import { stressModels } from '../fixture-preview/stress.js';
-import {
-  ART,
-  BAR,
-  BAR_TOP,
-  BOX,
-  CARD,
-  CARD_TYPES,
-  NAME,
-  TEXT_SIZE,
-} from '../../src/config/index.js';
+import { ART, BAR_TOP, BOX, CARD, NAME, TEXT_SIZE } from '../../src/config/index.js';
 
 /** The wider name bar: as far in from the left edge as the frame is from the right. */
 const SPIKE_NAME = { x: CARD.width - BOX.right, right: BOX.right };
@@ -135,37 +124,12 @@ function drawWideNameBar(ctx, model) {
   ctx.restore();
 }
 
-/**
- * A black pill behind the type icon row, the same shape as a mana row's (from
- * the mana symbols' left edge to the frame), with the icons drawn again on it.
- */
-async function drawTypePill(ctx, model) {
-  const { types } = statBarTop(model);
-  if (!types.length) return;
-  const pad = BAR_TOP.pill;
-  const x = BAR.x + 8 - pad;
-  const pill = { x, y: BAR_TOP.y - pad, w: BOX.x - 4 - x, h: BAR_TOP.typeRow + pad * 2 };
-  ctx.save();
-  ctx.fillStyle = '#000';
-  ctx.beginPath();
-  ctx.roundRect(pill.x, pill.y, pill.w, pill.h, pill.h / 2);
-  ctx.fill();
-  for (const { type, x: ix, y, size } of types) {
-    const { icon, placeholder } = CARD_TYPES[type];
-    ctx.drawImage(await nodeAssets.iconOrPlaceholder(icon, placeholder), ix, y, size, size);
-  }
-  ctx.restore();
-}
-
 async function render(model, inputs, spike) {
   const warnings = [];
   BAR_TOP.y = spike ? SPIKE_TOP : CURRENT_TOP;
   try {
     const canvas = await renderCardCanvas(model, { ...inputs, onWarning: (m) => warnings.push(m) });
-    if (spike) {
-      drawWideNameBar(canvas.getContext('2d'), model);
-      await drawTypePill(canvas.getContext('2d'), model);
-    }
+    if (spike) drawWideNameBar(canvas.getContext('2d'), model);
     return { canvas, warnings };
   } finally {
     BAR_TOP.y = CURRENT_TOP;
