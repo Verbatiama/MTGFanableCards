@@ -14,7 +14,7 @@ The bar on the left shows, from top to bottom:
 - **Colour indicator**, for cards that have one: a circle split into one wedge per colour.
 - **Mana cost**, grouped: each symbol once, with how many you need. `{2}{U}{U}{R}{R}` reads as blue 2, red 2, generic 2. X is counted the same way.
 - **Middle icons**, hanging from the type line: Aura, Equipment and Fortification; Legendary, Basic, Snow and World; non-basic lands; and when the card can be played: Flash (every instant), Split second, and playable from your hand (cycling, suspend, …), the top of your library (miracle) or your graveyard (flashback, …). Lands show the mana their basic land types make.
-- **Bottom**: power and toughness (outlined for vehicles and spacecraft), a planeswalker's starting loyalty, a battle's defense, or NON-PERMANENT for instants and sorceries.
+- **Bottom**: power and toughness (outlined for vehicles and spacecraft), a planeswalker's starting loyalty, a battle's defence, or NON-PERMANENT for instants and sorceries.
 
 The rest of the card is the usual name, art, type line, rules and flavour text, and footer, in the card's colours. Basic lands are full-art.
 
@@ -173,6 +173,6 @@ Code in `src/render/`, `src/model/`, `src/config/` and `web/` must not use Node-
 
 To Richard Garfield and all of the employees of Wizards of the Coast past and present for making this great game
 
-Mark Rosewater particularly for his many articles, including [the source inspiration for this project](https://magic.wizards.com/en/news/making-magic/starting-over-2015-12-21)
+Mark Rosewater particularly for his many articles, including [the source of inspiration for this project](https://magic.wizards.com/en/news/making-magic/starting-over-2015-12-21)
 
 and [Reddit user OspreyDawn](https://www.reddit.com/user/OspreyDawn/) for a [great post and design work](https://www.reddit.com/r/magicTCG/comments/2u4ouo/after_reading_about_how_maro_would_change_the/) based on that article many years ago
