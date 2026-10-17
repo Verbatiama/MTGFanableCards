@@ -541,6 +541,10 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
   6.4.8 **[Confirmed]** Rules text is centred vertically in the text box, like printed cards (T-S4, C15). Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). **[Confirmed]** (D35) The starting size is 1.4× the original: 36px (`TEXT_SIZE.rules`), minimum still 12px. In the text scale spike (`spikes/text-scale/`), 17% of real cards fit at 36px as is, the flavour text is dropped on 48%, and none overflow; planeswalker ability bands start at 36px too (most already shrink). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
 
+6.4.9 **[Open]** The user can turn off reminder text with a checkbox (D37, T-C3). Unticked, reminder text is left out of the rules text before fitting; the spaces it leaves are tidied and a paragraph left empty (such as a keyword line with only its reminder) is dropped. Open: whether it is on by default; whether the option is also in the API requests and the CLI (e.g. `--no-reminder`); whether the browser remembers it; whether reminder text means anything in parentheses (as it is italicised now, 6.4.2) or only keyword reminders.
+
+6.4.10 **[Open]** The user can turn off flavour text with a checkbox (D37, T-C4). Unticked, the flavour text and its divider are left out before fitting, so the rules text gets the whole text box (6.4.8). Open: whether it is on by default; whether the option is also in the API requests and the CLI (e.g. `--no-flavour`); whether the browser remembers it.
+
 ### 6.5 Footer
 
 6.5.1 **[Confirmed]** The footer contains:
@@ -808,6 +812,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 37. What are the text-fitting rules? [6.4.8] — **Answered:** drop flavour text, then shrink (D20).
 55. How large are the card name and rules text? [6.1.3, 6.4.8] — **Answered:** name 1.5× (51px, D34); rules text starts at 1.4× (36px, D35).
 56. Where does NON-PERMANENT end, and how large is it? [5.7.2] — **Answered:** on the bar's bottom edge, below the text box; the largest size that keeps Krosan Grip's middle stack full size, 20px letters on a 20px step (D36).
+57. Should the reminder text and flavour text checkboxes be on by default, where are they offered (UI, API, CLI), are they remembered, and what counts as reminder text? [6.4.9, 6.4.10] (D37)
 38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3] — **Answered:** the year the image is generated; no holo stamp (D20).
 39. What do the frames for hybrid, coloured artifacts, devoid and other unshown cases look like? [6.6.2] — **Answered:** D21.
 40. How are long, many or ±X planeswalker abilities handled? [7.2.6, 7.2.7] — **Answered:** D22.
