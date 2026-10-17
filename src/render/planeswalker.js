@@ -38,11 +38,12 @@ const TEXT_WIDTH = BOX.right - BOX.x - 12 - TEXT_PADDING.x * 2;
  *
  * @param {CanvasRenderingContext2D} ctx For measuring text.
  * @param {import('../model/card-model.js').CardModel} model
+ * @param {import('../parse/oracle-text.js').TextOptions} [textOptions] Optional text to leave out.
  */
-export function cardLayout(ctx, model) {
+export function cardLayout(ctx, model, textOptions) {
   const base = { art: ART, type: TYPE, text: TEXT, pw: null };
   if (!model.types.includes('Planeswalker') || !model.oracleText) return base;
-  const abilities = tokenizeCard(model).filter((p) => p.kind === 'rules');
+  const abilities = tokenizeCard(model, textOptions).filter((p) => p.kind === 'rules');
   const measure = (size) => {
     const layouts = abilities.map((a) => layoutText(ctx, [a], TEXT_WIDTH, size));
     return { layouts, h: Math.max(...layouts.map((l) => l.height)) + ABILITY_BAND.padding };

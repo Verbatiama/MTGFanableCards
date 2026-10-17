@@ -19,12 +19,12 @@ async function request(url, options) {
 export const previewLine = (line, signal) =>
   request(`/api/cards?line=${encodeURIComponent(line)}`, { signal });
 
-/** Starts a job; returns its status. */
-export const createJob = (decklist, format) =>
+/** Starts a job; returns its status. `text` leaves optional text out (D37). */
+export const createJob = (decklist, format, text = {}) =>
   request('/api/jobs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ decklist, format }),
+    body: JSON.stringify({ decklist, format, reminderText: text.reminder !== false }),
   });
 
 export const jobStatus = (id) => request(`/api/jobs/${id}`);

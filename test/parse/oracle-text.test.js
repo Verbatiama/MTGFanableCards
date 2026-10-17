@@ -48,6 +48,37 @@ test('reminder text in parentheses is italic, symbols inside it included (6.4.2)
   );
 });
 
+test('reminder text can be left out, with the spaces tidied (6.4.9, D37)', () => {
+  const off = { reminder: false };
+  assert.equal(
+    line('First strike (This creature deals combat damage first.)', off),
+    'First strike',
+  );
+  assert.equal(line('Equip {2} ({2}: Attach to target creature you control.)', off), 'Equip {2}');
+  assert.equal(line('Flash (You may cast it any time.) Flying', off), 'Flash Flying');
+  assert.equal(line('Deal 3 (really (nested)) damage.', off), 'Deal 3 damage.');
+  assert.equal(line('({B/P} can be paid with {B} or 2 life.)', off), '');
+  assert.equal(line('Draw a card.', off), 'Draw a card.');
+});
+
+test('lines that were only reminder text go; flavour text stays (6.4.9)', () => {
+  const model = {
+    types: ['Creature'],
+    oracleText: 'Flying\n(This is only a reminder.)\nTrample (Reminder.)',
+    flavorText: 'It flies (high).',
+  };
+  const paragraphs = tokenizeCard(model, { reminder: false });
+  assert.deepEqual(
+    paragraphs.map((p) => [p.kind, show(p.tokens)]),
+    [
+      ['rules', 'Flying'],
+      ['rules', 'Trample'],
+      ['flavor', '/It flies (high)./'],
+    ],
+  );
+  assert.equal(tokenizeCard(model).length, 4, 'shown by default');
+});
+
 test('flavour text is italic and never converted (6.4.1)', () => {
   assert.equal(line('It got +2/+2 stronger.', { flavor: true }), '/It got +2/+2 stronger./');
 });

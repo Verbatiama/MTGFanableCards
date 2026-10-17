@@ -120,6 +120,19 @@ test('the CLI writes cards.zip to the output folder by default (3.5.3, 3.5.6)', 
     assert.equal(Object.keys(zip).length, 4);
   }));
 
+test('--no-reminder leaves reminder text out (6.4.9, D37)', () =>
+  withDir(async (dir) => {
+    const card = async (...flags) => {
+      const { code } = await cli(['-', '--out', dir, '--png', ...flags], {
+        stdin: 'Fiendslayer Paladin',
+      });
+      assert.equal(code, 0);
+      return readFile(path.join(dir, 'cards', 'Fiendslayer-Paladin.png'));
+    };
+    const shown = await card();
+    assert.notDeepEqual(await card('--no-reminder'), shown);
+  }));
+
 test('--pdf and --png replace the zip; --png clears the previous images', () =>
   withDir(async (dir) => {
     await mkdir(path.join(dir, 'cards'));

@@ -112,6 +112,24 @@ test('LOW_MEMORY jobs give the same zip and PDF, written from disk (T-S13)', asy
   assert.equal(await pages(await run(low, 'pdf')), await pages(await run({}, 'pdf')));
 });
 
+test('reminderText: false leaves reminder text out of a job (6.4.9, D37)', () =>
+  withApp({}, async (a) => {
+    const card = async (body) => {
+      const job = await finished(
+        a,
+        (await post(a, { decklist: 'Fiendslayer Paladin', ...body })).json().id,
+      );
+      return unzipSync((await get(a, job.downloadUrl)).rawPayload)['Fiendslayer-Paladin.png'];
+    };
+    const shown = await card({});
+    assert.deepEqual(await card({ reminderText: true }), shown);
+    assert.notDeepEqual(await card({ reminderText: false }), shown);
+    assert.equal(
+      (await post(a, { decklist: 'Fiendslayer Paladin', reminderText: 'no' })).statusCode,
+      400,
+    );
+  }));
+
 test('a job with nothing to render fails, with the report', () =>
   withApp({}, async (a) => {
     const job = await finished(

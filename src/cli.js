@@ -15,7 +15,7 @@ import { OUT_DIR } from './paths.js';
  *
  * Writes `cards.zip` to out/ by default; `--pdf` writes `cards.pdf` and
  * `--png` the loose images in out/cards/ instead (any combination; `--zip`
- * adds the zip back). Problems with the decklist are reported on stderr and
+ * adds the zip back). `--no-reminder` leaves reminder text out (D37). Problems with the decklist are reported on stderr and
  * don't stop the batch. Exit codes: 0 done, 1 nothing generated (or problems
  * with `--strict`), 2 usage error.
  */
@@ -29,6 +29,7 @@ Options:
   --pdf         Write cards.pdf: A4 sheets with 9 cards each
   --png         Write each card as a PNG in <out>/cards/
   --out <dir>   Output folder (default: out/)
+  --no-reminder Leave out reminder text (anything in parentheses)
   --strict      Exit with code 1 if any line was unreadable, unmatched,
                 fell back to another printing or was skipped
   -h, --help    Show this help
@@ -40,6 +41,7 @@ const OPTIONS = {
   png: { type: 'boolean', default: false },
   out: { type: 'string', default: OUT_DIR },
   strict: { type: 'boolean', default: false },
+  'no-reminder': { type: 'boolean', default: false },
   help: { type: 'boolean', short: 'h', default: false },
 };
 
@@ -119,7 +121,10 @@ export async function runCli(argv, deps = {}) {
   }
 
   try {
-    const { images, report } = await generateCards(session.db, decklist, session);
+    const { images, report } = await generateCards(session.db, decklist, {
+      ...session,
+      text: { reminder: !values['no-reminder'] },
+    });
     printReport(report, warn);
 
     if (!images.length) {

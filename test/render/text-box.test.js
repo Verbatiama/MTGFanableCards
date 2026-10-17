@@ -96,6 +96,17 @@ test('the renderer draws the text in the text box', async () => {
   assert.notDeepEqual(region(drawn), region(empty));
 });
 
+test('the renderer can leave reminder text out; basic lands keep their symbol (6.4.9, D37)', async () => {
+  const png = async (model, text) =>
+    (await renderCardCanvas(model, { text })).toBuffer('image/png');
+  const paladin = loadCardFixture('fiendslayer-paladin');
+  assert.notDeepEqual(await png(paladin, { reminder: false }), await png(paladin));
+  assert.deepEqual(await png(paladin, { reminder: true }), await png(paladin));
+  // A basic land's rules text is all reminder text, but its symbol comes from the model.
+  const forest = loadCardFixture('forest');
+  assert.deepEqual(await png(forest, { reminder: false }), await png(forest));
+});
+
 test('short rules text is centred vertically in the text box (C15)', async () => {
   const model = { ...loadCardFixture('lightning-strike'), flavorText: null };
   const canvas = await renderCardCanvas(model);

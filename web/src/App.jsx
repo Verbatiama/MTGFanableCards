@@ -7,7 +7,8 @@ import { isPreviewable, lineAt, lineStart, replaceInLine, reportProblems } from 
  * The frontend (T-C2, D27; Requirements 3.1.2, 3.2.6, 3.6.2, 10.2): decklist
  * input, a live preview of the line the cursor is on (rendered in the
  * browser), generation with progress, the unmatched-name report, the zip/PDF
- * download and the Fan Content notice. Batches render on the server, or in
+ * download and the Fan Content notice. Checkboxes leave reminder text out of
+ * the preview and the batch (D37). Batches render on the server, or in
  * the browser when the server has FRONTEND_RENDER on (T-S14); the UI shows no
  * thumbnails of them.
  */
@@ -17,6 +18,7 @@ const EXAMPLE = `4 Lightning Bolt
 1 Jace, the Mind Sculptor (WWK)
 1 Forest`;
 const STORAGE_KEY = 'fannable.decklist';
+const TEXT_KEY = 'fannable.text';
 const PREVIEW_DELAY_MS = 300;
 const POLL_MS = 1000;
 
@@ -29,8 +31,19 @@ function storedDecklist() {
   }
 }
 
+/** The text options last chosen (D37): everything shown by default. */
+function storedText() {
+  const shown = { reminder: true };
+  try {
+    return { ...shown, ...JSON.parse(localStorage.getItem(TEXT_KEY) ?? '{}') };
+  } catch {
+    return shown;
+  }
+}
+
 export function App() {
   const [decklist, setDecklist] = useState(storedDecklist);
+  const [text, setText] = useState(storedText);
   // Server rendering until the server says otherwise.
   const [frontendRender, setFrontendRender] = useState(false);
   const [cursor, setCursor] = useState({ index: 0, text: '' });
@@ -50,6 +63,14 @@ export function App() {
       // Storage blocked: the decklist just isn't remembered.
     }
   }, [decklist]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TEXT_KEY, JSON.stringify(text));
+    } catch {
+      // Storage blocked: the choice just isn't remembered.
+    }
+  }, [text]);
 
   /** Tracks the line under the caret, for the preview. */
   function updateCursor() {
@@ -101,13 +122,25 @@ export function App() {
             onKeyUp={updateCursor}
             onClick={updateCursor}
           />
-          <Generate decklist={decklist} inBrowser={frontendRender} onLine={goToLine} />
+          <fieldset>
+            <legend>Card text</legend>
+            <label>
+              <input
+                type="checkbox"
+                checked={text.reminder}
+                onChange={(e) => setText((t) => ({ ...t, reminder: e.target.checked }))}
+              />
+              Reminder text (in parentheses)
+            </label>
+          </fieldset>
+          <Generate decklist={decklist} text={text} inBrowser={frontendRender} onLine={goToLine} />
         </section>
 
         <section className="preview" aria-live="polite">
           <h2>Preview</h2>
           <Preview
             line={cursor.text}
+            text={text}
             onSuggestion={(name, suggestion) => applySuggestion(cursor.index, name, suggestion)}
           />
         </section>
@@ -130,7 +163,7 @@ export function App() {
 }
 
 /** The card on the current line, rendered in the browser (D27). */
-function Preview({ line, onSuggestion }) {
+function Preview({ line, text, onSuggestion }) {
   // Preview data by line text.
   const [results, setResults] = useState({});
   // The last failed request; not cached, so the line is tried again when revisited.
@@ -199,6 +232,7 @@ function Preview({ line, onSuggestion }) {
           <CardCanvas
             key={`${face.model.name}-${face.model.setCode}-${face.model.collectorNumber}`}
             face={face}
+            text={text}
           />
         ))}
       </div>
@@ -223,22 +257,23 @@ function cardLabel(model) {
   return [model.name, model.typeLine, stats, model.oracleText].filter(Boolean).join('. ');
 }
 
-/** One face, drawn with src/render/ onto a canvas. */
-function CardCanvas({ face }) {
+/** One face, drawn with src/render/ onto a canvas, leaving out the text `text` turns off. */
+function CardCanvas({ face, text }) {
   const canvas = useRef(null);
   const [warnings, setWarnings] = useState([]);
   const [error, setError] = useState(null);
+  const reminderShown = text.reminder;
 
   useEffect(() => {
     let current = true;
-    renderFace(canvas.current, face).then(
+    renderFace(canvas.current, face, { reminder: reminderShown }).then(
       (w) => current && (setWarnings(w), setError(null)),
       (e) => current && setError(e.message),
     );
     return () => {
       current = false;
     };
-  }, [face]);
+  }, [face, reminderShown]);
 
   return (
     <figure>
@@ -258,7 +293,7 @@ function CardCanvas({ face }) {
  * 3.6.1). `inBrowser` renders the batch here instead of in a server job
  * (T-S14), with the same progress, report and download.
  */
-function Generate({ decklist, inBrowser, onLine }) {
+function Generate({ decklist, text, inBrowser, onLine }) {
   const [format, setFormat] = useState('zip');
   const [job, setJob] = useState(null);
   const [error, setError] = useState(null);
@@ -292,7 +327,7 @@ function Generate({ decklist, inBrowser, onLine }) {
     setJob(null);
     try {
       if (inBrowser) await renderHere();
-      else setJob(await createJob(decklist, format));
+      else setJob(await createJob(decklist, format, text));
     } catch (e) {
       setJob(null);
       setError(e.message);
@@ -305,8 +340,11 @@ function Generate({ decklist, inBrowser, onLine }) {
   async function renderHere() {
     const { generateInBrowser } = await import('./browser-batch.js');
     setJob({ local: true, status: 'running', format, total: 0, done: 0 });
-    const { blob, count, report } = await generateInBrowser(decklist, format, ({ done, total }) =>
-      setJob((j) => ({ ...j, done, total })),
+    const { blob, count, report } = await generateInBrowser(
+      decklist,
+      format,
+      ({ done, total }) => setJob((j) => ({ ...j, done, total })),
+      text,
     );
     setJob({
       local: true,

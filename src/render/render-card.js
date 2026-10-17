@@ -25,6 +25,8 @@ import { drawTextBox } from './text-box.js';
  * @property {any} [art] Loaded art image, or null for the black placeholder (3.4.1).
  * @property {any} [setSymbol] Loaded set symbol image, or null to show the set code (6.3).
  * @property {number} [year] Copyright year; the current year by default (6.5.2).
+ * @property {import('../parse/oracle-text.js').TextOptions} [text] Optional text
+ *   to leave out, such as `{ reminder: false }` (6.4.9, D37).
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
@@ -35,7 +37,7 @@ import { drawTextBox } from './text-box.js';
 export async function renderCard(
   ctx,
   model,
-  { env, assets, art = null, setSymbol = null, year } = {},
+  { env, assets, art = null, setSymbol = null, year, text = {} } = {},
 ) {
   const warnings = [];
   const warn = (message) => warnings.push(message);
@@ -44,11 +46,11 @@ export async function renderCard(
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CARD.width, CARD.height);
   // Bands first: a planeswalker's abilities decide where everything goes (7.2.6).
-  const layout = cardLayout(ctx, model);
+  const layout = cardLayout(ctx, model, text);
   const bands = { art: layout.art, type: layout.type, text: layout.text };
   if (layout.art.h <= 0) warn('text box: the abilities need more room than the art box has');
   drawFrame(ctx, model, { env, art, setSymbol, layout: bands });
-  await drawTextBox(ctx, model, { assets, box: layout.text, warn });
+  await drawTextBox(ctx, model, { assets, box: layout.text, warn, text });
   if (layout.pw) await drawAbilityBands(ctx, assets, layout.pw);
   await drawFooter(ctx, model, { assets, year });
   const from = await drawStatBarTop(ctx, model, { assets, warn, ...bands });

@@ -34,12 +34,14 @@ import { renderCardPng } from './render/node.js';
  * @param {string} [options.pngDir] An existing directory to write each image
  *   to as it renders, so images don't stay in memory (low-memory mode, T-S13):
  *   they then come back as `{ fileName, file }` instead of `{ fileName, png }`.
+ * @param {import('./parse/oracle-text.js').TextOptions} [options.text] Optional
+ *   text to leave out of every card (6.4.9, D37).
  * @returns {Promise<{ images: import('./output/bundle.js').OutputImage[], report: GenerateReport }>}
  */
 export async function generateCards(
   db,
   decklist,
-  { fetchArt, fetchSetSymbol, onProgress, pngDir },
+  { fetchArt, fetchSetSymbol, onProgress, pngDir, text },
 ) {
   const { lines, report } = planDeck(db, decklist);
   let pngCount = 0; // files written to pngDir
@@ -48,7 +50,7 @@ export async function generateCards(
     fetchSetSymbol,
     onProgress,
     async renderFace(model, assets) {
-      const png = await renderCardPng(model, assets);
+      const png = await renderCardPng(model, { ...assets, text });
       if (!pngDir) return { png };
       const file = path.join(pngDir, `${pngCount++}.png`);
       await writeFile(file, png);

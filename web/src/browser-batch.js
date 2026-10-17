@@ -13,17 +13,20 @@ import { loadArt, loadSetSymbol, pngToJpeg, renderCardPng } from './browser-rend
  * @param {string} decklist
  * @param {'zip' | 'pdf'} format
  * @param {(progress: { done: number, total: number }) => void} onProgress
+ * @param {import('../../src/parse/oracle-text.js').TextOptions} [text] Optional text to leave out (D37).
  * @returns {Promise<{ blob: Blob | null, count: number, report: object }>}
  *   The bundle (null when no card could be rendered), how many images it
  *   holds, and the problem report in the shape of a job's (GET /api/jobs/:id).
  */
-export async function generateInBrowser(decklist, format, onProgress) {
+export async function generateInBrowser(decklist, format, onProgress, text) {
   const { lines, ...report } = await createDeck(decklist);
   onProgress({ done: 0, total: lines.reduce((n, l) => n + l.quantity * l.faces.length, 0) });
   const { images, skipped, renderWarnings } = await renderDeck(lines, {
     fetchArt: loadArt,
     fetchSetSymbol: loadSetSymbol,
-    renderFace: async (model, options) => ({ png: await renderCardPng(model, options) }),
+    renderFace: async (model, options) => ({
+      png: await renderCardPng(model, { ...options, text }),
+    }),
     onProgress,
   });
   report.skipped.push(...skipped);

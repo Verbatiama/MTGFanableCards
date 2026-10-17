@@ -148,14 +148,15 @@ export function fitText(ctx, paragraphs, width, height) {
 }
 
 /**
- * Draws the rules and flavour text inside the text box band, fitted (6.4.1–6.4.8).
+ * Draws the rules and flavour text inside the text box band, fitted (6.4.1–6.4.9).
  * @param {(message: string) => void} [warn] Told when the text overflows at the minimum size.
+ * @param {import('../parse/oracle-text.js').TextOptions} [text] Optional text to leave out.
  */
-export async function drawRulesText(ctx, model, assets, box = TEXT, warn = () => {}) {
+export async function drawRulesText(ctx, model, assets, box = TEXT, warn = () => {}, text = {}) {
   const x = BOX.x + TEXT_PADDING.x;
   const width = BOX.right - BOX.x - TEXT_PADDING.x * 2;
   const height = box.h - TEXT_PADDING.top - TEXT_PADDING.bottom;
-  const { size, layout } = fitText(ctx, tokenizeCard(model), width, height);
+  const { size, layout } = fitText(ctx, tokenizeCard(model, text), width, height);
   if (layout.height > height) warn(`text box: the rules text does not fit, even at ${size}px`);
   // Centred vertically, like printed cards (T-S4, C15).
   const top = box.y + TEXT_PADDING.top + Math.max(0, (height - layout.height) / 2);
@@ -182,12 +183,12 @@ export async function drawBasicLandSymbol(ctx, model, assets) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ assets: ReturnType<typeof import('./assets.js').createAssets>, box?: { y: number, h: number },
- *   warn?: (message: string) => void }} options
+ *   warn?: (message: string) => void, text?: import('../parse/oracle-text.js').TextOptions }} options
  */
-export async function drawTextBox(ctx, model, { assets, box = TEXT, warn }) {
+export async function drawTextBox(ctx, model, { assets, box = TEXT, warn, text }) {
   ctx.save();
   if (model.supertypes.includes('Basic')) await drawBasicLandSymbol(ctx, model, assets);
   else if (!model.types.includes('Planeswalker'))
-    await drawRulesText(ctx, model, assets, box, warn);
+    await drawRulesText(ctx, model, assets, box, warn, text);
   ctx.restore();
 }

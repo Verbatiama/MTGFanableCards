@@ -65,14 +65,15 @@ export const decodeSetSymbol = (bytes) =>
  * Renders a card model to a canvas.
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ art?: Uint8Array | null, setSymbol?: Uint8Array | null, year?: number,
+ *   text?: import('../parse/oracle-text.js').TextOptions,
  *   onWarning?: (message: string) => void }} [options]
  *   Art bytes (T-A10) and set symbol SVG bytes (T-B4); null for the fallbacks.
  *   `onWarning` receives each of renderCard's warnings (T-B10); `year` pins the
- *   copyright year (visual regression tests).
+ *   copyright year (visual regression tests); `text` leaves optional text out (D37).
  */
 export async function renderCardCanvas(
   model,
-  { art = null, setSymbol = null, year, onWarning = () => {} } = {},
+  { art = null, setSymbol = null, year, text, onWarning = () => {} } = {},
 ) {
   registerFonts();
   const canvas = createCanvas(CARD.width, CARD.height);
@@ -82,6 +83,7 @@ export async function renderCardCanvas(
     art: await decode(art),
     setSymbol: await decodeSetSymbol(setSymbol),
     year,
+    text,
   });
   warnings.forEach(onWarning);
   return canvas;

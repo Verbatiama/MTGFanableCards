@@ -103,7 +103,7 @@ export async function loadSetSymbol(url) {
 }
 
 /** Draws a card model offscreen; art and set symbol already loaded. */
-async function drawCard(model, { art, setSymbol, onWarning = () => {} }) {
+async function drawCard(model, { art, setSymbol, text, onWarning = () => {} }) {
   await loadFonts();
   const canvas = createCanvas(CARD.width, CARD.height);
   const { warnings } = await renderCard(canvas.getContext('2d'), model, {
@@ -111,6 +111,7 @@ async function drawCard(model, { art, setSymbol, onWarning = () => {} }) {
     assets,
     art,
     setSymbol,
+    text,
   });
   warnings.forEach(onWarning);
   return canvas;
@@ -151,9 +152,10 @@ export async function pngToJpeg(png, quality) {
  * Draws one face from GET /api/cards onto a canvas, resizing it to the card.
  * @param {HTMLCanvasElement} canvas
  * @param {{ model: object, art: string | null, setSymbol: string }} face
+ * @param {import('../../src/parse/oracle-text.js').TextOptions} [text] Optional text to leave out (D37).
  * @returns {Promise<string[]>} renderCard's warnings (T-B10).
  */
-export async function renderFace(canvas, face) {
+export async function renderFace(canvas, face, text) {
   const [art, setSymbol] = await Promise.all([
     loadArt(face.art).catch(() => null),
     loadSetSymbol(face.setSymbol).catch(() => null),
@@ -164,6 +166,7 @@ export async function renderFace(canvas, face) {
   const offscreen = await drawCard(face.model, {
     art,
     setSymbol,
+    text,
     onWarning: (w) => warnings.push(w),
   });
   canvas.width = CARD.width;

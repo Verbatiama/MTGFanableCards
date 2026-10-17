@@ -20,6 +20,7 @@ import path from 'node:path';
  * @property {JobStatus} status
  * @property {'zip' | 'pdf'} format
  * @property {string} decklist
+ * @property {import('../parse/oracle-text.js').TextOptions} text Optional text to leave out (D37).
  * @property {number} total Card images to generate; 0 until the job starts.
  * @property {number} done Card images generated so far.
  * @property {import('../generate.js').GenerateReport | null} report
@@ -59,13 +60,14 @@ export function createJobQueue({
   const timers = new Set();
   let accepting = true;
 
-  function create({ decklist, format = 'zip' }) {
+  function create({ decklist, format = 'zip', text = {} }) {
     if (!accepting) throw new Error('The server is shutting down');
     const job = {
       id: randomUUID(),
       status: 'queued',
       format,
       decklist,
+      text,
       total: 0,
       done: 0,
       report: null,

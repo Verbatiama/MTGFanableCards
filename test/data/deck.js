@@ -3,7 +3,8 @@ import { scryfallCard } from './helpers.js';
 
 /**
  * A small card database for the CLI and API tests: two Lightning Bolt
- * printings, a double-faced card and a split card (out of scope for v1).
+ * printings, a card with reminder text, a double-faced card and a split card
+ * (out of scope for v1).
  */
 export function deckDatabase() {
   return CardDatabase.build([
@@ -20,6 +21,18 @@ export function deckDatabase() {
       released_at: '2009-07-17',
       mana_cost: '{R}',
       colors: ['R'],
+    }),
+    scryfallCard({
+      name: 'Fiendslayer Paladin',
+      mana_cost: '{1}{W}{W}',
+      type_line: 'Creature — Human Knight',
+      colors: ['W'],
+      power: '2',
+      toughness: '2',
+      oracle_text:
+        'First strike (This creature deals combat damage before creatures without first strike.)\n' +
+        'Lifelink (Damage dealt by this creature also causes you to gain that much life.)\n' +
+        "Fiendslayer Paladin can't be the target of black or red spells your opponents control.",
     }),
     scryfallCard({
       name: 'Delver of Secrets // Insectile Aberration',

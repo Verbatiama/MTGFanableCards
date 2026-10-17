@@ -136,13 +136,13 @@ export async function buildApp({
       schema: { tags: ['jobs'], body: JOB_REQUEST, response: { 202: JOB } },
     },
     async (request, reply) => {
-      const { decklist, format } = request.body;
+      const { decklist, format, reminderText } = request.body;
       const invalid = checkDecklist(decklist);
       if (invalid) return reply.code(invalid.statusCode).send(invalid);
       if (!jobs.accepting) {
         return reply.code(503).send(error(503, 'The server is shutting down; try again shortly'));
       }
-      const job = jobs.create({ decklist, format });
+      const job = jobs.create({ decklist, format, text: { reminder: reminderText } });
       return reply.code(202).header('Location', `/api/jobs/${job.id}`).send(jobView(job, jobs));
     },
   );
@@ -325,6 +325,7 @@ async function runJob(services, job, onProgress, pngDir) {
     fetchArt: services.fetchArt,
     fetchSetSymbol: services.fetchSetSymbol,
     onProgress,
+    text: job.text,
     ...(pngDir && { pngDir }),
   });
   if (!images.length) return { bytes: null, report, error: 'No cards were generated' };
@@ -521,6 +522,11 @@ const JOB_REQUEST = {
       description: 'One card per line: "4 Lightning Bolt"',
     },
     format: { enum: ['zip', 'pdf'], default: 'zip' },
+    reminderText: {
+      type: 'boolean',
+      default: true,
+      description: 'Show reminder text (anything in parentheses); false leaves it out',
+    },
   },
 };
 

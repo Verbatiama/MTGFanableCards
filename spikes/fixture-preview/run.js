@@ -6,7 +6,8 @@
  *
  *   node spikes/fixture-preview/run.js [--no-art] [slug ...]
  *
- * Also previews the real Scryfall edge cases of the unit tests (T-S5) as edge-<face>.
+ * Also previews the real Scryfall edge cases of the unit tests (T-S5) as edge-<face>,
+ * and cards drawn with the text options (D37) as option-<what>-<fixture>.
  *
  * Writes out/fixture-preview/<slug>.png, a contact sheet (_all.png) and the
  * previews as printable A4 sheets (_sheets.pdf).
@@ -58,15 +59,15 @@ async function loadArt(model) {
 let warnings = [];
 const warn = (message) => warnings.push(message);
 
-async function drawCard(model) {
+async function drawCard(model, text) {
   const art = await loadArt(model);
   const canvas = createCanvas(CARD.width, CARD.height);
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CARD.width, CARD.height);
 
-  const layout = cardLayout(ctx, model);
-  await drawCardBox(ctx, model, art, layout);
+  const layout = cardLayout(ctx, model, text);
+  await drawCardBox(ctx, model, art, layout, text);
   // The bar last: the art box reaches under its icons.
   await drawStatBar(ctx, model, layout);
   return canvas;
@@ -97,7 +98,7 @@ async function drawStatBar(ctx, model, layout) {
   await drawStatBarBottom(ctx, model, { assets, text: layout.text });
 }
 
-async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }) {
+async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, pw }, text) {
   // The frame comes from the real renderer (T-B4).
   const setSymbol = noArt
     ? null
@@ -115,7 +116,7 @@ async function drawCardBox(ctx, model, art, { art: ART, type: TYPE, text: TEXT, 
     await drawBasicLandSymbol(ctx, model, assets);
   } else {
     if (pw) await drawAbilityBands(ctx, assets, pw);
-    else await drawRulesText(ctx, model, assets, TEXT, warn);
+    else await drawRulesText(ctx, model, assets, TEXT, warn, text);
   }
 
   // Footer from the real renderer (T-B6).
@@ -163,6 +164,20 @@ async function edgeCaseModels() {
   return printings.flatMap(mapCard).map((model) => [`edge-${slug(model.name)}`, model]);
 }
 
+// Cards drawn with text left out (D37): reminder text (6.4.9, T-C3).
+const TEXT_OPTIONS = {
+  'no-reminder': [
+    { reminder: false },
+    ['fiendslayer-paladin', 'kitchen-finks', 'smugglers-copter', 'ajani-sleeper-agent'],
+  ],
+};
+
+function optionModels(fixtures) {
+  return Object.entries(TEXT_OPTIONS).flatMap(([what, [text, slugs]]) =>
+    slugs.map((slug) => [`option-${what}-${slug}`, fixtures.get(slug), text]),
+  );
+}
+
 const artFetcher = createArtFetcher();
 const setSymbols = createSetSymbolFetcher(); // T-A10, shares cache/art/ with the app
 const fixtures = loadCardFixtures();
@@ -177,10 +192,16 @@ await mkdir(dir, { recursive: true });
 const created = [];
 const changed = [];
 const cards = [];
-for (const [slug, model] of [...fixtures, ...stressModels(fixtures), ...(await edgeCaseModels())]) {
+const previews = [
+  ...fixtures,
+  ...stressModels(fixtures),
+  ...(await edgeCaseModels()),
+  ...optionModels(fixtures),
+];
+for (const [slug, model, text] of previews) {
   if (wanted.length && !wanted.includes(slug)) continue;
   warnings = [];
-  const canvas = await drawCard(model);
+  const canvas = await drawCard(model, text);
   for (const message of warnings) console.warn(`${slug}: ${message}`);
   const file = path.join(dir, `${slug}.png`);
   const png = canvas.toBuffer('image/png');
