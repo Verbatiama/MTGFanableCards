@@ -211,9 +211,12 @@ export function middleItems(model) {
  * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
  * or nothing. The label flows past the text box and ends on the bar's bottom
  * edge (`base`, D36), like the loyalty badge; the rest sit on that edge too.
+ * With nothing in the middle stack, the label grows (size and step together)
+ * to fill the bar from the top of the type line down.
  * @param {import('../model/card-model.js').CardModel} model
+ * @param {{ type?: { y: number } }} [bands] The type line band.
  */
-export function statBarBottom(model) {
+export function statBarBottom(model, { type = TYPE } = {}) {
   const B = BAR_BOTTOM;
   const edge = CARD.height - B.edge;
   const badge = (kind, value) => ({
@@ -240,8 +243,14 @@ export function statBarBottom(model) {
   if (!isPermanent(model.types)) {
     const letters = [...LABELS.nonPermanent];
     const base = edge;
-    const top = base - (letters.length - 1) * B.label.step - B.label.size;
-    return { kind: 'label', letters, base, top };
+    let { size, step } = B.label;
+    if (!middleItems(model).length) {
+      const ratio = step / size;
+      const fill = Math.floor((base - type.y) / ((letters.length - 1) * ratio + 1));
+      if (fill > size) [size, step] = [fill, fill * ratio];
+    }
+    const top = base - (letters.length - 1) * step - size;
+    return { kind: 'label', letters, base, top, size, step };
   }
   return { kind: null, top: edge };
 }
@@ -502,7 +511,7 @@ export async function drawStatBarBottom(ctx, model, { assets, ...bands }) {
     const colour = BADGE_COLOURS[bottom.kind];
     await drawBadge(ctx, assets, shape, colour, cx, bottom.cy, bottom.size, bottom.value);
   } else if (bottom.kind === 'label') {
-    const { size, step } = BAR_BOTTOM.label;
+    const { size, step } = bottom;
     ctx.font = labelFont(size);
     ctx.textAlign = 'center';
     // Capitals sit on the baseline, so the last letter ends on the text box's edge.
