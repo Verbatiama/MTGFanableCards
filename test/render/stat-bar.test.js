@@ -27,6 +27,7 @@ const top = (slug, changes = {}) => statBarTop({ ...loadCardFixture(slug), ...ch
 const pixel = (canvas, x, y) => [
   ...canvas.getContext('2d').getImageData(x, y, 1, 1).data.slice(0, 3),
 ];
+const manaCentre = BAR.x + BAR_TOP.manaInset + BAR.icon / 2;
 const hex = (colour) => [1, 3, 5].map((i) => parseInt(colour.slice(i, i + 2), 16));
 
 test('one type icon at full size; several share one row in type-line order (5.1.2–5.1.3)', () => {
@@ -38,15 +39,14 @@ test('one type icon at full size; several share one row in type-line order (5.1.
     two.map((t) => t.type),
     ['Artifact', 'Creature'],
   );
-  assert.ok(two[0].size < BAR_TOP.typeRow && two[0].size >= 38);
+  assert.ok(two[0].size < BAR_TOP.typeRow && two[0].size >= 32);
 
   const three = top('wurmcoil-engine', { types: ['Kindred', 'Artifact', 'Creature'] }).types;
-  assert.ok(three[0].size >= 25 && three[0].size <= 30);
+  assert.ok(three[0].size >= 20 && three[0].size <= 24);
   for (const row of [two, three]) {
-    // Inside the bar, centred, all on one row.
-    const right = BAR.x + BAR.width;
-    assert.ok(row[0].x >= BAR.x && row.at(-1).x + row.at(-1).size <= right);
-    assert.ok(Math.abs(row[0].x - BAR.x - (right - row.at(-1).x - row.at(-1).size)) < 1);
+    // Inside the bar, centred on the mana symbols (D33), all on one row.
+    assert.ok(row[0].x >= BAR.x);
+    assert.ok(Math.abs((row[0].x + row.at(-1).x + row.at(-1).size) / 2 - manaCentre) < 1);
     assert.equal(new Set(row.map((t) => t.y)).size, 1);
   }
 });
@@ -64,7 +64,8 @@ test('the colour indicator takes its own row only when present, pushing the mana
   assert.equal(plain.indicator, null);
   const marked = top('niv-mizzet-the-firemind', { colorIndicator: ['U', 'R'] });
   assert.deepEqual(marked.indicator.colours, ['U', 'R']);
-  const { cy, r } = marked.indicator;
+  const { cx, cy, r } = marked.indicator;
+  assert.equal(cx, manaCentre);
   assert.ok(marked.mana[0].pill.y >= cy + r + BAR_TOP.rowGap);
   assert.ok(marked.mana[0].y >= plain.mana[0].y);
 });
@@ -84,13 +85,17 @@ test('one mana row per grouped symbol, in model order; no cost means no rows (5.
   assert.deepEqual(top('ancestral-vision').mana, []);
 });
 
-test('the type icon row lines up with the name bar and stays above the art (5.1)', () => {
-  assert.equal(BAR_TOP.y, NAME.y);
-  assert.equal(BAR_TOP.typeRow, NAME.h);
+test('the type icon row sits below the full-width name bar, over the art, on the mana centre line (5.1.3, D33)', () => {
+  assert.ok(NAME.x < BAR.x + BAR_TOP.manaInset && NAME.right === BOX.right);
+  assert.ok(BAR_TOP.y >= ART.y);
   for (const slug of ['niv-mizzet-the-firemind', 'wurmcoil-engine', 'dryad-arbor']) {
-    for (const icon of top(slug).types) {
-      assert.ok(icon.y >= NAME.y && icon.y + icon.size <= NAME.y + NAME.h, slug);
-      assert.ok(icon.y + icon.size <= ART.y, slug);
+    const { types, mana } = top(slug);
+    for (const icon of types) {
+      assert.ok(icon.y >= NAME.y + NAME.h && icon.y >= ART.y, slug);
+    }
+    if (types.length === 1) {
+      assert.equal(types[0].x + types[0].size / 2, manaCentre, slug);
+      assert.equal(mana[0].x + mana[0].size / 2, manaCentre, slug);
     }
   }
 });
@@ -111,16 +116,19 @@ test('the mana rows close up only when they would not fit above the type line (5
   assert.equal(spread[1].pill.y - spread[0].pill.y, pillH + BAR_TOP.mana.gap);
   assert.ok(spread.at(-1).pill.y + pillH <= limit);
 
-  const many = top('niv-mizzet-the-firemind', { manaCost: rows(7) }).mana;
+  // Below the full-width name bar (D33), seven rows no longer fit even touching,
+  // so a type line 20px higher shows six closing up.
+  const six = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(6) };
+  const many = statBarTop(six, { type: { y: TYPE.y - 20 } }).mana;
   const step = many[1].pill.y - many[0].pill.y;
   assert.ok(step < pillH + BAR_TOP.mana.gap && step >= pillH);
-  assert.ok(Math.abs(many.at(-1).pill.y + pillH - limit) < 0.01);
+  assert.ok(Math.abs(many.at(-1).pill.y + pillH - (limit - 20)) < 0.01);
 
   // A type line moved up (planeswalkers, T-B11) closes them up too.
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(4) };
-  const raised = statBarTop(model, { type: { y: TYPE.y - 210 } }).mana;
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(3) };
+  const raised = statBarTop(model, { type: { y: TYPE.y - 220 } }).mana;
   assert.ok(raised[1].pill.y - raised[0].pill.y < pillH + BAR_TOP.mana.gap);
-  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 210 - BAR_TOP.mana.bottom + 0.01);
+  assert.ok(raised.at(-1).pill.y + pillH <= TYPE.y - 220 - BAR_TOP.mana.bottom + 0.01);
 });
 
 test('each mana row sits on a black pill; its count is centred between the symbol and the card box', async () => {
@@ -417,8 +425,8 @@ test("a hollow stat's icon is an outline: white edge, dark inside (5.7.7)", asyn
 test('a mana block too long for the bar runs past the type line and pushes the stack below it (4.4)', () => {
   const rows = (n) => Array.from({ length: n }, (_, i) => ({ symbol: 'generic', count: i }));
   assert.equal(top('niv-mizzet-the-firemind').manaOverflow, false);
-  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(7) }).manaOverflow, false);
-  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(8) };
+  assert.equal(top('niv-mizzet-the-firemind', { manaCost: rows(6) }).manaOverflow, false);
+  const model = { ...loadCardFixture('niv-mizzet-the-firemind'), manaCost: rows(7) };
   const t = statBarTop(model);
   assert.equal(t.manaOverflow, true);
   // Pills touching, never overlapping.

@@ -20,9 +20,18 @@ export const BORDER = 36;
 export const BAR = { x: BORDER, width: 90, icon: 56, gap: 6 };
 
 /**
+ * The name bar (6.1, D33) runs the full width of the card, across the top of
+ * the stat bar as well as the card box: from as far in from the left edge as
+ * the frame is from the right, to the frame's right edge (BOX.right).
+ */
+export const FRAME_TOP = BORDER;
+export const NAME = { x: BORDER + 4, right: CARD.width - BORDER - 4, y: FRAME_TOP + 8, h: 58 };
+
+/**
  * Top of the stat bar (5.1–5.3): where it starts, the type icon row (full-size
  * icon height and gap between several icons), the colour indicator's radius,
- * and the gap after each row.
+ * and the gap after each row. The type icons, colour indicator and mana
+ * symbols share one centre line, `BAR.x + manaInset + BAR.icon / 2`.
  *
  * Mana rows are BAR.icon high, each on a black pill reaching `pill` pixels
  * beyond the symbol. `mana` places them over the art: the first pill starts
@@ -31,14 +40,16 @@ export const BAR = { x: BORDER, width: 90, icon: 56, gap: 6 };
  * row wouldn't otherwise fit `bottom` above the type line.
  */
 export const BAR_TOP = {
-  // The type icon row lines up with the name bar (NAME: its top and height),
-  // so the icon never reaches down over the art.
-  y: BORDER + 8,
+  // Below the full-width name bar (D33): 8px under its pinline, which ends
+  // where the art starts, so the type icons sit over the art's faded edge.
+  y: NAME.y + NAME.h + 6 + 8,
   typeRow: 58,
   typeGap: 3,
   indicator: 22,
   rowGap: 8,
   pill: 2,
+  // The mana symbols' left edge, in from the bar's.
+  manaInset: 8,
   mana: { top: 16, gap: 10, bottom: 10 },
 };
 
@@ -73,7 +84,7 @@ export const BAR_BOTTOM = {
  * The card box: its left edge (after the bar and a gap) and right edge (the
  * frame's 4px edge inside the border).
  */
-export const BOX = { x: BAR.x + BAR.width + 10, right: CARD.width - BORDER - 4 };
+export const BOX = { x: BAR.x + BAR.width + 10, right: NAME.right };
 
 /**
  * Bands of the card box, top to bottom (6.1–6.5). The frame runs from the
@@ -84,9 +95,7 @@ export const BOX = { x: BAR.x + BAR.width + 10, right: CARD.width - BORDER - 4 }
  * width / height) makes it. The type line sits under it and the text box takes
  * the rest, down to the footer.
  */
-export const FRAME_TOP = BORDER;
 export const FOOTER = { y: CARD.height - BORDER - 44 };
-export const NAME = { y: FRAME_TOP + 8, h: 58 };
 export const ART_ASPECT = 562 / 412;
 const art = { x: BAR.x, right: BOX.right - 6, y: NAME.y + NAME.h + 6 };
 export const ART = {

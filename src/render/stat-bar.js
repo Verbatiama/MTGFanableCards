@@ -32,11 +32,14 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
 /**
  * Positions in the top section, as plain data.
  *
- * - `types`: one icon per card type in type-line order (5.1.3), shrunk so the
- *   row fits the bar; types without an icon are skipped (5.1.4). The row keeps
- *   its full height, so the mana block doesn't move.
- * - `indicator`: the colour indicator's circle, only when the card has one; it
- *   takes its own row and pushes the mana block down (5.2.4).
+ * - `types`: one icon per card type in type-line order (5.1.3), below the
+ *   full-width name bar (D33) and centred on the mana symbols' centre line,
+ *   shrunk so the row stays inside the border; types without an icon are
+ *   skipped (5.1.4). The row keeps its full height, so the mana block doesn't
+ *   move.
+ * - `indicator`: the colour indicator's circle, only when the card has one,
+ *   on the same centre line; it takes its own row and pushes the mana block
+ *   down (5.2.4).
  * - `mana`: one row per grouped symbol, with its count (5.3). The count is
  *   centred half way between the symbol and the card box's left edge, and the
  *   row sits on a black pill (`pill`) ending at the frame, so it reads over the
@@ -53,11 +56,15 @@ import { drawSymbol, textSymbolImage } from './symbols.js';
  */
 export function statBarTop(model, { art = ART, type = TYPE } = {}) {
   let y = BAR_TOP.y;
+  const x = BAR.x + BAR_TOP.manaInset;
+  const centre = x + BAR.icon / 2;
   const shown = model.types.filter((t) => CARD_TYPES[t]);
   const n = shown.length;
   const gap = BAR_TOP.typeGap;
-  const size = Math.min(BAR_TOP.typeRow, Math.floor((BAR.width - 4 - gap * (n - 1)) / n));
-  const left = BAR.x + (BAR.width - (size * n + gap * (n - 1))) / 2;
+  // As wide as fits centred on the line without reaching past the bar's left edge.
+  const rowRoom = 2 * (centre - BAR.x);
+  const size = Math.min(BAR_TOP.typeRow, Math.floor((rowRoom - gap * (n - 1)) / n));
+  const left = centre - (size * n + gap * (n - 1)) / 2;
   const types = shown.map((type, i) => ({
     type,
     x: left + i * (size + gap),
@@ -69,7 +76,7 @@ export function statBarTop(model, { art = ART, type = TYPE } = {}) {
   let indicator = null;
   if (model.colorIndicator) {
     const r = BAR_TOP.indicator;
-    indicator = { colours: model.colorIndicator, cx: BAR.x + BAR.width / 2, cy: y + r, r };
+    indicator = { colours: model.colorIndicator, cx: centre, cy: y + r, r };
     y += r * 2 + BAR_TOP.rowGap;
   }
 
@@ -83,7 +90,6 @@ export function statBarTop(model, { art = ART, type = TYPE } = {}) {
   const manaGap = gaps
     ? Math.max(0, Math.min(BAR_TOP.mana.gap, (room - costs.length * pillH) / gaps))
     : 0;
-  const x = BAR.x + 8;
   const mana = costs.map(({ symbol, count }, i) => {
     const top = start + i * (pillH + manaGap);
     return {

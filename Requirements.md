@@ -237,14 +237,16 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 
 ## 4. Card anatomy overview
 
-The card has two regions: the **stat bar** on the left and the **card box** on the right.
+Under the full-width name bar (6.1.2, D33), the card has two regions: the **stat bar** on the left and the **card box** on the right.
 
 ```
-┌────┬──────────────────────────────┐
-│TYPE│ Name bar                     │
-│ CI │──────────────────────────────│
-│MANA│                              │
+┌───────────────────────────────────┐
+│ Name bar                          │
+├────┬──────────────────────────────┤
+│TYPE│                              │
+│ CI │                              │
 │MANA│           Art                │
+│MANA│                              │
 │    │                              │
 │    │──────────────────────────────│
 │ZONE│ Type line          [set sym] │
@@ -496,7 +498,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 6.1.1 **[Confirmed]** The name bar is at the top of the card box, next to the card type icon (revised by D33: it runs the full width of the card, 6.1.2). It shows the card name only; the mana cost is in the stat bar.
 
-6.1.2 **[Confirmed]** (D33) Full-width name bar, on every card: the name bar runs the full width of the card, across the top of the stat bar as well as the card box, and the stat bar's top section (type icons, colour indicator, mana) starts below it instead of beside it. The type icons sit straight over the art's faded left edge, with no pill behind them (unlike the mana rows), and the row and the colour indicator below it are centred on the mana symbols' centre line (x 72) rather than the bar's (x 81); a row of several icons shrinks so it stays inside the border (two icons about 34px instead of 41px). The mana block keeps its rules (5.3.11, 4.4): it has 58px less room above the type line, so long costs close up sooner. Prototyped in `spikes/full-width-name/` (`npm run spike:full-width-name`; `--card "<name>"` renders any card from the local Scryfall data): name bar from x 40 (as far in from the left edge as the frame is from the right) to the frame's right edge, same height; type icon row 8px below the name bar's pinline, over the art (y 44 → 116); the mana block starts below it, with 58px less room above the type line. This replaces the type icon row's place beside the name bar (5.1.3); implemented in T-B15.
+6.1.2 **[Confirmed]** (D33) Full-width name bar, on every card: the name bar runs the full width of the card, across the top of the stat bar as well as the card box, and the stat bar's top section (type icons, colour indicator, mana) starts below it instead of beside it. The type icons sit straight over the art's faded left edge, with no pill behind them (unlike the mana rows), and the row and the colour indicator below it are centred on the mana symbols' centre line (x 72) rather than the bar's (x 81); a row of several icons shrinks so it stays inside the border (two icons about 34px instead of 41px). The mana block keeps its rules (5.3.11, 4.4): it has 58px less room above the type line, so long costs close up sooner. Prototyped in `spikes/full-width-name/` (removed once built in, T-B15; see the D33 commits): name bar from x 40 (as far in from the left edge as the frame is from the right) to the frame's right edge, same height; type icon row 8px below the name bar's pinline, over the art (y 44 → 116); the mana block starts below it, with 58px less room above the type line. This replaces the type icon row's place beside the name bar (5.1.3); implemented in T-B15 (`NAME.x`/`NAME.right` and `BAR_TOP.y`/`BAR_TOP.manaInset` in `src/config/layout.js`). With the less room, Niv-Mizzet's bar fits six mana rows spread out and seven run past the type line (eight before).
 
 ### 6.2 Art box
 

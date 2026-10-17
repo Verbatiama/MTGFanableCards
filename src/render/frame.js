@@ -13,7 +13,7 @@ import { fitFont, textFont } from './fonts.js';
 
 /**
  * Card-box frame (T-B4, D20, D21, T-S4; Requirements 6.1–6.3, 6.6): name
- * bar, art box, type line with the set symbol, and the text box background,
+ * bar (full card width, D33), art box, type line with the set symbol, and the text box background,
  * each with a coloured pinline, on black, in the mockups' colours (C18).
  * Basic lands are full-art (C21).
  */
@@ -109,10 +109,10 @@ export function mix(a, b, amount) {
   return `#${[16, 8, 0].map((sh) => channel(sh).toString(16).padStart(2, '0')).join('')}`;
 }
 
-/** One colour, or a left-to-right blend across the card box. */
-function acrossBox(ctx, colours) {
+/** One colour, or a left-to-right blend across the card box (or another span). */
+function acrossBox(ctx, colours, from = BOX.x, to = BOX.right) {
   if (colours.length === 1) return colours[0];
-  const gradient = ctx.createLinearGradient(BOX.x, 0, BOX.right, 0);
+  const gradient = ctx.createLinearGradient(from, 0, to, 0);
   gradient.addColorStop(0.3, colours[0]);
   gradient.addColorStop(0.7, colours[1]);
   return gradient;
@@ -269,15 +269,24 @@ export function drawFrame(ctx, model, { env, art = null, setSymbol = null, layou
     layer.width = 0; // free its pixels now (T-S6)
   }
 
-  // Name bar.
+  // Name bar, the full width of the card (D33).
+  const nameWidth = NAME.right - NAME.x;
   ctx.fillStyle = palette.bar;
-  pinline(ctx, fill.pin, BOX.x, NAME.y, width, NAME.h, BAR_RADIUS);
-  panel(ctx, env, BOX.x, NAME.y, width, NAME.h, BAR_RADIUS);
+  pinline(
+    ctx,
+    acrossBox(ctx, palette.pin, NAME.x, NAME.right),
+    NAME.x,
+    NAME.y,
+    nameWidth,
+    NAME.h,
+    BAR_RADIUS,
+  );
+  panel(ctx, env, NAME.x, NAME.y, nameWidth, NAME.h, BAR_RADIUS);
   ctx.fillStyle = '#111';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  fitFont(ctx, model.name, width - 30, TEXT_SIZE.name, textFont);
-  ctx.fillText(model.name, BOX.x + 14, NAME.y + NAME.h / 2 + 2);
+  fitFont(ctx, model.name, nameWidth - 30, TEXT_SIZE.name, textFont);
+  ctx.fillText(model.name, NAME.x + 14, NAME.y + NAME.h / 2 + 2);
 
   if (fullArt) {
     // The type line's text alone, white over the art (C21).
