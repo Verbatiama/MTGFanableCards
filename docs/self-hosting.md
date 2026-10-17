@@ -67,9 +67,20 @@ Everything is optional, set in `.env`. Limits set to `0` are turned off.
 | `RATE_LIMIT_ASSETS_PER_MINUTE`  | 600     | Art and set symbol requests per visitor IP per minute                                                                                |
 | `LOW_MEMORY`                    | false   | `true` fits the app on a 1 GB server; see [1 GB servers](#1-gb-servers)                                                              |
 | `FRONTEND_RENDER`               | false   | `true` renders batches in visitors' browsers; see [Rendering in the browser](#rendering-in-the-browser)                              |
+| `IMAGE_CACHE_CORS_ORIGINS`      |         | Origins whose pages may read [cached Scryfall images](#scryfall-image-cache): comma-separated, or `*`                                |
 | `TRUST_PROXY`                   | private | Proxies whose forwarded headers are trusted: `true`, `false`, or addresses and CIDR ranges; by default loopback and private networks |
 
 Change `.env`, then `docker compose up -d` to apply it.
+
+## Scryfall image cache
+
+Other applications can get Scryfall card images through the server, which downloads each one from Scryfall once and keeps it in the art cache. Give one of:
+
+- `GET /api/scryfall/image?url=https://cards.scryfall.io/grid/front/0/0/<id>.webp`
+- `GET /api/scryfall/image?id=<scryfall card id>&type=grid` (add `&face=back` for a back face)
+- `GET /api/scryfall/image?name=Lightning Bolt&set=m10&number=146&type=crop`
+
+`type` is one of Scryfall's WebP image types: `thumb`, `grid`, `display`, `crop` or `art`. The answer is the WebP image, or `404`. Requests count against `RATE_LIMIT_ASSETS_PER_MINUTE`. Any page can show the images in an `<img>`; to read them from script or a canvas, add the page's origin to `IMAGE_CACHE_CORS_ORIGINS`.
 
 ## 1 GB servers
 

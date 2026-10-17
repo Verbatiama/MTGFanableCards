@@ -5,7 +5,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { cacheFileName, createArtFetcher } from '../../src/art/art-cache.js';
+import { cacheFileName, createArtFetcher, IMAGE_TYPES, imageUrl } from '../../src/art/art-cache.js';
 
 const quiet = { warn() {} };
 const art = (id, face = 'front') => `https://cards.scryfall.io/art/${face}/a/b/${id}.webp?123`;
@@ -31,6 +31,24 @@ test('cache file names keep the face and Scryfall file name', () => {
   assert.equal(cacheFileName(art('abc')), 'front-abc.webp');
   assert.equal(cacheFileName(art('abc', 'back')), 'back-abc.webp');
   assert.throws(() => cacheFileName('https://example.test/x.jpg'), /Unexpected Scryfall art URL/);
+});
+
+test('other image types are cached under their own names; legacy types are refused (T-S15)', () => {
+  const uuid = '11bf83bb-c95b-4b4f-9a56-ce7a1816307a';
+  assert.deepEqual(
+    IMAGE_TYPES.map((type) => cacheFileName(imageUrl(uuid, 'back', type))),
+    ['thumb', 'grid', 'display', 'crop']
+      .map((t) => `${t}-back-${uuid}.webp`)
+      .concat(`back-${uuid}.webp`),
+  );
+  assert.equal(
+    imageUrl(uuid, 'front', 'grid'),
+    `https://cards.scryfall.io/grid/front/1/1/${uuid}.webp`,
+  );
+  assert.throws(
+    () => cacheFileName(`https://cards.scryfall.io/art_crop/front/1/1/${uuid}.jpg`),
+    /Unexpected Scryfall art URL/,
+  );
 });
 
 test('art is downloaded once, then served from the cache', async (t) => {

@@ -5,7 +5,9 @@ import { unzipSync } from 'fflate';
 import { PDFDocument } from 'pdf-lib';
 import { buildApp } from '../src/server/app.js';
 import { loadConfig } from '../src/server/config.js';
+import { CardDatabase } from '../src/data/card-database.js';
 import { deckDatabase, offline } from './data/deck.js';
+import { scryfallCard } from './data/helpers.js';
 
 const db = await deckDatabase();
 
@@ -328,6 +330,137 @@ test('/api/art/ serves Scryfall art by id only: no URL passes through (T-S14)', 
   });
 });
 
+const UUID = '11bf83bb-c95b-4b4f-9a56-ce7a1816307a';
+const BOLT = '0186a93c-000a-4b8f-983d-e1471185dc1f';
+
+/** /api/scryfall/image with `fetchArt` recording the Scryfall URLs it is asked for. */
+async function withImages(env, fn) {
+  const requested = [];
+  const imageDb = await CardDatabase.build([
+    scryfallCard({
+      name: 'Delver of Secrets // Insectile Aberration',
+      layout: 'transform',
+      image_uris: undefined,
+      card_faces: ['front', 'back'].map((face, i) => ({
+        name: ['Delver of Secrets', 'Insectile Aberration'][i],
+        image_uris: { art: `https://cards.scryfall.io/art/${face}/1/1/${UUID}.webp?1` },
+      })),
+    }),
+    scryfallCard({
+      name: 'Lightning Bolt',
+      set: 'm10',
+      collector_number: '146',
+      image_uris: { art: `https://cards.scryfall.io/art/front/0/1/${BOLT}.webp?1783944164` },
+    }),
+  ]);
+  const services = {
+    db: imageDb,
+    fetchArt: async (url) => (
+      requested.push(url),
+      url.includes('missing') ? null : Buffer.from('webp')
+    ),
+  };
+  return withApp({ env, services }, (a) => fn(a, requested));
+}
+
+const image = (a, query, headers = {}) =>
+  a.inject({ method: 'GET', url: `/api/scryfall/image?${new URLSearchParams(query)}`, headers });
+
+test('/api/scryfall/image serves Scryfall images by url, id, or name, set and number (3.6.6)', () =>
+  withImages({}, async (a, requested) => {
+    const res = await image(a, {
+      url: `https://cards.scryfall.io/thumb/back/1/1/${UUID}.webp?1783940984`,
+    });
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['content-type'], 'image/webp');
+    assert.equal(res.headers['cache-control'], 'public, max-age=86400');
+    assert.equal(res.body, 'webp');
+
+    assert.equal((await image(a, { id: UUID, type: 'grid' })).statusCode, 200);
+    assert.equal((await image(a, { id: UUID, type: 'display', face: 'back' })).statusCode, 200);
+    assert.equal(
+      (await image(a, { name: 'lightning bolt', set: 'M10', number: '146', type: 'crop' }))
+        .statusCode,
+      200,
+    );
+    // A double-faced card: the face the name names.
+    for (const name of ['Delver of Secrets', 'Insectile Aberration']) {
+      assert.equal(
+        (await image(a, { name, set: 'tst', number: '1', type: 'art' })).statusCode,
+        200,
+      );
+    }
+    assert.deepEqual(requested, [
+      `https://cards.scryfall.io/thumb/back/1/1/${UUID}.webp`,
+      `https://cards.scryfall.io/grid/front/1/1/${UUID}.webp`,
+      `https://cards.scryfall.io/display/back/1/1/${UUID}.webp`,
+      `https://cards.scryfall.io/crop/front/0/1/${BOLT}.webp`,
+      `https://cards.scryfall.io/art/front/1/1/${UUID}.webp`,
+      `https://cards.scryfall.io/art/back/1/1/${UUID}.webp`,
+    ]);
+  }));
+
+test('/api/scryfall/image refuses anything but one well-formed request (3.6.6)', () =>
+  withImages({}, async (a, requested) => {
+    const url = `https://cards.scryfall.io/art/front/1/1/${UUID}.webp`;
+    for (const query of [
+      {},
+      { url, id: UUID },
+      { id: UUID, name: 'Lightning Bolt', type: 'art' },
+      { url, type: 'art' },
+      { id: UUID },
+      { id: UUID, type: 'art_crop' },
+      { id: 'not-a-uuid', type: 'art' },
+      { name: 'Lightning Bolt', set: 'm10', type: 'art' },
+      { url: `https://example.com/art/front/1/1/${UUID}.webp` },
+      { url: `https://cards.scryfall.io/art_crop/front/1/1/${UUID}.jpg` },
+      { url: `https://cards.scryfall.io/png/front/1/1/${UUID}.png` },
+      { url: `https://cards.scryfall.io/art/front/1/1/../../${UUID}.webp` },
+      { url: `https://cards.scryfall.io.evil.test/art/front/1/1/${UUID}.webp` },
+    ]) {
+      assert.equal((await image(a, query)).statusCode, 400, JSON.stringify(query));
+    }
+    assert.deepEqual(requested, []);
+
+    assert.equal(
+      (await image(a, { name: 'Lightning Bolt', set: 'm10', number: '999', type: 'art' }))
+        .statusCode,
+      404,
+    );
+    assert.equal(
+      (await image(a, { name: 'Nonexistent', set: 'm10', number: '146', type: 'art' })).statusCode,
+      404,
+    );
+  }));
+
+test('/api/scryfall/image gives 404 when Scryfall has no image, 503 while the data loads', async () => {
+  await withApp({ services: { fetchArt: async () => null } }, async (a) => {
+    assert.equal((await image(a, { id: UUID, type: 'art' })).statusCode, 404);
+  });
+  await withApp({ services: { db: null } }, async (a) => {
+    const query = { name: 'Lightning Bolt', set: 'm10', number: '146', type: 'art' };
+    assert.equal((await image(a, query)).statusCode, 503);
+  });
+});
+
+test('IMAGE_CACHE_CORS_ORIGINS lets pages on other origins read images (3.6.6)', async () => {
+  const query = { id: UUID, type: 'art' };
+  const cors = (res) => res.headers['access-control-allow-origin'];
+  await withImages({}, async (a) => {
+    assert.equal(cors(await image(a, query, { origin: 'https://a.test' })), undefined);
+  });
+  await withImages({ IMAGE_CACHE_CORS_ORIGINS: 'https://a.test, https://b.test/' }, async (a) => {
+    const res = await image(a, query, { origin: 'https://b.test' });
+    assert.equal(cors(res), 'https://b.test');
+    assert.equal(res.headers.vary, 'Origin');
+    assert.equal(cors(await image(a, query, { origin: 'https://c.test' })), undefined);
+    assert.equal(cors(await get(a, '/api/health')), undefined, 'only images are shared');
+  });
+  await withImages({ IMAGE_CACHE_CORS_ORIGINS: '*' }, async (a) => {
+    assert.equal(cors(await image(a, query, { origin: 'https://c.test' })), '*');
+  });
+});
+
 test('pages may only reach this server: Content-Security-Policy (T-S14)', () =>
   withApp({}, async (a) => {
     for (const url of ['/api/health', '/assets/symbols/generic.svg', '/nowhere']) {
@@ -399,6 +532,7 @@ test('configuration comes from environment variables with the documented default
   assert.equal(config.rateLimitPreviewPerMinute, 120);
   assert.equal(config.rateLimitAssetsPerMinute, 600);
   assert.equal(config.frontendRender, false);
+  assert.deepEqual(config.imageCacheCorsOrigins, []);
   for (const value of ['true', '1'])
     assert.equal(loadConfig({ FRONTEND_RENDER: value }).frontendRender, true);
   for (const value of ['', 'false', '0'])

@@ -6,7 +6,8 @@ import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import swagger from '@fastify/swagger';
-import { cacheFileName } from '../art/art-cache.js';
+import { cacheFileName, IMAGE_TYPES, imageUrl } from '../art/art-cache.js';
+import { normalizeName } from '../data/card-database.js';
 import { resolveDecklist } from '../data/resolve.js';
 import { generateCards, planDeck } from '../generate.js';
 import { mapCard, UnsupportedLayoutError } from '../model/from-scryfall.js';
@@ -30,6 +31,10 @@ import { createJobQueue } from './jobs.js';
  * and bundle itself. Either way the browser only ever talks to this server:
  * models carry no Scryfall URLs, art comes by id from /api/art/, and the
  * Content-Security-Policy header lets pages connect to this origin only.
+ *
+ * /api/scryfall/image (T-S15) is for other applications: it serves any of
+ * Scryfall's WebP card images through the same art cache, and pages on the
+ * origins in IMAGE_CACHE_CORS_ORIGINS may read it.
  *
  * @typedef {object} Services
  * @property {import('../data/card-database.js').CardDatabase | null} db Current card data;
@@ -233,6 +238,35 @@ export async function buildApp({
   );
 
   app.get(
+    '/api/scryfall/image',
+    {
+      config: assetLimit,
+      schema: {
+        tags: ['images'],
+        description:
+          'A Scryfall card image from the cache, by Scryfall image URL, by card id, or by name, set and collector number (3.6.6).',
+        querystring: IMAGE_QUERY,
+        produces: ['image/webp'],
+      },
+    },
+    async (request, reply) => {
+      const allowed = config.imageCacheCorsOrigins;
+      const origin = request.headers.origin;
+      if (allowed.includes('*')) reply.header('Access-Control-Allow-Origin', '*');
+      else {
+        reply.header('Vary', 'Origin');
+        if (origin && allowed.includes(origin)) reply.header('Access-Control-Allow-Origin', origin);
+      }
+
+      const { url, problem } = scryfallImage(services.db, request.query);
+      if (problem) return reply.code(problem.statusCode).send(problem);
+      const bytes = await services.fetchArt(url);
+      if (!bytes) return reply.code(404).send(error(404, 'Image not available'));
+      return reply.type('image/webp').header('Cache-Control', 'public, max-age=86400').send(bytes);
+    },
+  );
+
+  app.get(
     '/api/set-symbols/:code',
     {
       config: assetLimit,
@@ -349,7 +383,65 @@ const CONTENT_SECURITY_POLICY = [
  */
 function artUrl(id) {
   const [, face, uuid] = /^(front|back)-([0-9a-f-]{36})\.webp$/.exec(id);
-  return `https://cards.scryfall.io/art/${face}/${uuid[0]}/${uuid[1]}/${uuid}.webp`;
+  return imageUrl(uuid, face, 'art');
+}
+
+/** The only URLs /api/scryfall/image fetches: Scryfall's WebP card images (D32). */
+const SCRYFALL_IMAGE_URL = new RegExp(
+  `^https://cards\\.scryfall\\.io/(${IMAGE_TYPES.join('|')})/(front|back)/[0-9a-f]/[0-9a-f]/([0-9a-f-]{36})\\.webp(\\?\\d+)?$`,
+);
+
+/**
+ * The Scryfall URL an /api/scryfall/image query asks for (3.6.6), or the
+ * problem with it. The query names the image one of three ways: `url` alone;
+ * `id` (with `face`, front by default) and `type`; or `name`, `set`, `number`
+ * and `type`, looked up in the card data.
+ */
+function scryfallImage(db, { url, id, face, name, set, number, type }) {
+  const byPrinting = [name, set, number].some((v) => v !== undefined);
+  const forms = [url !== undefined, id !== undefined, byPrinting].filter(Boolean).length;
+  if (forms !== 1) {
+    return {
+      problem: error(400, 'Give exactly one of: url; id and type; or name, set, number and type'),
+    };
+  }
+  if (url !== undefined) {
+    if (type !== undefined || face !== undefined) {
+      return { problem: error(400, 'type and face come from the url; leave them out') };
+    }
+    const [, urlType, urlFace, uuid] = SCRYFALL_IMAGE_URL.exec(url) ?? [];
+    if (!uuid) {
+      return {
+        problem: error(400, `url must be a Scryfall card image: ${IMAGE_TYPES.join(', ')} (WebP)`),
+      };
+    }
+    return { url: imageUrl(uuid, urlFace, urlType) };
+  }
+  if (type === undefined)
+    return { problem: error(400, `type is required: ${IMAGE_TYPES.join(', ')}`) };
+  if (id !== undefined) return { url: imageUrl(id, face ?? 'front', type) };
+
+  if ([name, set, number].includes(undefined)) {
+    return { problem: error(400, 'name, set and number are all required') };
+  }
+  if (face !== undefined) return { problem: error(400, 'face comes from the name; leave it out') };
+  if (!db) return { problem: error(503, 'The card data is still loading') };
+  const printing = db
+    .lookup(name)
+    ?.printings.find(
+      (p) =>
+        p.set === set.toLowerCase() && p.collector_number.toLowerCase() === number.toLowerCase(),
+    );
+  if (!printing) {
+    return { problem: error(404, `${name} has no printing ${set.toUpperCase()} ${number}`) };
+  }
+  // A double-faced card's art is on its faces: the face the name names, or the front.
+  const faces = printing.card_faces ?? [];
+  const named = faces.find((f) => normalizeName(f.name) === normalizeName(name));
+  const art = printing.art ?? named?.art ?? faces[0]?.art;
+  const [, , artFace, uuid] = SCRYFALL_IMAGE_URL.exec(art?.replace(/\?.*$/, '') ?? '') ?? [];
+  if (!uuid) return { problem: error(404, 'Scryfall has no image of this printing') };
+  return { url: imageUrl(uuid, artFace, type) };
 }
 
 /** The preview URL for a card model's art, or null without Scryfall art. */
@@ -556,6 +648,23 @@ const CARD_PREVIEW = {
 const ART_ID = {
   type: 'object',
   properties: { id: { type: 'string', pattern: '^(front|back)-[0-9a-f-]{36}\\.webp$' } },
+};
+
+const IMAGE_QUERY = {
+  type: 'object',
+  properties: {
+    url: { type: 'string', description: 'A Scryfall card image URL (cards.scryfall.io, WebP)' },
+    id: {
+      type: 'string',
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+      description: 'Scryfall card id',
+    },
+    face: { type: 'string', enum: ['front', 'back'], description: 'With id; front by default' },
+    name: { type: 'string', minLength: 1, description: 'Card or face name' },
+    set: { type: 'string', pattern: '^[A-Za-z0-9]{2,6}$' },
+    number: { type: 'string', minLength: 1, maxLength: 10, description: 'Collector number' },
+    type: { type: 'string', enum: IMAGE_TYPES, description: 'Required unless url is given' },
+  },
 };
 
 const SET_CODE = {

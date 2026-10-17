@@ -201,6 +201,7 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 | `RATE_LIMIT_ASSETS_PER_MINUTE` | `600` | Art and set symbol requests per client IP per minute; `0` for no limit (3.6.5, T-S14) |
 | `LOW_MEMORY`          | `false`     | Low-memory mode for 1 GB servers (below)                 |
 | `FRONTEND_RENDER`     | `false`     | Batches render in the browser; server jobs off (3.6.2, T-S14) |
+| `IMAGE_CACHE_CORS_ORIGINS` | (none) | Origins whose pages may read `/api/scryfall/image`; comma-separated, or `*` (3.6.6) |
 
 - **Art cache cap:** the cache records how often each art is used. When it reaches `ART_CACHE_MAX_GB`, the least-used 25% of cached art is deleted (ties broken by least recent use).
 - **Minimum requirements:** a Linux host with Docker (x86-64), 2 GB RAM (1 GB with `LOW_MEMORY`, below), and about 15 GB of disk: the Scryfall data plus the art cache at its default cap.
@@ -220,6 +221,18 @@ The application has a backend API and a frontend UI (3.1.2, D9), but how it is b
 - **Logging and monitoring:** structured JSON logs to stdout (Fastify's logger), with Docker log rotation. A free external uptime monitor (e.g. UptimeRobot) checks `GET /api/health` and emails the owner when it fails.
 - **Abuse protection:** per-IP rate limits on top of the request limits (3.6.1), returning `429`: `RATE_LIMIT_JOBS_PER_HOUR` (10) for new jobs and `RATE_LIMIT_PREVIEW_PER_MINUTE` (120) for preview requests; `0` turns a limit off. Client IPs come from the reverse proxy's forwarded headers. No accounts or captcha.
   - Implementation (T-C1): the preview limit applies to each preview endpoint (`/api/cards`, `/api/art`, `/api/set-symbols`) separately, so one preview (about four requests) counts once against each; since T-S14, art and set symbols have their own `RATE_LIMIT_ASSETS_PER_MINUTE` (600) instead, and `POST /api/decks` shares the job limit; health checks, job status, downloads and `/assets/` aren't limited. Forwarded headers are trusted only from loopback and private addresses (a proxy on the same host or Docker network) so clients can't spoof their IP; `TRUST_PROXY` overrides this (`true`, `false`, or a list of addresses and CIDR ranges). `HOST` (default `0.0.0.0`) sets the listening address. Each finished job is logged with its card count and time.
+
+3.6.6 **[Confirmed]** Scryfall image cache endpoint (D32): `GET /api/scryfall/image` lets any application get Scryfall card images through this server's art cache (3.4), so they are downloaded from Scryfall once.
+
+- **Request:** exactly one of three query forms; anything else is `400`.
+  - `url`: a Scryfall card image URL, `https://cards.scryfall.io/{type}/{front|back}/x/y/{uuid}.webp` (the `?timestamp` is optional). Only the five WebP types are accepted, so the server can't be used to fetch anything else.
+  - `id` and `type`: a Scryfall card id; `face` is `front` (default) or `back`.
+  - `name`, `set`, `number` and `type`: looked up in the local card data (3.3), no Scryfall API call; the set and collector number must match exactly, or it's `404`. For a double-faced card the face the name names is used (the front for the full name). `503` while the card data loads.
+- **Image types (`type`):** Scryfall's WebP types: `thumb`, `grid`, `display`, `crop`, `art`.
+- **Response:** the WebP image, `Cache-Control: public, max-age=86400`; `404` if Scryfall has no such image.
+- **Cache and limits:** the same cache, cap (`ART_CACHE_MAX_GB`) and Scryfall request spacing as the art cards are rendered with; counts against `RATE_LIMIT_ASSETS_PER_MINUTE`.
+- **Cross-origin use:** any page can show the images (`<img>`); pages on the origins in `IMAGE_CACHE_CORS_ORIGINS` (or any, with `*`) may also read them (fetch, canvas): the response carries `Access-Control-Allow-Origin` (and `Vary: Origin`). None by default. Only this endpoint is shared.
+- **Implementation (T-S15):** the route and `scryfallImage()` in `src/server/app.js`; `IMAGE_TYPES` and `imageUrl()` in `src/art/art-cache.js`, whose cache file names gain the type for the new types (`grid-front-<uuid>.webp`; `art` keeps `front-<uuid>.webp`, so `/api/art/` ids and existing caches are unchanged); `imageCacheCorsOrigins` in `src/server/config.js`.
 ---
 
 ## 4. Card anatomy overview
@@ -810,6 +823,7 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 50. Where is the public instance hosted, and who pays? [3.6.3] — **Answered:** a DigitalOcean VPS in Sydney (2 GB, ~US$12/month, owner pays) at `fannable.verbatiam.dev` (D28).
 51. How do people self-host it? [3.6.4] — **Answered:** Docker image and Compose file (optional Caddy for HTTPS), environment-variable settings, capped art cache, CLI in the same image (D29).
 52. How is it deployed, refreshed, monitored and protected from abuse? [3.6.5] — **Answered:** deploy on every push to `main`, built-in daily refresh, logs and an uptime check, per-IP rate limits (D30).
+53. Can other applications use the server's Scryfall art cache, and how do they name an image? [3.6.6] — **Answered:** yes, `GET /api/scryfall/image` by Scryfall image URL (five WebP types only), card id, or name, set and collector number from the local card data, with the image type; same cache and limits; cross-origin reads for the origins in `IMAGE_CACHE_CORS_ORIGINS` (D32).
 
 ---
 

@@ -2,7 +2,7 @@ import { isLowMemory } from '../low-memory.js';
 
 /**
  * Server settings from environment variables (D26, D29, D30; Requirements
- * 3.6.1, 3.6.2, 3.6.4, 3.6.5). Limits set to 0 are turned off.
+ * 3.6.1, 3.6.2, 3.6.4, 3.6.5, 3.6.6). Limits set to 0 are turned off.
  */
 
 /**
@@ -35,6 +35,14 @@ function flag(env, name) {
   throw new Error(`${name} must be true or false: ${raw}`);
 }
 
+/** `IMAGE_CACHE_CORS_ORIGINS`: a comma-separated list of origins, or `*` for any. */
+function origins(raw = '') {
+  return raw
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+}
+
 /** @param {Record<string, string | undefined>} [env] */
 export function loadConfig(env = process.env) {
   const lowMemory = isLowMemory(env);
@@ -52,5 +60,7 @@ export function loadConfig(env = process.env) {
     rateLimitPreviewPerMinute: number(env, 'RATE_LIMIT_PREVIEW_PER_MINUTE', 120),
     rateLimitAssetsPerMinute: number(env, 'RATE_LIMIT_ASSETS_PER_MINUTE', 600),
     trustProxy: trustProxy(env.TRUST_PROXY),
+    // Origins whose pages may read /api/scryfall/image responses (T-S15).
+    imageCacheCorsOrigins: origins(env.IMAGE_CACHE_CORS_ORIGINS),
   };
 }

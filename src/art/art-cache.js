@@ -21,12 +21,23 @@ const HEADERS = { 'User-Agent': 'MTGFannableCards/0.1', Accept: 'image/*' };
 const INDEX_FILE = 'index.json';
 const EVICT_FRACTION = 0.25;
 
-/** `.../art/front/6/7/67f4….webp?123` → `front-67f4….webp` */
+/** Scryfall's WebP image types (T-S15, D32); `art` is the one cards are rendered with. */
+export const IMAGE_TYPES = ['thumb', 'grid', 'display', 'crop', 'art'];
+
+/** Scryfall's URL for one face's image of one type. */
+export function imageUrl(uuid, face, type) {
+  return `https://cards.scryfall.io/${type}/${face}/${uuid[0]}/${uuid[1]}/${uuid}.webp`;
+}
+
+/**
+ * `.../art/front/6/7/67f4….webp?123` → `front-67f4….webp`; other types get
+ * their type in front: `.../grid/back/…` → `grid-back-67f4….webp`.
+ */
 export function cacheFileName(url) {
   const { pathname } = new URL(url);
-  const [, face, file] = /\/(front|back)\/\w\/\w\/([^/]+)$/.exec(pathname) ?? [];
-  if (!file) throw new Error(`Unexpected Scryfall art URL: ${url}`);
-  return `${face}-${file}`;
+  const [, type, face, file] = /\/(\w+)\/(front|back)\/\w\/\w\/([^/]+)$/.exec(pathname) ?? [];
+  if (!IMAGE_TYPES.includes(type)) throw new Error(`Unexpected Scryfall art URL: ${url}`);
+  return type === 'art' ? `${face}-${file}` : `${type}-${face}-${file}`;
 }
 
 /**
