@@ -124,6 +124,10 @@ MTGFannableCards is unofficial Fan Content permitted under the [Fan Content Poli
 
 The project is free and non-commercial. Generated cards are for personal use and playtesting; don't sell them, or charge for access to them.
 
+### Scryfall Cacheing
+
+To reduce load on Scryfall, the application caches art on disk up to a configurable capacity. Because I wanted to use this feature in a different project I also host, and I didn't want to split out this functionality into a shared dependency, I added the /api/scryfall/image endpoint. This endpoint is not needed by this application, at the time of writing you could revert c66731cdd55e3701e0606bdd2c5d2ed12ebe1bff to get rid of it, eventually it would probably be easier to either remove the route or add an environment variable to hide it.
+
 ## Development
 
 Requires Linux and Node.js 22 or later (see `.nvmrc`). On Windows, use WSL and clone the repository into the Linux filesystem (e.g. `~/MTGFanableCards`), not under `/mnt/c` or `/mnt/d`: node-canvas cannot load the Beleren fonts on native Windows, and `node_modules` must be installed from Linux.
