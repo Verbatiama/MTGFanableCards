@@ -18,7 +18,10 @@
  * moved down). The type icons are centred on the mana symbols' centre line
  * rather than the bar's: the renderer's own type icon draws are held back and
  * the row is drawn again at the new place, shrunk only as far as it must be to
- * stay inside the border.
+ * stay inside the border. The colour indicator is centred on the same line:
+ * the renderer gets the card without its indicator (and the top section starts
+ * one indicator row lower, so the mana block lands where it would have), and
+ * the spike draws the indicator itself.
  *
  * Writes out/full-width-name/<slug>.png (current | spike, side by side) and a
  * contact sheet of the spike renders (_all.png). Prints the layout warnings
@@ -55,6 +58,7 @@ import {
   BOX,
   CARD,
   CARD_TYPES,
+  INDICATOR,
   NAME,
   TEXT_SIZE,
 } from '../../src/config/index.js';
@@ -152,7 +156,7 @@ const MANA_CENTRE = BAR.x + 8 + BAR.icon / 2;
  * fit, otherwise shrunk so the row stays between the border and the frame's
  * mirror image (2 × (MANA_CENTRE − BAR.x) wide).
  */
-function typeRow(model) {
+function typeRow(model, top) {
   const shown = model.types.filter((t) => CARD_TYPES[t]);
   const n = shown.length;
   const gap = BAR_TOP.typeGap;
@@ -162,9 +166,39 @@ function typeRow(model) {
   return shown.map((type, i) => ({
     type,
     x: left + i * (size + gap),
-    y: BAR_TOP.y + (BAR_TOP.typeRow - size) / 2,
+    y: top + (BAR_TOP.typeRow - size) / 2,
     size,
   }));
+}
+
+// Copied from src/render/stat-bar.js (private there): the colour indicator.
+function drawIndicator(ctx, { colours, cx, cy, r }) {
+  const step = (Math.PI * 2) / colours.length;
+  const start = -Math.PI / 2;
+  colours.forEach((c, i) => {
+    ctx.fillStyle = INDICATOR[c];
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start + i * step, start + (i + 1) * step);
+    ctx.closePath();
+    ctx.fill();
+  });
+  if (colours.length > 1) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    colours.forEach((_, i) => {
+      const a = start + i * step;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    });
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 async function typeIconImages() {
@@ -192,19 +226,31 @@ async function render(model, inputs, spike) {
     const inRow = rest.length === 4 && y >= BAR_TOP.y && y < BAR_TOP.y + BAR_TOP.typeRow;
     if (!(icons.has(image) && inRow)) drawImage(image, ...rest);
   };
-  BAR_TOP.y = SPIKE_TOP;
+  // Without its indicator, the renderer's top section starts one indicator
+  // row lower, so the mana block stays where the indicator would leave it.
+  const r = BAR_TOP.indicator;
+  const indicatorRow = model.colorIndicator ? r * 2 + BAR_TOP.rowGap : 0;
+  BAR_TOP.y = SPIKE_TOP + indicatorRow;
   try {
-    const { warnings } = await renderCard(ctx, model, {
-      env: nodeEnv,
-      assets: nodeAssets,
-      art: await decode(inputs.art),
-      setSymbol: await decodeSetSymbol(inputs.setSymbol),
-    });
+    const { warnings } = await renderCard(
+      ctx,
+      { ...model, colorIndicator: null },
+      {
+        env: nodeEnv,
+        assets: nodeAssets,
+        art: await decode(inputs.art),
+        setSymbol: await decodeSetSymbol(inputs.setSymbol),
+      },
+    );
     ctx.drawImage = drawImage;
     drawWideNameBar(ctx, model);
-    for (const { type, x, y, size } of typeRow(model)) {
+    for (const { type, x, y, size } of typeRow(model, SPIKE_TOP)) {
       const { icon, placeholder } = CARD_TYPES[type];
       ctx.drawImage(await nodeAssets.iconOrPlaceholder(icon, placeholder), x, y, size, size);
+    }
+    if (model.colorIndicator) {
+      const cy = SPIKE_TOP + BAR_TOP.typeRow + BAR_TOP.rowGap + r;
+      drawIndicator(ctx, { colours: model.colorIndicator, cx: MANA_CENTRE, cy, r });
     }
     return { canvas, warnings };
   } finally {
