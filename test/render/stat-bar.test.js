@@ -379,13 +379,19 @@ test('the bottom section is anchored to the bottom of the bar; the middle stack 
   // Krosan Grip's FLASH and SPLIT SECOND stay full size above it (D36).
   const grip = loadCardFixture('krosan-grip');
   assert.equal(statBarMiddle(grip, { from: statBarTop(grip).bottom }).scale, 1);
-  // With no middle stack, it grows to fill the bar from the type line down.
+  // With at most one middle icon, it grows to fill the bar below room for a
+  // labelled FLASH, the same with or without one.
   const damnation = bottom('damnation');
   assert.ok(damnation.size > BAR_BOTTOM.label.size);
   assert.equal(damnation.step / damnation.size, BAR_BOTTOM.label.step / BAR_BOTTOM.label.size);
-  assert.ok(damnation.top >= TYPE.y && damnation.top < TYPE.y + damnation.step);
-  assert.equal(label.size, BAR_BOTTOM.label.size);
-  assert.equal(label.top, label.base - 12 * BAR_BOTTOM.label.step - BAR_BOTTOM.label.size);
+  assert.deepEqual(label, { ...damnation, letters: label.letters });
+  const strike = loadCardFixture('lightning-strike');
+  const flash = statBarMiddle(strike, { from: statBarTop(strike).bottom });
+  assert.equal(flash.scale, 1);
+  assert.equal(flash.labels, true);
+  assert.ok(label.top - BAR_BOTTOM.gap - flash.bottom < damnation.step);
+  assert.equal(bottom('krosan-grip').size, BAR_BOTTOM.label.size);
+  assert.equal(label.top, label.base - 12 * label.step - label.size);
   // Nothing at the bottom: the stack may run to the bar's bottom edge.
   assert.equal(bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')), edge);
 });

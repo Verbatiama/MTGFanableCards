@@ -211,8 +211,9 @@ export function middleItems(model) {
  * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
  * or nothing. The label flows past the text box and ends on the bar's bottom
  * edge (`base`, D36), like the loyalty badge; the rest sit on that edge too.
- * With nothing in the middle stack, the label grows (size and step together)
- * to fill the bar from the top of the type line down.
+ * With at most one item in the middle stack, the label grows (size and step
+ * together) to fill the bar below room for one labelled icon (FLASH) hanging
+ * from the type line, kept free even when the card has no such icon.
  * @param {import('../model/card-model.js').CardModel} model
  * @param {{ type?: { y: number } }} [bands] The type line band.
  */
@@ -244,9 +245,11 @@ export function statBarBottom(model, { type = TYPE } = {}) {
     const letters = [...LABELS.nonPermanent];
     const base = edge;
     let { size, step } = B.label;
-    if (!middleItems(model).length) {
+    if (middleItems(model).length <= 1) {
+      const M = BAR_MIDDLE;
+      const from = type.y + M.icon + M.label + M.gap + B.gap;
       const ratio = step / size;
-      const fill = Math.floor((base - type.y) / ((letters.length - 1) * ratio + 1));
+      const fill = Math.floor((base - from) / ((letters.length - 1) * ratio + 1));
       if (fill > size) [size, step] = [fill, fill * ratio];
     }
     const top = base - (letters.length - 1) * step - size;
