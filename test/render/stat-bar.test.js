@@ -371,10 +371,14 @@ test('the bottom section is anchored to the bottom of the bar; the middle stack 
     const model = loadCardFixture(slug);
     assert.equal(bottomSectionTop(model), statBarBottom(model).top - BAR_BOTTOM.gap, slug);
   }
-  // NON-PERMANENT ends level with the bottom of the text box (5.7.2); its
-  // first letter is its top.
+  // NON-PERMANENT flows past the text box and ends on the bar's bottom edge
+  // (5.7.2, D36); its first letter is its top.
   const label = bottom('lightning-strike');
-  assert.equal(label.base, TEXT.y + TEXT.h);
+  assert.equal(label.base, edge);
+  assert.ok(label.base > TEXT.y + TEXT.h);
+  // Krosan Grip's FLASH and SPLIT SECOND stay full size above it (D36).
+  const grip = loadCardFixture('krosan-grip');
+  assert.equal(statBarMiddle(grip, { from: statBarTop(grip).bottom }).scale, 1);
   assert.equal(label.top, label.base - 12 * BAR_BOTTOM.label.step - BAR_BOTTOM.label.size);
   // Nothing at the bottom: the stack may run to the bar's bottom edge.
   assert.equal(bottomSectionTop(loadCardFixture('sword-of-fire-and-ice')), edge);

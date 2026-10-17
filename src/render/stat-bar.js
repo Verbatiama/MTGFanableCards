@@ -209,12 +209,11 @@ export function middleItems(model) {
  * power and toughness (`stats`, hollow unless the card is a creature: vehicles
  * and spacecraft, 5.7.7), the starting loyalty badge (7.2.3), the defense
  * badge (5.7.7), the vertical NON-PERMANENT label for non-permanents (5.7.3),
- * or nothing. The label ends level with the bottom of the text box (`base`);
- * the rest sit on the bar's bottom edge.
+ * or nothing. The label flows past the text box and ends on the bar's bottom
+ * edge (`base`, D36), like the loyalty badge; the rest sit on that edge too.
  * @param {import('../model/card-model.js').CardModel} model
- * @param {{ text?: { y: number, h: number } }} [bands] The text box band.
  */
-export function statBarBottom(model, { text = TEXT } = {}) {
+export function statBarBottom(model) {
   const B = BAR_BOTTOM;
   const edge = CARD.height - B.edge;
   const badge = (kind, value) => ({
@@ -240,7 +239,7 @@ export function statBarBottom(model, { text = TEXT } = {}) {
   if (model.defense !== null) return badge('defense', model.defense);
   if (!isPermanent(model.types)) {
     const letters = [...LABELS.nonPermanent];
-    const base = text.y + text.h;
+    const base = edge;
     const top = base - (letters.length - 1) * B.label.step - B.label.size;
     return { kind: 'label', letters, base, top };
   }
