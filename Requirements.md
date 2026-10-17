@@ -473,7 +473,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 
 5.7.1 **[Confirmed]** Creature stats: power over a crossed-swords icon, a horizontal divider, then toughness over a shield icon. **[Confirmed]** Mockup-sized (T-S4, C1), then enlarged to fill the column: 72px values and 64px icons filling the bottom of the bar (`BAR_BOTTOM.stats`). The middle stack has correspondingly less room on creatures, so long stacks shrink sooner (5.6.3), and land mana symbols rise to stay clear of the stats (5.5.8).
 
-5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line). **[Confirmed]** The label ends level with the bottom of the text box, not the bottom of the bar. The middle stack stops above it, so an instant with both FLASH and SPLIT SECOND (Krosan Grip) shows them without labels (5.6.3).
+5.7.2 **[Confirmed]** Permanence is spelled vertically, one letter per line: "PERMANENT" (Sword, Feral Invocation) or "NON-PERMANENT" (Damnation, Lightning Strike, with the hyphen on its own line). **[Confirmed]** ~~The label ends level with the bottom of the text box, not the bottom of the bar.~~ **[Confirmed]** (D36) The label flows past the text box into the region below it, ending on the bar's bottom edge like the planeswalker starting loyalty badge (7.2.3), so it can be larger without pushing up into the middle stack. Its size is the largest at which Krosan Grip's middle stack (FLASH and SPLIT SECOND) keeps its icons at full size (set in T-B18). The middle stack stops above it, so an instant with both FLASH and SPLIT SECOND (Krosan Grip) shows them without labels (5.6.3).
 
 5.7.3 **[Confirmed]** Only NON-PERMANENT is shown (D18). Permanents never get a permanence label, so the PERMANENT label in the Sword of Fire and Ice and Feral Invocation mockups is dropped; on a permanent with no stats, loyalty or defense the bottom of the bar is left empty. Instants and sorceries always show NON-PERMANENT, as their bottom is never used by anything else.
 
@@ -499,6 +499,8 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 6.1.1 **[Confirmed]** The name bar is at the top of the card box, next to the card type icon (revised by D33: it runs the full width of the card, 6.1.2). It shows the card name only; the mana cost is in the stat bar.
 
 6.1.2 **[Confirmed]** (D33) Full-width name bar, on every card: the name bar runs the full width of the card, across the top of the stat bar as well as the card box, and the stat bar's top section (type icons, colour indicator, mana) starts below it instead of beside it. The type icons sit straight over the art's faded left edge, with no pill behind them (unlike the mana rows), and the row and the colour indicator below it are centred on the mana symbols' centre line (x 72) rather than the bar's (x 81); a row of several icons shrinks so it stays inside the border (two icons about 34px instead of 41px). The mana block keeps its rules (5.3.11, 4.4): it has 58px less room above the type line, so long costs close up sooner. Prototyped in `spikes/full-width-name/` (removed once built in, T-B15; see the D33 commits): name bar from x 40 (as far in from the left edge as the frame is from the right) to the frame's right edge, same height; type icon row 8px below the name bar's pinline, over the art (y 44 → 116); the mana block starts below it, with 58px less room above the type line. This replaces the type icon row's place beside the name bar (5.1.3); implemented in T-B15 (`NAME.x`/`NAME.right` and `BAR_TOP.y`/`BAR_TOP.manaInset` in `src/config/layout.js`). With the less room, Niv-Mizzet's bar fits six mana rows spread out and seven run past the type line (eight before).
+
+6.1.3 **[Confirmed]** (D34) The card name is 1.5× its original size: 51px (`TEXT_SIZE.name`, was 34px). A name too wide for the full-width bar shrinks to fit (in practice never below 34px). In the text scale spike (`spikes/text-scale/`), 458 of 33,430 real card faces (1.4%) shrink at 51px.
 
 ### 6.2 Art box
 
@@ -537,7 +539,7 @@ Nothing is ever hidden. Order (5.6.1) does not change in any step. In practice, 
 - loyalty cost symbols inside text
 - the planeswalker symbol
 
-  6.4.8 **[Confirmed]** Rules text is centred vertically in the text box, like printed cards (T-S4, C15). Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
+  6.4.8 **[Confirmed]** Rules text is centred vertically in the text box, like printed cards (T-S4, C15). Text fitting (D20): if the rules and flavour text don't fit at full size, the flavour text is dropped first. The rules text then shrinks to fit, down to a minimum size (configurable; the preview spike uses 12px against a 26px normal size). **[Confirmed]** (D35) The starting size is 1.4× the original: 36px (`TEXT_SIZE.rules`), minimum still 12px. In the text scale spike (`spikes/text-scale/`), 17% of real cards fit at 36px as is, the flavour text is dropped on 48%, and none overflow; planeswalker ability bands start at 36px too (most already shrink). Rules text is never cut. The spike's `stress-drop-flavour` case shows this.
 
 ### 6.5 Footer
 
@@ -804,6 +806,8 @@ The questions raised while writing these requirements, grouped by area. Numbers 
 35. Is the symbol + count pill used for all mana in rules text? [6.4.6] — **Answered:** no, rules text shows symbols as printed (D11).
 36. Which additional text symbols are needed? [6.4.7] — **Answered:** all of them (D20).
 37. What are the text-fitting rules? [6.4.8] — **Answered:** drop flavour text, then shrink (D20).
+55. How large are the card name and rules text? [6.1.3, 6.4.8] — **Answered:** name 1.5× (51px, D34); rules text starts at 1.4× (36px, D35).
+56. Where does NON-PERMANENT end, and how large is it? [5.7.2] — **Answered:** on the bar's bottom edge, below the text box; the largest size that keeps Krosan Grip's middle stack full size (D36).
 38. Is the copyright year per printing or fixed? When does the holo stamp appear? [6.5.2, 6.5.3] — **Answered:** the year the image is generated; no holo stamp (D20).
 39. What do the frames for hybrid, coloured artifacts, devoid and other unshown cases look like? [6.6.2] — **Answered:** D21.
 40. How are long, many or ±X planeswalker abilities handled? [7.2.6, 7.2.7] — **Answered:** D22.
