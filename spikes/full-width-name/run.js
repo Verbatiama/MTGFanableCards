@@ -15,7 +15,10 @@
  * here, without touching src/: `BAR_TOP.y` is moved below the name bar before
  * rendering, and the wider name bar is painted over the normal one afterwards
  * (nothing from the stat bar is left in its band once the top section has
- * moved down).
+ * moved down). The type icons are centred on the mana symbols' centre line
+ * rather than the bar's: the renderer's own type icon draws are held back and
+ * the row is drawn again at the new place, shrunk only as far as it must be to
+ * stay inside the border.
  *
  * Writes out/full-width-name/<slug>.png (current | spike, side by side) and a
  * contact sheet of the spike renders (_all.png). Prints the layout warnings
@@ -25,7 +28,15 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createCanvas } from 'canvas';
 import { OUT_DIR } from '../../src/paths.js';
-import { nodeEnv, registerFonts, renderCardCanvas } from '../../src/render/node.js';
+import {
+  decode,
+  decodeSetSymbol,
+  nodeAssets,
+  nodeEnv,
+  registerFonts,
+  renderCardCanvas,
+} from '../../src/render/node.js';
+import { renderCard } from '../../src/render/render-card.js';
 import { framePalette } from '../../src/render/frame.js';
 import { fitFont, textFont } from '../../src/render/fonts.js';
 import { createArtFetcher } from '../../src/art/art-cache.js';
@@ -37,7 +48,16 @@ import { selectPrinting } from '../../src/data/resolve.js';
 import { DATA_DIR } from '../../src/paths.js';
 import { fixtureSlug, loadCardFixtures } from '../../test/fixtures/cards.js';
 import { stressModels } from '../fixture-preview/stress.js';
-import { ART, BAR_TOP, BOX, CARD, NAME, TEXT_SIZE } from '../../src/config/index.js';
+import {
+  ART,
+  BAR,
+  BAR_TOP,
+  BOX,
+  CARD,
+  CARD_TYPES,
+  NAME,
+  TEXT_SIZE,
+} from '../../src/config/index.js';
 
 /** The wider name bar: as far in from the left edge as the frame is from the right. */
 const SPIKE_NAME = { x: CARD.width - BOX.right, right: BOX.right };
@@ -124,12 +144,68 @@ function drawWideNameBar(ctx, model) {
   ctx.restore();
 }
 
+/** The mana symbols' centre line (they sit 8px in from the bar's left edge). */
+const MANA_CENTRE = BAR.x + 8 + BAR.icon / 2;
+
+/**
+ * The type icon row centred on MANA_CENTRE: icons at full size where they
+ * fit, otherwise shrunk so the row stays between the border and the frame's
+ * mirror image (2 × (MANA_CENTRE − BAR.x) wide).
+ */
+function typeRow(model) {
+  const shown = model.types.filter((t) => CARD_TYPES[t]);
+  const n = shown.length;
+  const gap = BAR_TOP.typeGap;
+  const room = 2 * (MANA_CENTRE - BAR.x);
+  const size = Math.min(BAR_TOP.typeRow, Math.floor((room - gap * (n - 1)) / n));
+  const left = MANA_CENTRE - (size * n + gap * (n - 1)) / 2;
+  return shown.map((type, i) => ({
+    type,
+    x: left + i * (size + gap),
+    y: BAR_TOP.y + (BAR_TOP.typeRow - size) / 2,
+    size,
+  }));
+}
+
+async function typeIconImages() {
+  const images = new Set();
+  for (const { icon, placeholder } of Object.values(CARD_TYPES)) {
+    images.add(await nodeAssets.iconOrPlaceholder(icon, placeholder));
+  }
+  return images;
+}
+
 async function render(model, inputs, spike) {
-  const warnings = [];
-  BAR_TOP.y = spike ? SPIKE_TOP : CURRENT_TOP;
-  try {
+  if (!spike) {
+    const warnings = [];
     const canvas = await renderCardCanvas(model, { ...inputs, onWarning: (m) => warnings.push(m) });
-    if (spike) drawWideNameBar(canvas.getContext('2d'), model);
+    return { canvas, warnings };
+  }
+  registerFonts();
+  const canvas = createCanvas(CARD.width, CARD.height);
+  const ctx = canvas.getContext('2d');
+  // Hold back the renderer's type icons (drawn in the type icon row's band).
+  const icons = await typeIconImages();
+  const drawImage = ctx.drawImage.bind(ctx);
+  ctx.drawImage = (image, ...rest) => {
+    const y = rest[1];
+    const inRow = rest.length === 4 && y >= BAR_TOP.y && y < BAR_TOP.y + BAR_TOP.typeRow;
+    if (!(icons.has(image) && inRow)) drawImage(image, ...rest);
+  };
+  BAR_TOP.y = SPIKE_TOP;
+  try {
+    const { warnings } = await renderCard(ctx, model, {
+      env: nodeEnv,
+      assets: nodeAssets,
+      art: await decode(inputs.art),
+      setSymbol: await decodeSetSymbol(inputs.setSymbol),
+    });
+    ctx.drawImage = drawImage;
+    drawWideNameBar(ctx, model);
+    for (const { type, x, y, size } of typeRow(model)) {
+      const { icon, placeholder } = CARD_TYPES[type];
+      ctx.drawImage(await nodeAssets.iconOrPlaceholder(icon, placeholder), x, y, size, size);
+    }
     return { canvas, warnings };
   } finally {
     BAR_TOP.y = CURRENT_TOP;
@@ -239,7 +315,7 @@ if (!named.length) {
 }
 console.log(`Wrote ${sheet.length} comparisons (current | spike) and _all.png to ${dir}`);
 console.log(
-  `Type icon row: y ${CURRENT_TOP} → ${SPIKE_TOP}; name bar x ${BOX.x} → ${SPIKE_NAME.x}`,
+  `Type icon row: y ${CURRENT_TOP} → ${SPIKE_TOP}, centred at x ${BAR.x + BAR.width / 2} → ${MANA_CENTRE}; name bar x ${BOX.x} → ${SPIKE_NAME.x}`,
 );
 console.log(
   added.length
