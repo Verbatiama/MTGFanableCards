@@ -26,7 +26,7 @@ import { drawTextBox } from './text-box.js';
  * @property {any} [setSymbol] Loaded set symbol image, or null to show the set code (6.3).
  * @property {number} [year] Copyright year; the current year by default (6.5.2).
  * @property {import('../parse/oracle-text.js').TextOptions} [text] Optional text
- *   to leave out, such as `{ reminder: false }` (6.4.9, D37).
+ *   to leave out, such as `{ reminder: false, flavour: false }` (6.4.9, 6.4.10, D37).
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../model/card-model.js').CardModel} model

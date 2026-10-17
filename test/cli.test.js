@@ -133,6 +133,19 @@ test('--no-reminder leaves reminder text out (6.4.9, D37)', () =>
     assert.notDeepEqual(await card('--no-reminder'), shown);
   }));
 
+test('--no-flavour leaves flavour text out (6.4.10, D37)', () =>
+  withDir(async (dir) => {
+    const card = async (...flags) => {
+      const { code } = await cli(['-', '--out', dir, '--png', ...flags], {
+        stdin: 'Lightning Bolt (M10) 146',
+      });
+      assert.equal(code, 0);
+      return readFile(path.join(dir, 'cards', 'Lightning-Bolt.png'));
+    };
+    const shown = await card();
+    assert.notDeepEqual(await card('--no-flavour'), shown);
+  }));
+
 test('--pdf and --png replace the zip; --png clears the previous images', () =>
   withDir(async (dir) => {
     await mkdir(path.join(dir, 'cards'));

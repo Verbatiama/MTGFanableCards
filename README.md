@@ -33,7 +33,7 @@ npm run web:build
 npm start
 ```
 
-Open http://localhost:3000, paste or type your decklist, and choose **Generate cards**. The card on the line under the cursor is previewed as you type, and names that don't match get clickable suggestions. Untick **Reminder text** to leave the text in parentheses off the cards (the preview shows the change; the choice is remembered). Choose a zip of PNGs or a PDF, then download it when it's ready. Downloads are kept for an hour.
+Open http://localhost:3000, paste or type your decklist, and choose **Generate cards**. The card on the line under the cursor is previewed as you type, and names that don't match get clickable suggestions. Untick **Reminder text** or **Flavour text** to leave the text in parentheses or the flavour text off the cards (the preview shows the change; the choice is remembered). Choose a zip of PNGs or a PDF, then download it when it's ready. Downloads are kept for an hour.
 
 ### From the command line
 
@@ -44,7 +44,7 @@ npm run cli -- deck.txt --png      # out/cards/*.png
 npm run cli -- - < deck.txt        # read the decklist from stdin
 ```
 
-`--out <dir>` writes somewhere other than `out/`, and `--no-reminder` leaves reminder text off the cards. Problems are listed on stderr by line number and never stop the batch; add `--strict` to exit with code 1 when there were any. `--help` lists every option.
+`--out <dir>` writes somewhere other than `out/`, and `--no-reminder` and `--no-flavour` leave reminder and flavour text off the cards. Problems are listed on stderr by line number and never stop the batch; add `--strict` to exit with code 1 when there were any. `--help` lists every option.
 
 ### On a DigitalOcean droplet
 

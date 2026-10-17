@@ -130,6 +130,20 @@ test('reminderText: false leaves reminder text out of a job (6.4.9, D37)', () =>
     );
   }));
 
+test('flavourText: false leaves flavour text out of a job (6.4.10, D37)', () =>
+  withApp({}, async (a) => {
+    const card = async (body) => {
+      const job = await finished(
+        a,
+        (await post(a, { decklist: 'Lightning Bolt (M10) 146', ...body })).json().id,
+      );
+      return unzipSync((await get(a, job.downloadUrl)).rawPayload)['Lightning-Bolt.png'];
+    };
+    const shown = await card({});
+    assert.deepEqual(await card({ flavourText: true }), shown);
+    assert.notDeepEqual(await card({ flavourText: false }), shown);
+  }));
+
 test('a job with nothing to render fails, with the report', () =>
   withApp({}, async (a) => {
     const job = await finished(

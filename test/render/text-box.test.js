@@ -107,6 +107,17 @@ test('the renderer can leave reminder text out; basic lands keep their symbol (6
   assert.deepEqual(await png(forest, { reminder: false }), await png(forest));
 });
 
+test('the renderer can leave flavour text out (6.4.10, D37)', async () => {
+  const png = async (model, text) =>
+    (await renderCardCanvas(model, { text })).toBuffer('image/png');
+  const strike = loadCardFixture('lightning-strike');
+  assert.deepEqual(
+    await png(strike, { flavour: false }),
+    await png({ ...strike, flavorText: null }),
+  );
+  assert.notDeepEqual(await png(strike, { flavour: false }), await png(strike));
+});
+
 test('short rules text is centred vertically in the text box (C15)', async () => {
   const model = { ...loadCardFixture('lightning-strike'), flavorText: null };
   const canvas = await renderCardCanvas(model);

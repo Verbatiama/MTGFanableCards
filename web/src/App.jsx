@@ -7,8 +7,8 @@ import { isPreviewable, lineAt, lineStart, replaceInLine, reportProblems } from 
  * The frontend (T-C2, D27; Requirements 3.1.2, 3.2.6, 3.6.2, 10.2): decklist
  * input, a live preview of the line the cursor is on (rendered in the
  * browser), generation with progress, the unmatched-name report, the zip/PDF
- * download and the Fan Content notice. Checkboxes leave reminder text out of
- * the preview and the batch (D37). Batches render on the server, or in
+ * download and the Fan Content notice. Checkboxes leave reminder and flavour
+ * text out of the preview and the batch (D37). Batches render on the server, or in
  * the browser when the server has FRONTEND_RENDER on (T-S14); the UI shows no
  * thumbnails of them.
  */
@@ -33,7 +33,7 @@ function storedDecklist() {
 
 /** The text options last chosen (D37): everything shown by default. */
 function storedText() {
-  const shown = { reminder: true };
+  const shown = { reminder: true, flavour: true };
   try {
     return { ...shown, ...JSON.parse(localStorage.getItem(TEXT_KEY) ?? '{}') };
   } catch {
@@ -131,6 +131,14 @@ export function App() {
                 onChange={(e) => setText((t) => ({ ...t, reminder: e.target.checked }))}
               />
               Reminder text (in parentheses)
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={text.flavour}
+                onChange={(e) => setText((t) => ({ ...t, flavour: e.target.checked }))}
+              />
+              Flavour text
             </label>
           </fieldset>
           <Generate decklist={decklist} text={text} inBrowser={frontendRender} onLine={goToLine} />
@@ -262,18 +270,18 @@ function CardCanvas({ face, text }) {
   const canvas = useRef(null);
   const [warnings, setWarnings] = useState([]);
   const [error, setError] = useState(null);
-  const reminderShown = text.reminder;
+  const { reminder: reminderShown, flavour: flavourShown } = text;
 
   useEffect(() => {
     let current = true;
-    renderFace(canvas.current, face, { reminder: reminderShown }).then(
+    renderFace(canvas.current, face, { reminder: reminderShown, flavour: flavourShown }).then(
       (w) => current && (setWarnings(w), setError(null)),
       (e) => current && setError(e.message),
     );
     return () => {
       current = false;
     };
-  }, [face, reminderShown]);
+  }, [face, reminderShown, flavourShown]);
 
   return (
     <figure>

@@ -136,13 +136,17 @@ export async function buildApp({
       schema: { tags: ['jobs'], body: JOB_REQUEST, response: { 202: JOB } },
     },
     async (request, reply) => {
-      const { decklist, format, reminderText } = request.body;
+      const { decklist, format, reminderText, flavourText } = request.body;
       const invalid = checkDecklist(decklist);
       if (invalid) return reply.code(invalid.statusCode).send(invalid);
       if (!jobs.accepting) {
         return reply.code(503).send(error(503, 'The server is shutting down; try again shortly'));
       }
-      const job = jobs.create({ decklist, format, text: { reminder: reminderText } });
+      const job = jobs.create({
+        decklist,
+        format,
+        text: { reminder: reminderText, flavour: flavourText },
+      });
       return reply.code(202).header('Location', `/api/jobs/${job.id}`).send(jobView(job, jobs));
     },
   );
@@ -526,6 +530,11 @@ const JOB_REQUEST = {
       type: 'boolean',
       default: true,
       description: 'Show reminder text (anything in parentheses); false leaves it out',
+    },
+    flavourText: {
+      type: 'boolean',
+      default: true,
+      description: 'Show flavour text; false leaves it out',
     },
   },
 };

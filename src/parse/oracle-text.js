@@ -19,6 +19,7 @@
  *
  * Reminder text can be left out (6.4.9, D37, T-C3): everything in parentheses
  * goes, with the spaces around it tidied, and a line left empty is dropped.
+ * Flavour text can be left out too (6.4.10, T-C4).
  */
 
 const SYMBOL = /\{([^}]+)\}/g;
@@ -33,6 +34,7 @@ const LOYALTY_COST = /^([+−-](?:\d+|X)|0):\s*/;
 /**
  * @typedef {object} TextOptions Which optional text to show (6.4.9, D37).
  * @property {boolean} [reminder] Reminder text; shown by default.
+ * @property {boolean} [flavour] Flavour text; shown by default.
  */
 
 /**
@@ -91,7 +93,7 @@ function tidySpaces(tokens) {
  * @param {TextOptions} [options]
  * @returns {Paragraph[]} Rules paragraphs (one per Oracle line), then flavour text.
  */
-export function tokenizeCard(model, { reminder = true } = {}) {
+export function tokenizeCard(model, { reminder = true, flavour = true } = {}) {
   const planeswalker = model.types.includes('Planeswalker');
   const paragraphs = [];
   for (const line of model.oracleText ? model.oracleText.split('\n') : []) {
@@ -101,7 +103,7 @@ export function tokenizeCard(model, { reminder = true } = {}) {
     if (!tokens.length && !cost) continue;
     paragraphs.push({ kind: 'rules', cost: cost ? cost[1].replace('-', '−') : null, tokens });
   }
-  if (model.flavorText) {
+  if (model.flavorText && flavour) {
     paragraphs.push({
       kind: 'flavor',
       cost: null,

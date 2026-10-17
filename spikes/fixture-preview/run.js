@@ -164,12 +164,14 @@ async function edgeCaseModels() {
   return printings.flatMap(mapCard).map((model) => [`edge-${slug(model.name)}`, model]);
 }
 
-// Cards drawn with text left out (D37): reminder text (6.4.9, T-C3).
+// Cards drawn with text left out (D37): reminder text (6.4.9, T-C3) and
+// flavour text (6.4.10, T-C4).
 const TEXT_OPTIONS = {
   'no-reminder': [
     { reminder: false },
     ['fiendslayer-paladin', 'kitchen-finks', 'smugglers-copter', 'ajani-sleeper-agent'],
   ],
+  'no-flavour': [{ flavour: false }, ['lightning-strike', 'feral-invocation', 'dismember']],
 };
 
 function optionModels(fixtures) {

@@ -24,7 +24,12 @@ export const createJob = (decklist, format, text = {}) =>
   request('/api/jobs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ decklist, format, reminderText: text.reminder !== false }),
+    body: JSON.stringify({
+      decklist,
+      format,
+      reminderText: text.reminder !== false,
+      flavourText: text.flavour !== false,
+    }),
   });
 
 export const jobStatus = (id) => request(`/api/jobs/${id}`);

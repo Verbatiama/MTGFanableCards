@@ -79,6 +79,18 @@ test('lines that were only reminder text go; flavour text stays (6.4.9)', () => 
   assert.equal(tokenizeCard(model).length, 4, 'shown by default');
 });
 
+test('flavour text can be left out (6.4.10, D37)', () => {
+  const model = { types: ['Instant'], oracleText: 'Draw a card. (Reminder.)', flavorText: 'Wise.' };
+  assert.deepEqual(
+    tokenizeCard(model, { flavour: false }).map((p) => [p.kind, show(p.tokens)]),
+    [['rules', 'Draw a card. /(Reminder.)/']],
+  );
+  assert.deepEqual(
+    tokenizeCard(model, { reminder: false, flavour: false }).map((p) => show(p.tokens)),
+    ['Draw a card.'],
+  );
+});
+
 test('flavour text is italic and never converted (6.4.1)', () => {
   assert.equal(line('It got +2/+2 stronger.', { flavor: true }), '/It got +2/+2 stronger./');
 });

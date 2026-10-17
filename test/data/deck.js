@@ -3,7 +3,7 @@ import { scryfallCard } from './helpers.js';
 
 /**
  * A small card database for the CLI and API tests: two Lightning Bolt
- * printings, a card with reminder text, a double-faced card and a split card
+ * printings (one with flavour text), a card with reminder text, a double-faced card and a split card
  * (out of scope for v1).
  */
 export function deckDatabase() {
@@ -21,6 +21,8 @@ export function deckDatabase() {
       released_at: '2009-07-17',
       mana_cost: '{R}',
       colors: ['R'],
+      flavor_text:
+        "The sparkmage shrieked, calling on the rage of the storms of his youth. To his surprise, the sky responded with a fierce energy he'd never thought to see again.",
     }),
     scryfallCard({
       name: 'Fiendslayer Paladin',
