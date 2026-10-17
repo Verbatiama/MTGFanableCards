@@ -144,4 +144,4 @@ export const FONTS = {
 };
 
 /** Text sizes in pixels: starting sizes; text fitting can shrink them (6.4.8). */
-export const TEXT_SIZE = { name: 51, typeLine: 24, rules: 26, minRules: 12, footer: 15 };
+export const TEXT_SIZE = { name: 51, typeLine: 24, rules: 36, minRules: 12, footer: 15 };
